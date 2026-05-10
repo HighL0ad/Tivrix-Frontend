@@ -1,0 +1,117 @@
+import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Input } from "@/shared/ui/input";
+import {
+  AppCombobox,
+  AppFormField,
+} from "@/shared/ui/app-form";
+import type { ProductOption } from "@/entities/products/model/types";
+
+export function InlineCreate({
+  value,
+  onChange,
+  onCreate,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onCreate: () => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="flex items-start gap-2">
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        className="h-10"
+        onClick={onCreate}
+        disabled={!value.trim()}
+      >
+        Создать
+      </Button>
+    </div>
+  );
+}
+
+export function SplitPaymentFields({
+  enabled,
+  setEnabled,
+  amount,
+  setAmount,
+  walletId,
+  setWalletId,
+  walletOptions,
+  title,
+}: {
+  enabled: boolean;
+  setEnabled: (value: boolean) => void;
+  amount: string;
+  setAmount: (value: string) => void;
+  walletId: string;
+  setWalletId: (value: string) => void;
+  walletOptions: ProductOption[];
+  title: string;
+}) {
+  return (
+    <div className="space-y-3 border p-3">
+      <label className="flex items-center gap-2 text-xs font-medium">
+        <Checkbox
+          checked={enabled}
+          onCheckedChange={(checked) => setEnabled(Boolean(checked))}
+        />
+        {title}
+      </label>
+      {enabled ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+            <AppFormField label="Сумма на второй кошелек">
+              <Input
+                type="number"
+                step="1"
+                min="1"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                required
+              />
+            </AppFormField>
+          <SelectField
+            label="Второй кошелек"
+            value={walletId}
+            onValueChange={setWalletId}
+            options={walletOptions}
+            placeholder="Выберите кошелек"
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function SelectField({
+  label,
+  value,
+  onValueChange,
+  options,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: ProductOption[];
+  placeholder: string;
+}) {
+  return (
+    <AppFormField label={label}>
+      <AppCombobox
+        value={value}
+        onValueChange={onValueChange}
+        options={options}
+        placeholder={placeholder}
+      />
+    </AppFormField>
+  );
+}

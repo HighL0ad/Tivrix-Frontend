@@ -1,0 +1,149 @@
+import { type ComponentProps, useState } from "react";
+import { LockKeyhole, LogIn, User } from "lucide-react";
+import { useNavigate } from "react-router";
+
+import { useLogin } from "@/entities/auth/api/use-login";
+import { queryClient } from "@/shared/api/query-client";
+import { ApiError } from "@/shared/api/http";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { Button } from "@/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+
+export function LoginPage() {
+  const navigate = useNavigate();
+  const loginMutation = useLogin();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const error =
+    loginMutation.error instanceof ApiError
+      ? getErrorMessage(loginMutation.error.payload)
+      : null;
+
+  const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (
+    event,
+  ) => {
+    event.preventDefault();
+
+    loginMutation.mutate(
+      { username, password },
+      {
+        onSuccess: (currentUser) => {
+          queryClient.setQueryData(["auth", "me"], currentUser);
+          navigate(currentUser.first_accessible_route ?? "/", { replace: true });
+        },
+      },
+    );
+  };
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-4">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(79,70,229,0.28),transparent_32%),radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.16),transparent_28%)]" />
+      <Card className="relative w-full max-w-sm border-white/15 bg-white/10 p-0 text-white shadow-2xl backdrop-blur-xl">
+        <CardHeader className="mb-2 items-center px-8 pt-8 text-center">
+          <CardTitle className="text-3xl font-bold tracking-tight text-white">
+            Ferdi <span className="text-lg text-indigo-200">Telefon</span>
+          </CardTitle>
+          <CardDescription className="mt-2 text-sm text-slate-300">
+            Авторизация сотрудника
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="px-8 pb-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error ? (
+              <Alert variant="destructive" className="mb-6 rounded-lg">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            <div>
+              <Label
+                htmlFor="username"
+                className="mb-1 ml-1 block text-xs font-bold uppercase text-slate-300"
+              >
+                Логин
+              </Label>
+              <div className="relative">
+                <User
+                  className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-gray-400"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="username"
+                  className="border-white/15 bg-white/10 pl-10 text-white placeholder:text-slate-400"
+                  placeholder="Введите имя"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  autoComplete="username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label
+                htmlFor="password"
+                className="mb-1 ml-1 block text-xs font-bold uppercase text-slate-300"
+              >
+                Пароль
+              </Label>
+              <div className="relative">
+                <LockKeyhole
+                  className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-gray-400"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="password"
+                  className="border-white/15 bg-white/10 pl-10 text-white placeholder:text-slate-400"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loginMutation.isPending}
+              className="mt-2 w-full bg-[#4f46e5] py-3.5 shadow-lg shadow-indigo-950/30 hover:bg-indigo-500"
+            >
+              <LogIn aria-hidden="true" />
+              {loginMutation.isPending ? "Входим..." : "Войти в систему"}
+            </Button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-xs text-slate-400">
+              © 2026 Ferdi Telefon. Internal Use Only.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}
+
+function getErrorMessage(payload: unknown) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "detail" in payload &&
+    typeof payload.detail === "string"
+  ) {
+    return payload.detail;
+  }
+
+  return "Не удалось войти. Попробуйте ещё раз.";
+}

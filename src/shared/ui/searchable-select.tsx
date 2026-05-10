@@ -1,0 +1,44 @@
+import { AppCombobox } from "@/shared/ui/app-form"
+
+export type SearchableSelectOption = {
+  id: string
+  name: string
+}
+
+type SearchableSelectProps = {
+  value: string
+  onValueChange: (value: string) => void
+  options: SearchableSelectOption[]
+  placeholder: string
+  searchPlaceholder?: string
+  emptyMessage?: string
+  disabled?: boolean
+  className?: string
+}
+
+function SearchableSelect({
+  value,
+  onValueChange,
+  options,
+  placeholder,
+  searchPlaceholder = "Поиск...",
+  emptyMessage = "Ничего не найдено",
+  disabled = false,
+  className,
+}: SearchableSelectProps) {
+  return (
+    <div className={className}>
+      <AppCombobox
+        value={value}
+        onValueChange={onValueChange}
+        options={options}
+        placeholder={placeholder}
+        searchPlaceholder={searchPlaceholder}
+        emptyMessage={emptyMessage}
+        disabled={disabled}
+      />
+    </div>
+  )
+}
+
+export { SearchableSelect }
