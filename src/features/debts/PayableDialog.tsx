@@ -26,7 +26,12 @@ export function PayableDialog({
       onOpenChange={setOpen}
       title={payable.category}
       trigger={
-        <Button type="button" size="sm" variant="outline">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-8 rounded-full bg-amber-100 px-3 text-xs font-bold text-amber-700 shadow-none hover:bg-amber-200 hover:text-amber-800"
+        >
           Оплатить
         </Button>
       }

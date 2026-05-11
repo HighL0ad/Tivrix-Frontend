@@ -10,6 +10,8 @@ export type Payable = {
   status: string;
   product_id: number | null;
   product_name: string | null;
+  product_imei: string | null;
+  product_imei2: string | null;
   created_at: string;
 };
 

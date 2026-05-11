@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
+import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  type Payable,
   useCreateDebtWallet,
   useDebts,
 } from "@/entities/debts/api/use-debts";
@@ -171,32 +173,99 @@ export function DebtsPage() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Неоплаченные обязательства</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {data.unpaid_payables.length ? data.unpaid_payables.map((payable) => (
-            <div key={payable.id} className="flex items-center justify-between gap-3 rounded-lg border p-3 text-sm transition-colors hover:bg-sky-50/50">
-              <div>
-                <div className="font-semibold">{payable.category}</div>
-                <div className="text-xs text-gray-500">{payable.product_name ?? "Без товара"}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="font-bold">{money(payable.amount)}</div>
-                <PayableDialog payable={payable} wallets={data.my_wallets} />
+      <PayablesBlock payables={data.unpaid_payables} myWallets={data.my_wallets} />
+    </section>
+  );
+}
+
+function PayablesBlock({
+  payables,
+  myWallets,
+}: {
+  payables: Payable[];
+  myWallets: Wallet[];
+}) {
+  const total = sumPayables(payables);
+
+  return (
+    <Card className="gap-0 py-0">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b px-4 py-3">
+        <CardTitle className="min-w-0 text-sm">Неоплаченные обязательства</CardTitle>
+        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+          {money(total)}
+        </Badge>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[min(27rem,calc(100vh-18rem))] min-h-[12rem]">
+          <PayableRows payables={payables} myWallets={myWallets} />
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PayableRows({
+  payables,
+  myWallets,
+}: {
+  payables: Payable[];
+  myWallets: Wallet[];
+}) {
+  if (!payables.length) {
+    return (
+      <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+        Неоплаченных обязательств нет
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {payables.map((payable) => {
+        const imeis = [payable.product_imei, payable.product_imei2].filter(Boolean);
+
+        return (
+          <div
+            key={payable.id}
+            className="grid grid-cols-[1fr_auto] items-center gap-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className="size-2.5 shrink-0 rounded-full bg-amber-500"
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <div className="break-words font-semibold">{payable.category}</div>
+                <div className="mt-0.5 break-words text-xs text-muted-foreground">
+                  {payable.product_name ?? "Без товара"}
+                </div>
+                {imeis.length ? (
+                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="break-all font-mono">IMEI: {imeis.join(" / ")}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 shrink-0"
+                      aria-label="Скопировать IMEI"
+                      onClick={() => copyImei(imeis.join("\n"))}
+                    >
+                      <Copy className="size-3.5" aria-hidden="true" />
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </div>
-          )) : (
-            <EmptyState
-              className="py-8"
-              title="Неоплаченных обязательств нет"
-              description="Когда появятся поставщики с оплатой позже, они будут видны здесь."
-            />
-          )}
-        </CardContent>
-      </Card>
-    </section>
+            <div className="flex items-center gap-2">
+              <span className="whitespace-nowrap font-bold text-amber-700">
+                {money(payable.amount)}
+              </span>
+              <PayableDialog payable={payable} wallets={myWallets} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -216,7 +285,6 @@ function DebtGroupBlock({
   tone: "good" | "bad";
 }) {
   const total = sumWallets(wallets);
-  const isScrollable = wallets.length > 8;
   const totalClass = tone === "bad"
     ? "border-rose-200 bg-rose-50 text-rose-700"
     : "border-emerald-200 bg-emerald-50 text-emerald-700";
@@ -232,17 +300,7 @@ function DebtGroupBlock({
         </Badge>
       </CardHeader>
       <CardContent className="p-0">
-        {isScrollable ? (
-          <ScrollArea className="max-h-[27rem]">
-            <WalletRows
-              wallets={wallets}
-              myWallets={myWallets}
-              debtCreatedAt={debtCreatedAt}
-              operationType={operationType}
-              tone={tone}
-            />
-          </ScrollArea>
-        ) : (
+        <ScrollArea className="h-[min(27rem,calc(100vh-18rem))] min-h-[12rem]">
           <WalletRows
             wallets={wallets}
             myWallets={myWallets}
@@ -250,7 +308,7 @@ function DebtGroupBlock({
             operationType={operationType}
             tone={tone}
           />
-        )}
+        </ScrollArea>
       </CardContent>
     </Card>
   );
@@ -311,4 +369,13 @@ function WalletRows({
 
 function sumWallets(wallets: Wallet[]) {
   return wallets.reduce((total, wallet) => total + Number(wallet.balance), 0);
+}
+
+function sumPayables(payables: Payable[]) {
+  return payables.reduce((total, payable) => total + Number(payable.amount), 0);
+}
+
+async function copyImei(value: string) {
+  await navigator.clipboard.writeText(value);
+  toast.success("IMEI скопирован");
 }
