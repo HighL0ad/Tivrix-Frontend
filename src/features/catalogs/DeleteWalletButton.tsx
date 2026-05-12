@@ -1,6 +1,8 @@
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useDeleteWallet } from "@/entities/catalogs/api/use-catalogs";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { cn } from "@/shared/lib/utils";
 import {
   AlertDialog,
@@ -48,7 +50,12 @@ export function DeleteWalletButton({
           <AlertDialogCancel>Отмена</AlertDialogCancel>
           <AlertDialogAction
             disabled={deleteWallet.isPending}
-            onClick={() => deleteWallet.mutate(walletId)}
+            onClick={() =>
+              deleteWallet.mutate(walletId, {
+                onSuccess: () => toast.success("Запись удалена"),
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              })
+            }
           >
             Удалить
           </AlertDialogAction>

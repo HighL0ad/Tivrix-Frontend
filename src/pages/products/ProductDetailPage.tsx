@@ -39,6 +39,7 @@ import {
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog";
 import { Button } from "@/shared/ui/button";
+import { BackActionButton } from "@/shared/ui/back-button";
 import { Card, CardContent } from "@/shared/ui/card";
 import {
   Dialog,
@@ -100,11 +101,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
 
   return (
     <section className="space-y-4">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="gap-2"
+      <BackActionButton
         onClick={() => {
           if (hasReturnState) {
             navigate(-1);
@@ -112,10 +109,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
           }
           navigate(productsHref);
         }}
-      >
-        <Undo2 className="size-4" aria-hidden="true" />
-        Назад
-      </Button>
+      />
 
       <Card className="overflow-hidden p-0">
         <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -296,7 +290,13 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                       className="bg-destructive/10 text-destructive hover:bg-destructive/20"
                       onClick={() =>
                         deleteProductMutation.mutate(undefined, {
-                          onSuccess: () => navigate(productsHref, { replace: true }),
+                          onSuccess: () => {
+                            toast.success("Товар удалён");
+                            navigate(productsHref, { replace: true });
+                          },
+                          onError: (error) => {
+                            toast.error(getApiErrorMessage(error));
+                          },
                         })
                       }
                     >

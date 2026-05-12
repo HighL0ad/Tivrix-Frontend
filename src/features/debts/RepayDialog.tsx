@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { useRepayDebt } from "@/entities/debts/api/use-debts";
 import type { Wallet } from "@/entities/finance/api/use-finance";
@@ -66,7 +67,13 @@ export function RepayDialog({
                 amount,
                 operation_type: operationType,
               },
-              { onSuccess: () => setOpen(false) },
+              {
+                onSuccess: () => {
+                  setOpen(false);
+                  toast.success(isPayment ? "Оплата проведена" : "Платёж принят");
+                },
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              },
             );
           }}
         >

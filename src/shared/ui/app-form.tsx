@@ -44,6 +44,9 @@ export type AppOption = {
   name: string;
 };
 
+const selectedControlTextClassName =
+  "min-w-0 flex-1 truncate text-left text-sm font-medium leading-5";
+
 export function AppFormField({
   label,
   children,
@@ -79,11 +82,45 @@ export function AppSelect({
   disabled?: boolean;
 }) {
   const selectedOption = options.find((option) => option.id === value);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  if (isMobile) {
+    return (
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(event) => onValueChange(event.target.value)}
+          disabled={disabled}
+          className={cn(
+            "h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-left text-sm font-medium leading-5 text-foreground outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
+            !selectedOption && "text-muted-foreground",
+          )}
+        >
+          {!selectedOption ? (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          ) : null}
+          {options.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+        <ChevronsUpDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger className="h-10">
-        <span className={cn("min-w-0 flex-1 truncate text-left", !selectedOption && "text-muted-foreground")}>
+        <span
+          className={cn(
+            selectedControlTextClassName,
+            !selectedOption && "text-muted-foreground",
+          )}
+        >
           {selectedOption?.name ?? placeholder}
         </span>
       </SelectTrigger>
@@ -136,7 +173,7 @@ export function AppCombobox({
             !selectedOption && "text-muted-foreground",
           )}
         >
-          <span className="min-w-0 truncate">
+          <span className={selectedControlTextClassName}>
             {loading ? "Загрузка..." : selectedOption?.name ?? placeholder}
           </span>
           <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
@@ -294,7 +331,12 @@ export function AppModalFooter({
   className?: string;
 }) {
   return (
-    <div className={cn("border-t bg-muted/30 px-6 py-4", className)}>
+    <div
+      className={cn(
+        "flex justify-end border-t bg-muted/30 px-6 py-4 [&>button]:w-full sm:[&>button]:w-auto",
+        className,
+      )}
+    >
       {children}
     </div>
   );

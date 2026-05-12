@@ -1,16 +1,19 @@
 import { type ComponentProps, useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 
 import { useProductCreateOptions } from "@/entities/products/api/use-product-create";
 import { useProductDetail } from "@/entities/products/api/use-product-detail";
 import { useUpdateProduct } from "@/entities/products/api/use-product-update";
 import { useUpdateProductSalePrice } from "@/entities/products/api/use-product-actions";
 import { useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { ApiError } from "@/shared/api/http";
 import { queryClient } from "@/shared/api/query-client";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { AppFileUpload, AppFormField, AppSelect } from "@/shared/ui/app-form";
+import { BackActionButton } from "@/shared/ui/back-button";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Checkbox } from "@/shared/ui/checkbox";
@@ -109,6 +112,7 @@ export function ProductEditPage() {
     updateProduct.mutate(formData, {
       onSuccess: (updatedProduct) => {
         if (!shouldUpdateSalePrice) {
+          toast.success("Товар обновлён");
           navigate(`/products/${updatedProduct.id}`, {
             replace: true,
             state: { from: productsHref },
@@ -121,13 +125,17 @@ export function ProductEditPage() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             queryClient.invalidateQueries({ queryKey: ["dashboard"] });
             queryClient.invalidateQueries({ queryKey: ["finance"] });
+            toast.success("Товар и цена продажи обновлены");
             navigate(`/products/${updatedWithSalePrice.id}`, {
               replace: true,
               state: { from: productsHref },
             });
           },
+          onError: (error) => toast.error(getApiErrorMessage(error)),
         });
       },
+      onError: (error) =>
+        toast.error(getApiErrorMessage(error, "Не удалось обновить товар")),
     });
   };
 
@@ -144,26 +152,19 @@ export function ProductEditPage() {
 
   return (
     <section className="mx-auto max-w-6xl space-y-5">
+      <BackActionButton
+        onClick={() => {
+          if (hasReturnState) {
+            navigate(-1);
+            return;
+          }
+          navigate(`/products/${product.id}`);
+        }}
+      />
+
       <PageHeader
         title="Редактировать товар"
         description={`${product.name} · IMEI ${product.imei}`}
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => {
-              if (hasReturnState) {
-                navigate(-1);
-                return;
-              }
-              navigate(`/products/${product.id}`);
-            }}
-          >
-            Назад
-          </Button>
-        }
       />
 
       <Card>
@@ -233,13 +234,15 @@ export function ProductEditPage() {
                     createWallet.mutate(
                       { name, wallet_type: "debt_supplier" },
                       {
-                        onSuccess: (wallet) => {
-                          setSupplierId(String(wallet.id));
-                          setNewSupplierName("");
-                          optionsQuery.refetch();
-                        },
+                      onSuccess: (wallet) => {
+                        setSupplierId(String(wallet.id));
+                        setNewSupplierName("");
+                        optionsQuery.refetch();
+                        toast.success("Поставщик создан");
                       },
-                    );
+                      onError: (error) => toast.error(getApiErrorMessage(error)),
+                    },
+                  );
                   }}
                   placeholder="Новый поставщик"
                   disabled={createWallet.isPending}
@@ -257,7 +260,7 @@ export function ProductEditPage() {
                       required
                       inputMode="decimal"
                       type="number"
-                      min={buyPrice}
+                      min="0"
                       step="1"
                     />
                   </Field>

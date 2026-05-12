@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import { type Wallet, useAdjustWallet } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
@@ -61,7 +62,13 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
                         description: description.trim() || undefined,
                       },
               },
-              { onSuccess: () => setOpen(false) },
+              {
+                onSuccess: () => {
+                  setOpen(false);
+                  toast.success("Баланс обновлён");
+                },
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              },
             );
           }}
         >

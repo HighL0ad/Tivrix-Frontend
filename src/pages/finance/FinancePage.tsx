@@ -14,6 +14,7 @@ import {
   parseAsStringLiteral,
   useQueryStates,
 } from "nuqs";
+import { toast } from "sonner";
 
 import {
   useExpenses,
@@ -25,6 +26,7 @@ import {
 import type { Transaction } from "@/entities/dashboard/api/use-dashboard";
 import { AdjustWalletDialog } from "@/features/finance/AdjustWalletDialog";
 import { TransferDialog } from "@/features/finance/TransferDialog";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { money, shortDate } from "@/shared/lib/format";
 import { walletTypeLabel } from "@/shared/lib/wallet-labels";
 import {
@@ -59,19 +61,19 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 const financeTabValues = ["overview", "history", "profit", "expenses"] as const;
 
 export function FinancePage() {
-  const [{ q, page, tab }, setFinanceParams] = useQueryStates({
+  const [{ q, page, tab, profitFrom, profitTo, expensesFrom, expensesTo }, setFinanceParams] = useQueryStates({
     q: parseAsString.withDefault(""),
     page: parseAsInteger.withDefault(1),
     tab: parseAsStringLiteral(financeTabValues).withDefault("overview"),
+    profitFrom: parseAsString.withDefault(""),
+    profitTo: parseAsString.withDefault(""),
+    expensesFrom: parseAsString.withDefault(""),
+    expensesTo: parseAsString.withDefault(""),
   });
   const [search, setSearch] = useState(q);
-  const [profitDateFrom, setProfitDateFrom] = useState("");
-  const [profitDateTo, setProfitDateTo] = useState("");
-  const [expensesDateFrom, setExpensesDateFrom] = useState("");
-  const [expensesDateTo, setExpensesDateTo] = useState("");
   const financeQuery = useFinance({ q, page });
-  const profitQuery = useProfit({ date_from: profitDateFrom, date_to: profitDateTo });
-  const expensesQuery = useExpenses({ date_from: expensesDateFrom, date_to: expensesDateTo });
+  const profitQuery = useProfit({ date_from: profitFrom, date_to: profitTo });
+  const expensesQuery = useExpenses({ date_from: expensesFrom, date_to: expensesTo });
   const undoTransaction = useUndoTransaction();
   const undoSaleTransaction = useUndoSaleTransaction();
   const data = financeQuery.data;
@@ -154,27 +156,39 @@ export function FinancePage() {
             data={data}
             page={page}
             setPage={setPage}
-            onUndo={(transactionId) => undoTransaction.mutate(transactionId)}
-            onUndoSale={(transactionId) => undoSaleTransaction.mutate(transactionId)}
+            onUndo={(transactionId) =>
+              undoTransaction.mutate(transactionId, {
+                onSuccess: () => toast.success("Операция отменена"),
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              })
+            }
+            onUndoSale={(transactionId) =>
+              undoSaleTransaction.mutate(transactionId, {
+                onSuccess: () => toast.success("Сделка отменена"),
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              })
+            }
             undoPending={undoTransaction.isPending || undoSaleTransaction.isPending}
           />
         </TabsContent>
         <TabsContent value="profit">
           <ProfitCard
             data={profitQuery.data}
-            dateFrom={profitDateFrom}
-            dateTo={profitDateTo}
-            setDateFrom={setProfitDateFrom}
-            setDateTo={setProfitDateTo}
+            dateFrom={profitFrom}
+            dateTo={profitTo}
+            setDateRange={(nextFrom, nextTo) =>
+              setFinanceParams({ profitFrom: nextFrom, profitTo: nextTo })
+            }
           />
         </TabsContent>
         <TabsContent value="expenses">
           <ExpensesCard
             data={expensesQuery.data}
-            dateFrom={expensesDateFrom}
-            dateTo={expensesDateTo}
-            setDateFrom={setExpensesDateFrom}
-            setDateTo={setExpensesDateTo}
+            dateFrom={expensesFrom}
+            dateTo={expensesTo}
+            setDateRange={(nextFrom, nextTo) =>
+              setFinanceParams({ expensesFrom: nextFrom, expensesTo: nextTo })
+            }
           />
         </TabsContent>
       </Tabs>
@@ -534,14 +548,12 @@ function ProfitCard({
   data,
   dateFrom,
   dateTo,
-  setDateFrom,
-  setDateTo,
+  setDateRange,
 }: {
   data: ReturnType<typeof useProfit>["data"];
   dateFrom: string;
   dateTo: string;
-  setDateFrom: (value: string) => void;
-  setDateTo: (value: string) => void;
+  setDateRange: (dateFrom: string, dateTo: string) => void;
 }) {
   return (
     <Card>
@@ -550,9 +562,11 @@ function ProfitCard({
         <DateFilters
           dateFrom={dateFrom}
           dateTo={dateTo}
-          setDateFrom={setDateFrom}
-          setDateTo={setDateTo}
+          setDateRange={setDateRange}
         />
+        <div className="text-xs font-medium text-muted-foreground">
+          {periodLabel(dateFrom, dateTo)}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {data ? (
@@ -564,7 +578,7 @@ function ProfitCard({
               <InlineMetric title="Всего" value={money(data.all_time.profit)} />
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <InlineMetric title="Период: продажи" value={money(Number(data.selected_period.profit) + Number(data.selected_period.buy_total))} />
+              <InlineMetric title="Чистыми за период" value={money(data.selected_period.profit)} />
               <InlineMetric title="Себестоимость" value={money(data.selected_period.buy_total)} />
               <InlineMetric title="Маржа" value={`${Number(data.selected_period.margin_percent).toFixed(1)}%`} />
               <InlineMetric title="Средняя прибыль" value={money(data.avg_profit_per_sale)} />
@@ -574,7 +588,9 @@ function ProfitCard({
                 <div className="font-bold text-emerald-900">Лучшая продажа</div>
                 <div className="mt-1 flex justify-between gap-3">
                   <span>{data.best_sale.product_name}</span>
-                  <span className="font-bold">{money(data.best_sale.profit)}</span>
+                  <span className={`font-bold ${profitToneClass(data.best_sale.profit)}`}>
+                    {money(data.best_sale.profit)}
+                  </span>
                 </div>
               </div>
             ) : null}
@@ -601,7 +617,9 @@ function ProfitCard({
                       <TableCell>{shortDate(sale.sold_at)}</TableCell>
                       <TableCell className="text-right font-medium">{money(sale.buy_price)}</TableCell>
                       <TableCell className="text-right font-medium">{money(sale.total_price)}</TableCell>
-                      <TableCell className="text-right font-bold text-emerald-700">{money(sale.profit)}</TableCell>
+                      <TableCell className={`text-right font-bold ${profitToneClass(sale.profit)}`}>
+                        {money(sale.profit)}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {!data.recent_sales.length ? (
@@ -638,14 +656,12 @@ function ExpensesCard({
   data,
   dateFrom,
   dateTo,
-  setDateFrom,
-  setDateTo,
+  setDateRange,
 }: {
   data: ReturnType<typeof useExpenses>["data"];
   dateFrom: string;
   dateTo: string;
-  setDateFrom: (value: string) => void;
-  setDateTo: (value: string) => void;
+  setDateRange: (dateFrom: string, dateTo: string) => void;
 }) {
   return (
     <Card>
@@ -654,9 +670,11 @@ function ExpensesCard({
         <DateFilters
           dateFrom={dateFrom}
           dateTo={dateTo}
-          setDateFrom={setDateFrom}
-          setDateTo={setDateTo}
+          setDateRange={setDateRange}
         />
+        <div className="text-xs font-medium text-muted-foreground">
+          {periodLabel(dateFrom, dateTo)}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {data ? (
@@ -698,31 +716,53 @@ function ExpensesCard({
 function DateFilters({
   dateFrom,
   dateTo,
-  setDateFrom,
-  setDateTo,
+  setDateRange,
 }: {
   dateFrom: string;
   dateTo: string;
-  setDateFrom: (value: string) => void;
-  setDateTo: (value: string) => void;
+  setDateRange: (dateFrom: string, dateTo: string) => void;
 }) {
+  function updateRange(nextFrom: string, nextTo: string) {
+    const normalized = normalizeDateRange(nextFrom, nextTo);
+    setDateRange(normalized.dateFrom, normalized.dateTo);
+  }
+
   return (
     <div className="grid gap-2 sm:grid-cols-[180px_180px_auto]">
       <DatePicker
         value={dateFrom}
-        onChange={setDateFrom}
+        onChange={(value) => updateRange(value, dateTo)}
         placeholder="Дата с"
       />
       <DatePicker
         value={dateTo}
-        onChange={setDateTo}
+        onChange={(value) => updateRange(dateFrom, value)}
         placeholder="Дата по"
       />
-      <Button type="button" variant="outline" onClick={() => { setDateFrom(""); setDateTo(""); }}>
+      <Button type="button" variant="outline" onClick={() => setDateRange("", "")}>
         Сбросить
       </Button>
     </div>
   );
+}
+
+function normalizeDateRange(dateFrom: string, dateTo: string) {
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    return { dateFrom: dateTo, dateTo: dateFrom };
+  }
+
+  return { dateFrom, dateTo };
+}
+
+function periodLabel(dateFrom: string, dateTo: string) {
+  if (dateFrom && dateTo) return `Период: ${dateFrom} - ${dateTo}`;
+  if (dateFrom) return `Период: с ${dateFrom}`;
+  if (dateTo) return `Период: по ${dateTo}`;
+  return "Период: всё время";
+}
+
+function profitToneClass(value: string | number) {
+  return Number(value) >= 0 ? "text-emerald-700" : "text-rose-600";
 }
 
 function MetricLine({

@@ -44,6 +44,7 @@ export type DashboardData = {
   recent_transactions: Transaction[];
   profit_overview: {
     profit_labels: string[];
+    profit_dates: string[];
     profit_data: number[];
     profit_7d: string;
     revenue_7d: string;
@@ -55,6 +56,7 @@ export type DashboardData = {
       "7d" | "30d" | "90d",
       {
         profit_labels: string[];
+        profit_dates: string[];
         profit_data: number[];
         profit_total: string;
         revenue_total: string;

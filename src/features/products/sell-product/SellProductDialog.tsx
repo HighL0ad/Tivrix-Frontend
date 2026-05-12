@@ -1,5 +1,6 @@
 import { type ComponentProps, type ReactNode, useState } from "react";
 import { AlertCircle, Banknote, Store } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   useProductSellOptions,
@@ -7,6 +8,7 @@ import {
 } from "@/entities/products/api/use-product-sell";
 import { useCreateDebtWallet } from "@/entities/debts/api/use-debts";
 import type { ProductDetail, ProductSellPayload } from "@/entities/products/model/types";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { ApiError } from "@/shared/api/http";
 import { queryClient } from "@/shared/api/query-client";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
@@ -78,12 +80,15 @@ export function SellProductDialog({
       ? getErrorMessage(sellMutation.error.payload)
       : null;
   const paidNowTotal = saleMode === "full_payment" ? totalPrice : paidNowAmount;
+  const registrationFee = registrationFeeEnabled
+    ? toNumber(registrationFeeAmount)
+    : 0;
   const shopDebt = Math.max(
     toNumber(totalPrice) -
       (shopPrepaymentEnabled ? toNumber(shopPrepaymentAmount) : 0),
     0,
   );
-  const profit = toNumber(totalPrice) - toNumber(product.buy_price);
+  const netProfit = toNumber(totalPrice) - toNumber(product.buy_price) - registrationFee;
   const isSubmitDisabled = sellMutation.isPending || optionsQuery.isLoading;
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (
@@ -139,10 +144,20 @@ export function SellProductDialog({
 
     sellMutation.mutate(proofPhoto ? buildSellFormData(payload, proofPhoto) : payload, {
       onSuccess: (soldProduct) => {
-        queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({
+          queryKey: ["products", product.id],
+          exact: true,
+        });
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey[0] === "products" &&
+            typeof query.queryKey[1] === "object",
+        });
         onSold(soldProduct);
         setOpen(false);
+        toast.success("Продажа оформлена");
       },
+      onError: (error) => toast.error(getApiErrorMessage(error)),
     });
   };
 
@@ -155,15 +170,14 @@ export function SellProductDialog({
       description="Оплата и долг будут разнесены автоматически."
       className="md:max-w-2xl"
       footer={
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div className="grid w-full gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
           <DealSummary
             saleType={saleType}
             totalPrice={totalPrice}
             paidNowTotal={paidNowTotal}
             shopDebt={shopDebt}
-            registrationFee={
-              registrationFeeEnabled ? toNumber(registrationFeeAmount) : 0
-            }
+            registrationFee={registrationFee}
+            netProfit={netProfit}
           />
           <Button
             type="submit"
@@ -234,7 +248,9 @@ export function SellProductDialog({
                         setShopWalletId(String(wallet.id));
                         setNewShopName("");
                         optionsQuery.refetch();
+                        toast.success("Магазин создан");
                       },
+                      onError: (error) => toast.error(getApiErrorMessage(error)),
                     },
                   );
                 }}
@@ -271,12 +287,12 @@ export function SellProductDialog({
           <AppSection title="Оплата" description="Как прошла оплата?">
             <AppFormField
               label="Итоговая цена продажи"
-              helper={`Минимум: ${product.buy_price} ₼. Прибыль: ${profit.toFixed(2)} ₼`}
+              helper={`Закупка: ${product.buy_price} ₼. Чистыми: ${netProfit.toFixed(2)} ₼`}
             >
               <Input
                 id="total-price"
                 type="number"
-                min={product.buy_price}
+                min="0"
                 step="1"
                 value={totalPrice}
                 onChange={(event) => setTotalPrice(event.target.value)}
@@ -337,7 +353,9 @@ export function SellProductDialog({
                         setClientDebtWalletId(String(wallet.id));
                         setNewDebtName("");
                         optionsQuery.refetch();
+                        toast.success("Клиент создан");
                       },
+                      onError: (error) => toast.error(getApiErrorMessage(error)),
                     },
                   );
                 }}

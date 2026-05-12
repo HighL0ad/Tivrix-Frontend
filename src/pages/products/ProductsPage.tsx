@@ -42,7 +42,9 @@ import { formatProductDate } from "@/features/products/product-display/format";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
 import { RegistrationBadges } from "@/features/products/product-display/RegistrationBadges";
 import { SellProductDialog } from "@/features/products/sell-product/SellProductDialog";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { queryClient } from "@/shared/api/query-client";
+import { money } from "@/shared/lib/format";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import {
   AlertDialog,
@@ -168,22 +170,6 @@ export function ProductsPage() {
     });
   }
 
-  useEffect(() => {
-    function handleHotkey(event: KeyboardEvent) {
-      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "n") {
-        return;
-      }
-      if (isTypingTarget(event.target)) {
-        return;
-      }
-      event.preventDefault();
-      navigate("/products/new");
-    }
-
-    window.addEventListener("keydown", handleHotkey);
-    return () => window.removeEventListener("keydown", handleHotkey);
-  }, [navigate]);
-
   const handleSearch: NonNullable<ComponentProps<"form">["onSubmit"]> = (
     event,
   ) => {
@@ -202,9 +188,6 @@ export function ProductsPage() {
           <NavLink to="/products/new">
             <Plus aria-hidden="true" />
             Добавить товар
-            <span className="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground/85">
-              Ctrl+N
-            </span>
           </NavLink>
         </Button>
         }
@@ -444,14 +427,22 @@ function ProductsCardList({
 
                 <div className="mt-3 rounded-lg bg-muted px-3 py-2 text-sm">
                   {product.current_sale ? (
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-muted-foreground">Сделка</span>
-                      <span className="font-black">
-                        {product.current_sale.total_price} ₼
-                        <span className="ml-2 text-emerald-700">
-                          +{product.current_sale.profit} ₼
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-muted-foreground">Сделка</span>
+                        <span className="font-black">
+                          {product.current_sale.total_price} ₼
+                          <span className={`ml-2 ${profitTextClass(product.current_sale.profit)}`}>
+                            {signedMoney(product.current_sale.profit)}
+                          </span>
                         </span>
-                      </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 text-xs">
+                        <span className="text-muted-foreground">Продан</span>
+                        <span className="font-semibold">
+                          {formatProductDate(product.current_sale.sold_at)}
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between gap-3">
@@ -586,8 +577,11 @@ function ProductsTable({
                 <div className="font-medium">
                   {row.original.current_sale.total_price} ₼
                 </div>
-                <div className="text-xs text-emerald-600">
-                  +{row.original.current_sale.profit} ₼
+                <div className={`text-xs ${profitTextClass(row.original.current_sale.profit)}`}>
+                  {signedMoney(row.original.current_sale.profit)}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Продан: {formatProductDate(row.original.current_sale.sold_at)}
                 </div>
               </div>
             ) : (
@@ -873,6 +867,7 @@ function ProductActionsMenu({
                     queryClient.invalidateQueries({ queryKey: ["finance"] });
                     toast.success("Товар удалён");
                   },
+                  onError: (error) => toast.error(getApiErrorMessage(error)),
                 })
               }
             >
@@ -929,6 +924,15 @@ function SortIcon({ state }: { state: "asc" | "desc" | false }) {
     return <ArrowDown className="size-4 text-primary" aria-hidden="true" />;
   }
   return <ChevronsUpDown className="size-4 text-muted-foreground" aria-hidden="true" />;
+}
+
+function signedMoney(value: string | number) {
+  const amount = Number(value);
+  return `${amount > 0 ? "+" : ""}${money(amount)}`;
+}
+
+function profitTextClass(value: string | number) {
+  return Number(value) >= 0 ? "text-emerald-700" : "text-rose-600";
 }
 
 function isTypingTarget(target: EventTarget | null) {

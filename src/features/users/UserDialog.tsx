@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 import type { UserRole } from "@/entities/auth/model/types";
 import {
@@ -75,13 +76,19 @@ export function UserDialog({
         )
       }
       footer={
-        <div className="flex w-full justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => setOpen(false)}
+          >
             Отмена
           </Button>
           <Button
             type="submit"
             form={formId}
+            className="w-full sm:w-auto"
             disabled={
               !username.trim() ||
               (mode === "create" && password.length < 4) ||
@@ -101,12 +108,24 @@ export function UserDialog({
             if (mode === "create") {
               createUser.mutate(
                 { ...buildPayload(), password },
-                { onSuccess: () => setOpen(false) },
+                {
+                  onSuccess: () => {
+                    setOpen(false);
+                    toast.success("Пользователь создан");
+                  },
+                  onError: (error) => toast.error(getApiErrorMessage(error)),
+                },
               );
             } else if (user) {
               updateUser.mutate(
                 { userId: user.id, payload: buildPayload() },
-                { onSuccess: () => setOpen(false) },
+                {
+                  onSuccess: () => {
+                    setOpen(false);
+                    toast.success("Пользователь обновлён");
+                  },
+                  onError: (error) => toast.error(getApiErrorMessage(error)),
+                },
               );
             }
           }}
@@ -134,8 +153,8 @@ export function UserDialog({
                 value={role}
                 onValueChange={(value) => setRole(value as UserRole)}
                 options={[
-                  { id: "user", name: "user" },
-                  { id: "admin", name: "admin" },
+                  { id: "user", name: "Пользователь" },
+                  { id: "admin", name: "Администратор" },
                 ]}
               />
             </FormField>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 import { useUpdateWallet } from "@/entities/catalogs/api/use-catalogs";
 import type { Wallet } from "@/entities/finance/api/use-finance";
@@ -57,7 +58,13 @@ export function WalletEditDialog({
                 walletId: wallet.id,
                 payload: { name: name.trim(), wallet_type: walletType },
               },
-              { onSuccess: () => setOpen(false) },
+              {
+                onSuccess: () => {
+                  setOpen(false);
+                  toast.success("Запись обновлена");
+                },
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              },
             );
           }}
         >

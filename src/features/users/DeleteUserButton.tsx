@@ -1,6 +1,8 @@
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useDeleteUser } from "@/entities/users/api/use-users";
+import { getApiErrorMessage } from "@/shared/api/error";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,7 +51,12 @@ export function DeleteUserButton({
           <AlertDialogCancel>Отмена</AlertDialogCancel>
           <AlertDialogAction
             disabled={deleteUser.isPending}
-            onClick={() => deleteUser.mutate(userId)}
+            onClick={() =>
+              deleteUser.mutate(userId, {
+                onSuccess: () => toast.success("Пользователь удалён"),
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              })
+            }
           >
             Удалить
           </AlertDialogAction>

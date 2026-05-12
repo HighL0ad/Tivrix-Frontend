@@ -6,6 +6,7 @@ import { useCatalogs, useCreateWallet } from "@/entities/catalogs/api/use-catalo
 import { DeleteWalletButton } from "@/features/catalogs/DeleteWalletButton";
 import { WalletEditDialog } from "@/features/catalogs/WalletEditDialog";
 import { AdjustWalletDialog } from "@/features/finance/AdjustWalletDialog";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { money } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { walletTypeLabel } from "@/shared/lib/wallet-labels";
@@ -29,7 +30,7 @@ export function CatalogsPage() {
   const catalogsQuery = useCatalogs();
   const createWallet = useCreateWallet();
   const [name, setName] = useState("");
-  const [walletType, setWalletType] = useState("cash");
+  const [walletType, setWalletType] = useState("card");
   const [search, setSearch] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +80,7 @@ export function CatalogsPage() {
                     setName("");
                     toast.success("Запись создана");
                   },
+                  onError: (error) => toast.error(getApiErrorMessage(error)),
                 },
               );
             }}

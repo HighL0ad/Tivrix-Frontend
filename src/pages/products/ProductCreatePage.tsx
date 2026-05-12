@@ -5,6 +5,7 @@ import {
 } from "react";
 import { AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import {
   checkProductImei,
@@ -12,6 +13,7 @@ import {
   useProductCreateOptions,
 } from "@/entities/products/api/use-product-create";
 import { useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { ApiError } from "@/shared/api/http";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { AppFileUpload } from "@/shared/ui/app-form";
@@ -153,8 +155,12 @@ export function ProductCreatePage() {
     photos.forEach((photo) => formData.append("photos", photo));
 
     createMutation.mutate(formData, {
-      onSuccess: (product) =>
-        navigate(`/products/${product.id}`, { replace: true }),
+      onSuccess: (product) => {
+        toast.success("Товар добавлен");
+        navigate(`/products/${product.id}`, { replace: true });
+      },
+      onError: (error) =>
+        toast.error(getApiErrorMessage(error, "Не удалось создать закупку")),
     });
   };
 
@@ -179,7 +185,9 @@ export function ProductCreatePage() {
         onSuccess: (wallet) => {
           onCreated(String(wallet.id));
           optionsQuery.refetch();
+          toast.success("Кошелёк создан");
         },
+        onError: (error) => toast.error(getApiErrorMessage(error)),
       },
     );
   }
@@ -425,7 +433,7 @@ export function ProductCreatePage() {
                       value={newPaymentWalletName}
                       onChange={setNewPaymentWalletName}
                       onCreate={() =>
-                        createInlineWallet(newPaymentWalletName, "bank_card", (id) => {
+                        createInlineWallet(newPaymentWalletName, "card", (id) => {
                           setPaymentWalletId(id);
                           setNewPaymentWalletName("");
                         })
@@ -514,7 +522,7 @@ export function ProductCreatePage() {
                           value={newSplitWalletName}
                           onChange={setNewSplitWalletName}
                           onCreate={() =>
-                            createInlineWallet(newSplitWalletName, "bank_card", (id) => {
+                            createInlineWallet(newSplitWalletName, "card", (id) => {
                               setSplitWalletId(id);
                               setNewSplitWalletName("");
                             })

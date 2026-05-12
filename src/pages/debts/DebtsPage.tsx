@@ -11,6 +11,7 @@ import type { Wallet } from "@/entities/finance/api/use-finance";
 import { MoneyFlowDialog } from "@/features/debts/MoneyFlowDialog";
 import { PayableDialog } from "@/features/debts/PayableDialog";
 import { RepayDialog } from "@/features/debts/RepayDialog";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { money, shortDate } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -126,6 +127,7 @@ export function DebtsPage() {
                     setClientName("");
                     toast.success("Клиент добавлен");
                   },
+                  onError: (error) => toast.error(getApiErrorMessage(error)),
                 },
               );
             }}
@@ -147,6 +149,7 @@ export function DebtsPage() {
                     setSupplierName("");
                     toast.success("Поставщик добавлен");
                   },
+                  onError: (error) => toast.error(getApiErrorMessage(error)),
                 },
               );
             }}

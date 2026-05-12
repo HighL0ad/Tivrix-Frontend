@@ -1,6 +1,7 @@
 import { type ComponentProps, useState } from "react";
 import { LockKeyhole, LogIn, User } from "lucide-react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import { useLogin } from "@/entities/auth/api/use-login";
 import { queryClient } from "@/shared/api/query-client";
@@ -38,6 +39,7 @@ export function LoginPage() {
       {
         onSuccess: (currentUser) => {
           queryClient.setQueryData(["auth", "me"], currentUser);
+          toast.success("Вход выполнен");
           navigate(currentUser.first_accessible_route ?? "/", { replace: true });
         },
       },

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { useBorrowMoney, useLendMoney } from "@/entities/debts/api/use-debts";
 import type { Wallet } from "@/entities/finance/api/use-finance";
@@ -57,7 +58,11 @@ export function MoneyFlowDialog({
           className="space-y-3"
           onSubmit={(event) => {
             event.preventDefault();
-            const onSuccess = () => setOpen(false);
+            const onSuccess = () => {
+              setOpen(false);
+              toast.success(mode === "lend" ? "Деньги выданы" : "Деньги получены");
+            };
+            const onError = (error: unknown) => toast.error(getApiErrorMessage(error));
             if (mode === "lend") {
               lend.mutate(
                 {
@@ -66,7 +71,7 @@ export function MoneyFlowDialog({
                   amount,
                   description: description.trim() || undefined,
                 },
-                { onSuccess },
+                { onSuccess, onError },
               );
             } else {
               borrow.mutate(
@@ -76,7 +81,7 @@ export function MoneyFlowDialog({
                   amount,
                   description: description.trim() || undefined,
                 },
-                { onSuccess },
+                { onSuccess, onError },
               );
             }
           }}

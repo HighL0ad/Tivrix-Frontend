@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { type Payable, usePayPayable } from "@/entities/debts/api/use-debts";
 import type { Wallet } from "@/entities/finance/api/use-finance";
@@ -52,7 +53,13 @@ export function PayableDialog({
             event.preventDefault();
             pay.mutate(
               { payableId: payable.id, sourceWalletId: Number(walletId) },
-              { onSuccess: () => setOpen(false) },
+              {
+                onSuccess: () => {
+                  setOpen(false);
+                  toast.success("Обязательство оплачено");
+                },
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              },
             );
           }}
         >

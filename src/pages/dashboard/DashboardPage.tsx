@@ -1,12 +1,11 @@
 import {
   Area,
   AreaChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Banknote, Boxes, ChartNoAxesColumnIncreasing, HandCoins, Landmark, Plus, ReceiptText, ShoppingCart, TrendingUp } from "lucide-react";
 import { NavLink } from "react-router";
 
@@ -34,7 +33,14 @@ export function DashboardPage() {
 
   const selectedProfitPeriod = data.profit_overview.periods[profitPeriod];
   const chartData = selectedProfitPeriod.profit_labels.map((label, index) => ({
-    label,
+    label: formatProfitAxisLabel(
+      label,
+      selectedProfitPeriod.profit_dates[index],
+    ),
+    tooltipLabel: formatProfitTooltipLabel(
+      label,
+      selectedProfitPeriod.profit_dates[index],
+    ),
     profit: selectedProfitPeriod.profit_data[index] ?? 0,
   }));
 
@@ -155,36 +161,7 @@ export function DashboardPage() {
                 icon={<ShoppingCart className="size-4" />}
               />
             </div>
-            <div className="h-72">
-              {chartData.length ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 12, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="profit" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="5%" stopColor="#0369a1" stopOpacity={0.28} />
-                        <stop offset="95%" stopColor="#0369a1" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                    <YAxis
-                      width={58}
-                      tick={{ fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(value) => money(Number(value))}
-                    />
-                    <Tooltip content={<ProfitTooltip />} cursor={{ stroke: "#0369a1", strokeOpacity: 0.18, strokeWidth: 2 }} />
-                    <Area type="monotone" dataKey="profit" stroke="#0369a1" fill="url(#profit)" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <EmptyState
-                  className="h-full"
-                  title="Недостаточно данных"
-                  description="За выбранный период график пока пуст."
-                />
-              )}
-            </div>
+            <ProfitChart data={chartData} period={profitPeriod} />
           </CardContent>
         </Card>
 
@@ -224,6 +201,94 @@ export function DashboardPage() {
   );
 }
 
+type ProfitChartPoint = {
+  label: string;
+  tooltipLabel: string;
+  profit: number;
+};
+
+function ProfitChart({
+  data,
+  period,
+}: {
+  data: ProfitChartPoint[];
+  period: "7d" | "30d" | "90d";
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const height = width < 640 ? 220 : 280;
+
+  useEffect(() => {
+    const element = wrapperRef.current;
+    if (!element) return;
+
+    const updateWidth = () => {
+      setWidth(Math.max(0, Math.floor(element.getBoundingClientRect().width)));
+    };
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(updateWidth);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="mt-2 h-[220px] min-w-0 overflow-hidden sm:h-[280px]"
+    >
+      {data.length > 0 && width > 0 ? (
+        <AreaChart
+          width={width}
+          height={height}
+          data={data}
+          margin={{ top: 14, right: 12, left: 0, bottom: 12 }}
+        >
+          <defs>
+            <linearGradient id="profit" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="5%" stopColor="#0369a1" stopOpacity={0.28} />
+              <stop offset="95%" stopColor="#0369a1" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis
+            dataKey="label"
+            interval={period === "7d" ? 0 : "preserveStartEnd"}
+            minTickGap={width < 640 ? 18 : 28}
+            tick={{ fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            padding={{ left: 8, right: 8 }}
+          />
+          <YAxis
+            width={50}
+            tick={{ fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(value) => compactMoney(Number(value))}
+          />
+          <Tooltip
+            content={<ProfitTooltip />}
+            cursor={{ stroke: "#0369a1", strokeOpacity: 0.18, strokeWidth: 2 }}
+          />
+          <Area
+            type="monotone"
+            dataKey="profit"
+            stroke="#0369a1"
+            fill="url(#profit)"
+            strokeWidth={2}
+          />
+        </AreaChart>
+      ) : (
+        <EmptyState
+          className="h-full"
+          title="Недостаточно данных"
+          description="За выбранный период график пока пуст."
+        />
+      )}
+    </div>
+  );
+}
+
 function periodLabel(value: "7d" | "30d" | "90d") {
   if (value === "7d") return "7 дней";
   if (value === "30d") return "30 дней";
@@ -232,7 +297,10 @@ function periodLabel(value: "7d" | "30d" | "90d") {
 
 type ProfitTooltipPayload = {
   active?: boolean;
-  payload?: Array<{ value?: number | string }>;
+  payload?: Array<{
+    value?: number | string;
+    payload?: { tooltipLabel?: string };
+  }>;
   label?: string | number;
 };
 
@@ -243,12 +311,51 @@ function ProfitTooltip({ active, payload, label }: ProfitTooltipPayload) {
 
   return (
     <div className="rounded-lg border bg-white px-3 py-2 text-sm shadow-lg">
-      <div className="text-xs font-bold uppercase text-gray-500">{label}</div>
+      <div className="text-xs font-bold uppercase text-gray-500">
+        {payload[0]?.payload?.tooltipLabel ?? label}
+      </div>
       <div className="mt-1 font-black text-sky-700">
         {money(Number(payload[0]?.value ?? 0))}
       </div>
     </div>
   );
+}
+
+function formatProfitAxisLabel(
+  weekday: string,
+  dateValue: string | undefined,
+) {
+  const dateLabel = formatShortChartDate(dateValue);
+  if (!dateLabel) return weekday;
+  return dateLabel;
+}
+
+function formatProfitTooltipLabel(weekday: string, dateValue: string | undefined) {
+  const dateLabel = formatLongChartDate(dateValue);
+  return dateLabel ? `${weekday}, ${dateLabel}` : weekday;
+}
+
+function formatShortChartDate(value: string | undefined) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(new Date(value));
+}
+
+function formatLongChartDate(value: string | undefined) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function compactMoney(value: number) {
+  return value.toLocaleString("ru-RU", {
+    maximumFractionDigits: 0,
+  });
 }
 
 function ColorMetric({

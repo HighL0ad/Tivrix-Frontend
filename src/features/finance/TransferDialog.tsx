@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { type Wallet, useTransferWallets } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
@@ -49,7 +50,13 @@ export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
                 amount,
                 description: description.trim() || undefined,
               },
-              { onSuccess: () => setOpen(false) },
+              {
+                onSuccess: () => {
+                  setOpen(false);
+                  toast.success("Перевод выполнен");
+                },
+                onError: (error) => toast.error(getApiErrorMessage(error)),
+              },
             );
           }}
         >

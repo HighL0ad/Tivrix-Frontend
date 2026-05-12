@@ -36,7 +36,7 @@ export function DatePicker({
   placeholder?: string;
   className?: string;
 }) {
-  const selectedDate = value ? parseISO(value) : undefined;
+  const selectedDate = useMemo(() => (value ? parseISO(value) : undefined), [value]);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<Date>(selectedDate ?? new Date());
 
