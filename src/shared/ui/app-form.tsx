@@ -60,9 +60,11 @@ export function AppFormField({
 }) {
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-semibold text-foreground">{label}</Label>
+      <Label className="text-[14px] font-medium text-foreground">{label}</Label>
       {children}
-      {helper ? <p className="text-xs text-muted-foreground">{helper}</p> : null}
+      {helper ? (
+        <p className="text-[13px] leading-5 text-muted-foreground">{helper}</p>
+      ) : null}
       {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
     </div>
   );
@@ -274,8 +276,10 @@ export function AppFileUpload({
           </span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold text-foreground">{label}</span>
-          <span className="block break-words text-xs text-muted-foreground">
+          <span className="block text-[14px] font-medium leading-5 text-foreground">
+            {label}
+          </span>
+          <span className="block break-words text-[13px] leading-5 text-gray-500">
             {files.length ? files.map((file) => file.name).join(", ") : "Файл не выбран"}
           </span>
         </span>
@@ -315,7 +319,9 @@ export function AppSection({
     <section className="space-y-4">
       <div>
         <h3 className="text-sm font-black text-foreground">{title}</h3>
-        {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
+        {description ? (
+          <p className="mt-1 text-[13px] leading-5 text-gray-500">{description}</p>
+        ) : null}
       </div>
       <div className="space-y-4">{children}</div>
       <Separator />
@@ -412,16 +418,18 @@ export function AppRadioCards<TValue extends string>({
             key={option.value}
             type="button"
             className={cn(
-              "min-h-16 rounded-lg border bg-card p-3 text-left transition-colors",
+              "min-h-16 rounded-lg border bg-card px-4 py-3 text-left transition-colors",
               selected
                 ? "border-primary bg-primary/5 text-primary"
                 : "border-border hover:bg-muted/50",
             )}
             onClick={() => onValueChange(option.value)}
           >
-            <span className="block text-sm font-bold">{option.label}</span>
+            <span className="block text-[13px] font-bold leading-5">
+              {option.label}
+            </span>
             {option.description ? (
-              <span className="mt-1 block text-xs text-muted-foreground">
+              <span className="mt-1 block text-[13px] leading-5 text-gray-500">
                 {option.description}
               </span>
             ) : null}

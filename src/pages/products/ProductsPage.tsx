@@ -44,6 +44,7 @@ import { RegistrationBadges } from "@/features/products/product-display/Registra
 import { SellProductDialog } from "@/features/products/sell-product/SellProductDialog";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { queryClient } from "@/shared/api/query-client";
+import { eventStartedInInteractiveElement } from "@/shared/lib/events";
 import { money } from "@/shared/lib/format";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import {
@@ -699,12 +700,18 @@ function ProductsTable({
             role="link"
             tabIndex={0}
             className="cursor-pointer"
-            onClick={() =>
+            onClick={(event) => {
+              if (eventStartedInInteractiveElement(event.nativeEvent)) {
+                return;
+              }
               navigate(`/products/${row.original.id}`, {
                 state: { from: returnTo },
-              })
-            }
+              });
+            }}
             onKeyDown={(event) => {
+              if (eventStartedInInteractiveElement(event.nativeEvent)) {
+                return;
+              }
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
                 navigate(`/products/${row.original.id}`, {

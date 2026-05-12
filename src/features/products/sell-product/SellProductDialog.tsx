@@ -201,7 +201,7 @@ export function SellProductDialog({
           <AppSection title="Товар">
             <div className="rounded-lg border bg-muted/40 p-3">
               <div className="font-bold">{product.name}</div>
-              <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+              <div className="mt-2 grid grid-cols-2 gap-3 text-[13px] leading-5 text-gray-500">
                 <span>Закупка: {product.buy_price} ₼</span>
                 <span className="font-mono">IMEI: {product.imei}</span>
               </div>

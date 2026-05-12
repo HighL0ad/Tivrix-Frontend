@@ -188,7 +188,7 @@ export function UserDialog({
           </div>
 
           <div className="space-y-2">
-            <div className="text-sm font-semibold text-muted-foreground">
+            <div className="text-[14px] font-medium text-foreground">
               Доступные разделы
             </div>
             <div className="grid gap-2 sm:grid-cols-3">

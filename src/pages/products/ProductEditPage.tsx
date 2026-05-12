@@ -211,7 +211,7 @@ export function ProductEditPage() {
                     .map((option) => ({ id: option.value, name: option.label }))}
                 />
                 {product.status === "sold" ? (
-                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="mt-2 flex items-center gap-2 text-[13px] leading-5 text-gray-500">
                     <ProductStatusBadge status={product.status} />
                     Статус продажи меняется через продажу или отмену сделки.
                   </div>

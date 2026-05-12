@@ -143,7 +143,7 @@ export function ClientDebtFields({
 
       {registrationFeeAvailable ? (
         <div className="space-y-3 rounded-lg border p-3">
-          <label className="flex items-center gap-2 text-xs font-medium">
+          <label className="flex items-center gap-2 text-[13px] font-medium leading-5 text-foreground">
             <Checkbox
               checked={registrationFeeEnabled}
               onCheckedChange={(checked) =>

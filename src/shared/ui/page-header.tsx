@@ -22,7 +22,7 @@ export function PageHeader({
             {title}
           </h2>
           {description ? (
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            <p className="mt-1 max-w-2xl text-[13px] leading-5 text-gray-500">
               {description}
             </p>
           ) : null}

@@ -1,34 +1,25 @@
-import { useRef, useState } from "react";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   type Payable,
-  useCreateDebtWallet,
   useDebts,
 } from "@/entities/debts/api/use-debts";
 import type { Wallet } from "@/entities/finance/api/use-finance";
 import { MoneyFlowDialog } from "@/features/debts/MoneyFlowDialog";
 import { PayableDialog } from "@/features/debts/PayableDialog";
 import { RepayDialog } from "@/features/debts/RepayDialog";
-import { getApiErrorMessage } from "@/shared/api/error";
 import { money, shortDate } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { Input } from "@/shared/ui/input";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 
 export function DebtsPage() {
   const debtsQuery = useDebts();
-  const createWallet = useCreateDebtWallet();
-  const [clientName, setClientName] = useState("");
-  const [supplierName, setSupplierName] = useState("");
-  const clientInputRef = useRef<HTMLInputElement>(null);
-  const supplierInputRef = useRef<HTMLInputElement>(null);
 
   if (debtsQuery.isLoading) {
     return <PageLoading />;
@@ -93,74 +84,8 @@ export function DebtsPage() {
         <EmptyState
           title="Долговых записей пока нет"
           description="Добавьте клиента, поставщика или оформите долг, чтобы быстро отслеживать взаиморасчёты."
-          action={
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button type="button" onClick={() => clientInputRef.current?.focus()}>
-                Добавить клиента
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => supplierInputRef.current?.focus()}
-              >
-                Добавить поставщика
-              </Button>
-            </div>
-          }
         />
       ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Быстро добавить</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 lg:grid-cols-2">
-          <form
-            className="flex flex-col gap-2 sm:flex-row"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!clientName.trim()) return;
-              createWallet.mutate(
-                { name: clientName.trim(), wallet_type: "client_debt" },
-                {
-                  onSuccess: () => {
-                    setClientName("");
-                    toast.success("Клиент добавлен");
-                  },
-                  onError: (error) => toast.error(getApiErrorMessage(error)),
-                },
-              );
-            }}
-          >
-            <Input ref={clientInputRef} value={clientName} onChange={(event) => setClientName(event.target.value)} placeholder="Имя клиента" />
-            <Button type="submit" disabled={!clientName.trim() || createWallet.isPending}>
-              Добавить клиента
-            </Button>
-          </form>
-          <form
-            className="flex flex-col gap-2 sm:flex-row"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!supplierName.trim()) return;
-              createWallet.mutate(
-                { name: supplierName.trim(), wallet_type: "debt" },
-                {
-                  onSuccess: () => {
-                    setSupplierName("");
-                    toast.success("Поставщик добавлен");
-                  },
-                  onError: (error) => toast.error(getApiErrorMessage(error)),
-                },
-              );
-            }}
-          >
-            <Input ref={supplierInputRef} value={supplierName} onChange={(event) => setSupplierName(event.target.value)} placeholder="Поставщик / партнёр" />
-            <Button type="submit" variant="outline" disabled={!supplierName.trim() || createWallet.isPending}>
-              Добавить поставщика
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {debtSections.map((section) => (

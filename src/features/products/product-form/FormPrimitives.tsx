@@ -41,15 +41,16 @@ export function InlineCreate({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        className="bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
       />
       <Button
         type="button"
         variant="outline"
-        className="h-10"
+        className="h-10 px-4 !text-base font-medium"
         onClick={onCreate}
         disabled={disabled || !value.trim()}
       >
-        Создать
+        <span className="text-base font-medium leading-5">Создать</span>
       </Button>
     </div>
   );
@@ -72,7 +73,7 @@ export function InfoBox({
   return (
     <div className={`rounded-lg border bg-background p-4 ${classes}`}>
       <p className="text-sm font-bold">{title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{children}</p>
+      <p className="mt-1 text-[13px] leading-5 text-gray-500">{children}</p>
     </div>
   );
 }

@@ -24,15 +24,16 @@ export function InlineCreate({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        className="bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
       />
       <Button
         type="button"
         variant="outline"
-        className="h-10"
+        className="h-10 px-4 !text-base font-medium"
         onClick={onCreate}
         disabled={!value.trim()}
       >
-        Создать
+        <span className="text-base font-medium leading-5">Создать</span>
       </Button>
     </div>
   );
@@ -59,7 +60,7 @@ export function SplitPaymentFields({
 }) {
   return (
     <div className="space-y-3 border p-3">
-      <label className="flex items-center gap-2 text-xs font-medium">
+      <label className="flex items-center gap-2 text-[13px] font-medium leading-5 text-foreground">
         <Checkbox
           checked={enabled}
           onCheckedChange={(checked) => setEnabled(Boolean(checked))}

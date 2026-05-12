@@ -252,10 +252,10 @@ export function ProductCreatePage() {
                       >
                         <RadioGroupItem value={value} className="mt-0.5" />
                         <span>
-                          <span className="block text-sm font-bold text-foreground">
+                          <span className="block text-[13px] font-bold leading-5 text-foreground">
                             {meta.title}
                           </span>
-                          <span className="mt-1 block text-xs text-muted-foreground">
+                          <span className="mt-1 block text-[13px] leading-5 text-gray-500">
                             {meta.description}
                           </span>
                         </span>
@@ -302,7 +302,7 @@ export function ProductCreatePage() {
                       {imeiError}
                     </p>
                   ) : checkingImei ? (
-                    <p className="mt-1 text-xs font-medium text-muted-foreground">
+                    <p className="mt-1 text-[13px] font-medium leading-5 text-gray-500">
                       Проверяем IMEI...
                     </p>
                   ) : null}
@@ -455,10 +455,10 @@ export function ProductCreatePage() {
                       className="mt-1 size-5"
                     />
                     <span>
-                      <span className="block text-sm font-bold text-foreground">
+                      <span className="block text-[13px] font-bold leading-5 text-foreground">
                         Сплит-платёж
                       </span>
-                      <span className="mt-1 block text-xs text-muted-foreground">
+                      <span className="mt-1 block text-[13px] leading-5 text-gray-500">
                         Часть суммы списать из второго кошелька.
                       </span>
                     </span>

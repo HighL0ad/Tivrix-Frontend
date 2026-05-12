@@ -21,7 +21,7 @@ export function EmptyState({
       )}
     >
       <div className="text-base font-bold text-foreground">{title}</div>
-      <div className="mt-2 text-sm text-muted-foreground">{description}</div>
+      <div className="mt-2 text-[13px] leading-5 text-gray-500">{description}</div>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   );

@@ -42,6 +42,8 @@ const navItems = [
   { to: "/users", label: "Пользователи", icon: Users, adminOnly: true },
 ];
 
+const mobileNavLabelClass = "text-[10px] font-medium leading-none";
+
 export function AppLayout() {
   const currentUserQuery = useCurrentUser();
   const currentUser = currentUserQuery.data;
@@ -181,7 +183,7 @@ export function AppLayout() {
               }
             >
               <item.icon className="mb-0.5 h-6 w-6" aria-hidden="true" />
-              <span>{item.label}</span>
+              <span className={mobileNavLabelClass}>{item.label}</span>
             </NavLink>
           ))}
           <div className="relative -top-5 flex justify-center">
@@ -205,7 +207,7 @@ export function AppLayout() {
               }
             >
               <item.icon className="mb-0.5 h-6 w-6" aria-hidden="true" />
-              <span>{item.label}</span>
+              <span className={mobileNavLabelClass}>{item.label}</span>
             </NavLink>
           ))}
           <MobileMoreMenu
@@ -233,10 +235,10 @@ function MobileMoreMenu({
       <SheetTrigger asChild>
         <button
           type="button"
-          className="flex w-full flex-col items-center justify-center text-[10px] font-medium text-slate-400"
+          className="flex h-full w-full appearance-none flex-col items-center justify-center bg-transparent p-0 text-[10px] font-medium leading-none text-slate-400"
         >
-          <Menu className="mb-0.5 h-6 w-6" aria-hidden="true" />
-          <span>Ещё</span>
+          <Menu className="mb-1 h-5 w-5" aria-hidden="true" />
+          <span className={mobileNavLabelClass}>Еще</span>
         </button>
       </SheetTrigger>
       <SheetContent className="h-auto p-0">
