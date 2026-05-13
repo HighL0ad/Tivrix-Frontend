@@ -104,7 +104,11 @@ export function useFinance(params: { q?: string; page: number }) {
   });
 }
 
-export function useProfit(params?: { date_from?: string; date_to?: string }) {
+export function useProfit(params?: {
+  date_from?: string;
+  date_to?: string;
+  enabled?: boolean;
+}) {
   const searchParams = new URLSearchParams();
   if (params?.date_from) searchParams.set("date_from", params.date_from);
   if (params?.date_to) searchParams.set("date_to", params.date_to);
@@ -113,10 +117,15 @@ export function useProfit(params?: { date_from?: string; date_to?: string }) {
     queryKey: ["finance", "profit", params],
     queryFn: () =>
       apiRequest<ProfitData>(`/api/finance/profit${queryString ? `?${queryString}` : ""}`),
+    enabled: params?.enabled ?? true,
   });
 }
 
-export function useExpenses(params?: { date_from?: string; date_to?: string }) {
+export function useExpenses(params?: {
+  date_from?: string;
+  date_to?: string;
+  enabled?: boolean;
+}) {
   const searchParams = new URLSearchParams();
   if (params?.date_from) searchParams.set("date_from", params.date_from);
   if (params?.date_to) searchParams.set("date_to", params.date_to);
@@ -125,6 +134,7 @@ export function useExpenses(params?: { date_from?: string; date_to?: string }) {
     queryKey: ["finance", "expenses", params],
     queryFn: () =>
       apiRequest<ExpensesData>(`/api/finance/expenses${queryString ? `?${queryString}` : ""}`),
+    enabled: params?.enabled ?? true,
   });
 }
 

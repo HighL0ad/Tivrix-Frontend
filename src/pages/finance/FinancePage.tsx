@@ -7,7 +7,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { Banknote, CalendarDays, HandCoins, RotateCcw, Search, SunMedium, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
+import { Banknote, CalendarDays, HandCoins, RotateCcw, Search, ShieldAlert, SunMedium, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
 import {
   parseAsInteger,
   parseAsString,
@@ -16,6 +16,7 @@ import {
 } from "nuqs";
 import { toast } from "sonner";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import {
   useExpenses,
   useFinance,
@@ -71,9 +72,25 @@ export function FinancePage() {
     expensesTo: parseAsString.withDefault(""),
   });
   const [search, setSearch] = useState(q);
+  const currentUser = useCurrentUser().data;
+  const operationPermissions = currentUser?.operation_permissions;
+  const canViewHistory = Boolean(operationPermissions?.can_view_finance_history);
+  const canViewProfit = Boolean(operationPermissions?.can_view_finance_profit);
+  const canViewExpenses = Boolean(operationPermissions?.can_view_finance_expenses);
+  const canTransferWallets = Boolean(operationPermissions?.can_transfer_wallets);
+  const canAdjustWallets = Boolean(operationPermissions?.can_adjust_wallets);
+  const canUndoTransactions = Boolean(operationPermissions?.can_undo_transactions);
   const financeQuery = useFinance({ q, page });
-  const profitQuery = useProfit({ date_from: profitFrom, date_to: profitTo });
-  const expensesQuery = useExpenses({ date_from: expensesFrom, date_to: expensesTo });
+  const profitQuery = useProfit({
+    date_from: profitFrom,
+    date_to: profitTo,
+    enabled: canViewProfit,
+  });
+  const expensesQuery = useExpenses({
+    date_from: expensesFrom,
+    date_to: expensesTo,
+    enabled: canViewExpenses,
+  });
   const undoTransaction = useUndoTransaction();
   const undoSaleTransaction = useUndoSaleTransaction();
   const data = financeQuery.data;
@@ -111,7 +128,11 @@ export function FinancePage() {
       <PageHeader
         title="Касса"
         description="Позиция, кошельки, прибыль, расходы и история операций."
-        actions={<TransferDialog wallets={data.my_wallets} />}
+        actions={
+          canTransferWallets ? (
+            <TransferDialog wallets={data.my_wallets} />
+          ) : null
+        }
       />
 
       <Card className="border-violet-200 bg-linear-to-r from-violet-600 to-indigo-700 text-white">
@@ -145,10 +166,11 @@ export function FinancePage() {
           <TabsTrigger value="expenses">Расходы</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-          <OverviewCard data={data} />
+          <OverviewCard data={data} canAdjustWallets={canAdjustWallets} />
         </TabsContent>
         <TabsContent value="history">
-          <HistoryCard
+          {canViewHistory ? (
+            <HistoryCard
             search={search}
             setSearch={setSearch}
             currentQuery={q}
@@ -168,11 +190,16 @@ export function FinancePage() {
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }
+            canUndoTransactions={canUndoTransactions}
             undoPending={undoTransaction.isPending || undoSaleTransaction.isPending}
           />
+          ) : (
+            <FinancePermissionBlock title="История операций закрыта" />
+          )}
         </TabsContent>
         <TabsContent value="profit">
-          <ProfitCard
+          {canViewProfit ? (
+            <ProfitCard
             data={profitQuery.data}
             dateFrom={profitFrom}
             dateTo={profitTo}
@@ -180,9 +207,13 @@ export function FinancePage() {
               setFinanceParams({ profitFrom: nextFrom, profitTo: nextTo })
             }
           />
+          ) : (
+            <FinancePermissionBlock title="Прибыль закрыта" />
+          )}
         </TabsContent>
         <TabsContent value="expenses">
-          <ExpensesCard
+          {canViewExpenses ? (
+            <ExpensesCard
             data={expensesQuery.data}
             dateFrom={expensesFrom}
             dateTo={expensesTo}
@@ -190,6 +221,9 @@ export function FinancePage() {
               setFinanceParams({ expensesFrom: nextFrom, expensesTo: nextTo })
             }
           />
+          ) : (
+            <FinancePermissionBlock title="Расходы закрыты" />
+          )}
         </TabsContent>
       </Tabs>
     </section>
@@ -206,6 +240,7 @@ function HistoryCard({
   setPage,
   onUndo,
   onUndoSale,
+  canUndoTransactions,
   undoPending,
 }: {
   search: string;
@@ -221,6 +256,7 @@ function HistoryCard({
   setPage: (page: number) => void;
   onUndo: (transactionId: number) => void;
   onUndoSale: (transactionId: number) => void;
+  canUndoTransactions: boolean;
   undoPending: boolean;
 }) {
   const [sorting, setSorting] = useState<SortingState>([
@@ -280,7 +316,7 @@ function HistoryCard({
       header: "",
       enableSorting: false,
       cell: ({ row }) =>
-        row.original.can_undo || row.original.can_undo_sale ? (
+        canUndoTransactions && (row.original.can_undo || row.original.can_undo_sale) ? (
           <AlertDialog>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -452,7 +488,13 @@ function HistoryCard({
   );
 }
 
-function OverviewCard({ data }: { data: NonNullable<ReturnType<typeof useFinance>["data"]> }) {
+function OverviewCard({
+  data,
+  canAdjustWallets,
+}: {
+  data: NonNullable<ReturnType<typeof useFinance>["data"]>;
+  canAdjustWallets: boolean;
+}) {
   const nonZeroWallets = data.my_wallets.filter((wallet) => Number(wallet.balance) !== 0);
 
   return (
@@ -482,7 +524,7 @@ function OverviewCard({ data }: { data: NonNullable<ReturnType<typeof useFinance
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <div className="font-bold">{money(wallet.balance)}</div>
-                <AdjustWalletDialog wallet={wallet} />
+                {canAdjustWallets ? <AdjustWalletDialog wallet={wallet} /> : null}
               </div>
             </div>
           )) : (
@@ -513,6 +555,22 @@ function OverviewCard({ data }: { data: NonNullable<ReturnType<typeof useFinance
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function FinancePermissionBlock({ title }: { title: string }) {
+  return (
+    <Card className="border-amber-200 bg-amber-50/50">
+      <CardContent className="flex min-h-64 flex-col items-center justify-center px-6 py-10 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+          <ShieldAlert className="size-6" />
+        </span>
+        <h2 className="mt-4 text-lg font-black text-foreground">{title}</h2>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          Администратор ограничил доступ к этому блоку.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

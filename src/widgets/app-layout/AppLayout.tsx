@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { NavLink, Outlet } from "react-router";
 import {
   Banknote,
@@ -11,10 +11,15 @@ import {
   Plus,
   Users,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import { useCurrentUser } from "@/entities/auth/api/use-current-user";
+import {
+  useCurrentUser,
+  useUploadAvatar,
+} from "@/entities/auth/api/use-current-user";
+import type { CurrentUser } from "@/entities/auth/model/types";
 import { logout } from "@/entities/auth/api/logout";
-import type { AppResourceKey } from "@/entities/auth/model/types";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { queryClient } from "@/shared/api/query-client";
 import { Button } from "@/shared/ui/button";
 import { buttonVariants } from "@/shared/ui/button-variants";
@@ -47,16 +52,9 @@ const mobileNavLabelClass = "text-[10px] font-medium leading-none";
 export function AppLayout() {
   const currentUserQuery = useCurrentUser();
   const currentUser = currentUserQuery.data;
+  const uploadAvatar = useUploadAvatar();
   const visibleNavItems = navItems.filter((item) => {
-    if (!currentUser) {
-      return !item.adminOnly;
-    }
-
-    if (item.adminOnly) {
-      return currentUser.is_admin;
-    }
-
-    return currentUser.permissions[item.resource as AppResourceKey];
+    return item.adminOnly ? currentUser?.is_admin : true;
   });
 
   async function handleLogout() {
@@ -108,12 +106,24 @@ export function AppLayout() {
           <div className="mt-auto space-y-2 pt-4">
             {currentUser ? (
               <div className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-slate-300">
-                <div className="min-w-0">
-                  <div className="font-semibold text-white">
-                    {currentUser.username}
-                  </div>
-                  <div className="mt-0.5 text-xs uppercase text-slate-400">
-                    {currentUser.role}
+                <div className="flex min-w-0 items-center gap-2">
+                  <UserAvatar
+                    user={currentUser}
+                    onUpload={(file) =>
+                      uploadAvatar.mutate(file, {
+                        onSuccess: () => toast.success("Фото профиля обновлено"),
+                        onError: (error) => toast.error(getApiErrorMessage(error)),
+                      })
+                    }
+                    pending={uploadAvatar.isPending}
+                  />
+                  <div className="min-w-0">
+                    <div className="font-semibold text-white">
+                      {currentUser.username}
+                    </div>
+                    <div className="mt-0.5 text-xs uppercase text-slate-400">
+                      {currentUser.role}
+                    </div>
                   </div>
                 </div>
                 <Tooltip>
@@ -146,21 +156,19 @@ export function AppLayout() {
               Ferdi Telefon
             </NavLink>
             <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    onClick={handleLogout}
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                    aria-label="Выйти"
-                  >
-                    <LogOut aria-hidden="true" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Выйти</TooltipContent>
-              </Tooltip>
+              {currentUser ? (
+                <UserAvatar
+                  user={currentUser}
+                  onUpload={(file) =>
+                    uploadAvatar.mutate(file, {
+                      onSuccess: () => toast.success("Фото профиля обновлено"),
+                      onError: (error) => toast.error(getApiErrorMessage(error)),
+                    })
+                  }
+                  pending={uploadAvatar.isPending}
+                  className="border-indigo-100 bg-indigo-50 text-indigo-700"
+                />
+              ) : null}
             </div>
           </header>
 
@@ -219,6 +227,67 @@ export function AppLayout() {
     </div>
     </TooltipProvider>
   );
+}
+
+function UserAvatar({
+  user,
+  onUpload,
+  pending,
+  className,
+}: {
+  user: CurrentUser;
+  onUpload: (file: File) => void;
+  pending: boolean;
+  className?: string;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const initials = getInitials(user.username);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={pending}
+        className={cn(
+          "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10 text-sm font-black uppercase text-white transition-opacity hover:opacity-85 disabled:cursor-wait disabled:opacity-60",
+          className,
+        )}
+        aria-label="Загрузить фото профиля"
+        title="Загрузить фото профиля"
+      >
+        {user.avatar_url ? (
+          <img
+            src={user.avatar_url}
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          initials
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) {
+            onUpload(file);
+          }
+        }}
+      />
+    </>
+  );
+}
+
+function getInitials(value: string) {
+  return value
+    .trim()
+    .slice(0, 2)
+    .toUpperCase() || "U";
 }
 
 function MobileMoreMenu({

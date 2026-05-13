@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Banknote, Building2, CreditCard, Handshake, Landmark, Search, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import { useCatalogs, useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
 import { DeleteWalletButton } from "@/features/catalogs/DeleteWalletButton";
 import { WalletEditDialog } from "@/features/catalogs/WalletEditDialog";
@@ -29,6 +30,7 @@ const walletGroups = {
 export function CatalogsPage() {
   const catalogsQuery = useCatalogs();
   const createWallet = useCreateWallet();
+  const currentUser = useCurrentUser().data;
   const [name, setName] = useState("");
   const [walletType, setWalletType] = useState("card");
   const [search, setSearch] = useState("");
@@ -55,6 +57,9 @@ export function CatalogsPage() {
         ![...walletGroups.wallets, ...walletGroups.clients, ...walletGroups.suppliers].includes(wallet.type),
     ),
   };
+  const canAdjustWallets = Boolean(
+    currentUser?.operation_permissions.can_adjust_wallets,
+  );
 
   return (
     <section className="space-y-5">
@@ -63,6 +68,7 @@ export function CatalogsPage() {
         description="Кошельки, поставщики, клиенты и партнёры."
       />
 
+      {canAdjustWallets ? (
       <Card>
         <CardHeader>
           <CardTitle>Новая запись</CardTitle>
@@ -98,6 +104,7 @@ export function CatalogsPage() {
           </form>
         </CardContent>
       </Card>
+      ) : null}
 
       <Card>
         <CardHeader className="gap-3">
@@ -120,7 +127,7 @@ export function CatalogsPage() {
               <TabsTrigger value="wallets">Кошельки</TabsTrigger>
               <TabsTrigger value="clients">Клиенты</TabsTrigger>
               <TabsTrigger value="suppliers">Поставщики</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              <TabsTrigger value="advanced">Прочее</TabsTrigger>
             </TabsList>
             <TabsContent value="wallets">
               <WalletTable
@@ -130,6 +137,7 @@ export function CatalogsPage() {
                 emptyTitle="Кошельки ещё не добавлены"
                 emptyDescription="Создайте первый кошелёк, чтобы учитывать кассу, карты и счета."
                 onCreateClick={() => nameInputRef.current?.focus()}
+                canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
             <TabsContent value="clients">
@@ -140,6 +148,7 @@ export function CatalogsPage() {
                 emptyTitle="Клиенты ещё не добавлены"
                 emptyDescription="Добавьте первого клиента, чтобы потом быстро выбирать его в продаже и долгах."
                 onCreateClick={() => nameInputRef.current?.focus()}
+                canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
             <TabsContent value="suppliers">
@@ -150,16 +159,18 @@ export function CatalogsPage() {
                 emptyTitle="Поставщики ещё не добавлены"
                 emptyDescription="Добавьте первого поставщика или партнёра, чтобы привязывать закупки к каталогу."
                 onCreateClick={() => nameInputRef.current?.focus()}
+                canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
             <TabsContent value="advanced">
               <WalletTable
-                tableLabel="Техническая таблица"
+                tableLabel="Прочие записи"
                 wallets={groupedWallets.advanced}
                 walletTypes={catalogsQuery.data.wallet_types}
-                emptyTitle="Технических записей нет"
-                emptyDescription="Когда появятся специальные типы кошельков, они будут показаны здесь."
+                emptyTitle="Прочих записей нет"
+                emptyDescription="Записи без основной категории будут показаны здесь."
                 onCreateClick={() => nameInputRef.current?.focus()}
+                canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
           </Tabs>
@@ -176,6 +187,7 @@ function WalletTable({
   emptyTitle,
   emptyDescription,
   onCreateClick,
+  canAdjustWallets,
 }: {
   tableLabel: string;
   wallets: NonNullable<ReturnType<typeof useCatalogs>["data"]>["wallets"];
@@ -183,6 +195,7 @@ function WalletTable({
   emptyTitle: string;
   emptyDescription: string;
   onCreateClick: () => void;
+  canAdjustWallets: boolean;
 }) {
   if (!wallets.length) {
     return (
@@ -190,9 +203,11 @@ function WalletTable({
         title={emptyTitle}
         description={emptyDescription}
         action={
+          canAdjustWallets ? (
           <Button type="button" onClick={onCreateClick}>
             Создать запись
           </Button>
+          ) : undefined
         }
       />
     );
@@ -238,9 +253,13 @@ function WalletTable({
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-1.5">
-                  <AdjustWalletDialog wallet={wallet} />
-                  <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
-                  <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
+                  {canAdjustWallets ? (
+                    <>
+                      <AdjustWalletDialog wallet={wallet} />
+                      <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
+                      <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
+                    </>
+                  ) : null}
                 </div>
               </TableCell>
             </TableRow>

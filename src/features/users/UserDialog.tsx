@@ -1,7 +1,21 @@
-import { useState } from "react";
-import { Pencil } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import {
+  Banknote,
+  Boxes,
+  ChartNoAxesColumnIncreasing,
+  CreditCard,
+  Gauge,
+  HandCoins,
+  History,
+  Pencil,
+  ReceiptText,
+  RotateCcw,
+  SlidersHorizontal,
+  WalletCards,
+} from "lucide-react";
 import { toast } from "sonner";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import type { UserRole } from "@/entities/auth/model/types";
 import {
   type UserListItem,
@@ -13,9 +27,28 @@ import { getApiErrorMessage } from "@/shared/api/error";
 import { cn } from "@/shared/lib/utils";
 import { AppSelect, ResponsiveModal } from "@/shared/ui/app-form";
 import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
 import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
+
+const resourceAccessFields = [
+  { key: "can_access_dashboard", label: "Главная", icon: Gauge },
+  { key: "can_access_products", label: "Товары", icon: Boxes },
+  { key: "can_access_finance", label: "Касса", icon: WalletCards },
+  { key: "can_access_debts", label: "Долги", icon: HandCoins },
+  { key: "can_access_catalogs", label: "Справочники", icon: Banknote },
+] as const;
+
+const financeViewFields = [
+  { key: "can_view_finance_history", label: "История", icon: History },
+  { key: "can_view_finance_profit", label: "Прибыль", icon: ChartNoAxesColumnIncreasing },
+  { key: "can_view_finance_expenses", label: "Расходы", icon: ReceiptText },
+] as const;
+
+const financeDetailFields = [
+  { key: "can_transfer_wallets", label: "Переводы", icon: CreditCard },
+  { key: "can_adjust_wallets", label: "Корректировка", icon: SlidersHorizontal },
+  { key: "can_undo_transactions", label: "Отмена операций", icon: RotateCcw },
+] as const;
 
 export function UserDialog({
   mode,
@@ -26,6 +59,7 @@ export function UserDialog({
 }) {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
+  const currentUser = useCurrentUser();
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState(user?.username ?? "");
   const [password, setPassword] = useState("");
@@ -38,11 +72,30 @@ export function UserDialog({
     can_access_debts: user?.can_access_debts ?? true,
     can_access_catalogs: user?.can_access_catalogs ?? true,
   });
+  const [operationPermissions, setOperationPermissions] = useState({
+    can_view_finance_history: user?.can_view_finance_history ?? true,
+    can_view_finance_profit: user?.can_view_finance_profit ?? true,
+    can_view_finance_expenses: user?.can_view_finance_expenses ?? true,
+    can_transfer_wallets: user?.can_transfer_wallets ?? false,
+    can_adjust_wallets: user?.can_adjust_wallets ?? false,
+    can_undo_transactions: user?.can_undo_transactions ?? false,
+  });
   const [restrictionComment, setRestrictionComment] = useState(
     user?.restriction_comment ?? "",
   );
   const pending = createUser.isPending || updateUser.isPending;
   const formId = `user-${mode}-${user?.id ?? "new"}`;
+  const canManageSuperAdmins = currentUser.data?.role === "super_admin";
+  const roleOptions = [
+    { id: "user", name: "Пользователь" },
+    { id: "admin", name: "Администратор" },
+    ...(canManageSuperAdmins || role === "super_admin"
+      ? [{ id: "super_admin", name: "Супер администратор" }]
+      : []),
+  ];
+  const canEditResourceAccess = role === "user";
+  const displayName = username.trim() || (mode === "create" ? "Новый пользователь" : user?.username ?? "Пользователь");
+  const initials = getInitials(displayName);
 
   function buildPayload(): UserPayload {
     return {
@@ -51,6 +104,7 @@ export function UserDialog({
       is_active: isActive,
       role,
       ...permissions,
+      ...operationPermissions,
       restriction_comment: restrictionComment.trim() || null,
     };
   }
@@ -59,7 +113,21 @@ export function UserDialog({
     <ResponsiveModal
       open={open}
       onOpenChange={setOpen}
-      title={mode === "create" ? "Новый пользователь" : "Редактировать пользователя"}
+      title={
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-black uppercase text-primary">
+            {initials}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-base font-black text-foreground">
+              {displayName}
+            </span>
+            <span className="block text-xs font-medium text-muted-foreground">
+              {mode === "create" ? "Создание пользователя" : "Редактирование пользователя"}
+            </span>
+          </span>
+        </div>
+      }
       className="md:max-w-xl"
       trigger={
         mode === "create" ? (
@@ -152,10 +220,8 @@ export function UserDialog({
               <AppSelect
                 value={role}
                 onValueChange={(value) => setRole(value as UserRole)}
-                options={[
-                  { id: "user", name: "Пользователь" },
-                  { id: "admin", name: "Администратор" },
-                ]}
+                options={roleOptions}
+                disabled={role === "super_admin" && !canManageSuperAdmins}
               />
             </FormField>
             <FormField label="Статус">
@@ -187,41 +253,77 @@ export function UserDialog({
             </FormField>
           </div>
 
-          <div className="space-y-2">
-            <div className="text-[14px] font-medium text-foreground">
-              Доступные разделы
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {[
-                ["can_access_dashboard", "Главная"],
-                ["can_access_products", "Товары"],
-                ["can_access_finance", "Касса"],
-                ["can_access_debts", "Долги"],
-                ["can_access_catalogs", "Справочники"],
-              ].map(([key, label]) => (
-                <label
+          <PermissionSection
+            title={
+              canEditResourceAccess
+                ? "Доступные разделы"
+                : "Админам доступны все разделы"
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              {resourceAccessFields.map(({ key, label, icon: Icon }) => (
+                <PermissionPill
                   key={key}
-                  className={cn(
-                    "flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
-                    permissions[key as keyof typeof permissions]
-                      ? "border-sky-300 bg-sky-50 text-sky-800 shadow-sm"
-                      : "border-border bg-muted/20 text-muted-foreground",
-                  )}
-                >
-                  <Checkbox
-                    checked={permissions[key as keyof typeof permissions]}
-                    onCheckedChange={(value) =>
-                      setPermissions((current) => ({
+                  icon={<Icon />}
+                  label={label}
+                  selected={permissions[key]}
+                  disabled={!canEditResourceAccess}
+                  onToggle={() =>
+                    setPermissions((current) => ({
+                      ...current,
+                      [key]: !current[key],
+                    }))
+                  }
+                />
+              ))}
+            </div>
+          </PermissionSection>
+
+          <PermissionSection
+            title={
+              canEditResourceAccess ? "Права внутри кассы" : "Админам доступны все операции"
+            }
+          >
+            <div className="grid gap-2 sm:grid-cols-3">
+              {financeViewFields.map(({ key, label, icon: Icon }) => (
+                <PermissionTile
+                  key={key}
+                  icon={<Icon />}
+                  label={label}
+                  selected={operationPermissions[key]}
+                  disabled={!canEditResourceAccess}
+                  onToggle={() =>
+                    setOperationPermissions((current) => ({
+                      ...current,
+                      [key]: !current[key],
+                    }))
+                  }
+                />
+              ))}
+            </div>
+            <div className="border-t border-border pt-3">
+              <div className="mb-2 text-[11px] font-black uppercase tracking-wide text-muted-foreground">
+                Детальные операции
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {financeDetailFields.map(({ key, label, icon: Icon }) => (
+                  <PermissionTile
+                    key={key}
+                    icon={<Icon />}
+                    label={label}
+                    selected={operationPermissions[key]}
+                    disabled={!canEditResourceAccess}
+                    onToggle={() =>
+                      setOperationPermissions((current) => ({
                         ...current,
-                        [key]: Boolean(value),
+                        [key]: !current[key],
                       }))
                     }
                   />
-                  {label}
-                </label>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </PermissionSection>
 
           <FormField label="Комментарий ограничения">
             <Input
@@ -241,4 +343,97 @@ export function UserDialog({
         </form>
     </ResponsiveModal>
   );
+}
+
+function PermissionSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="border-b border-border bg-muted/30 px-4 py-3 text-xs font-black uppercase tracking-wide text-muted-foreground">
+        {title}
+      </div>
+      <div className="space-y-3 p-3">{children}</div>
+    </section>
+  );
+}
+
+function PermissionPill({
+  icon,
+  label,
+  selected,
+  disabled,
+  onToggle,
+}: {
+  icon: ReactNode;
+  label: string;
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onToggle}
+      className={cn(
+        "inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold leading-tight transition-colors",
+        selected
+          ? "border-sky-300 bg-sky-50 text-sky-800 shadow-sm"
+          : "border-border bg-muted/20 text-muted-foreground",
+        disabled && "cursor-not-allowed opacity-60",
+        "[&>svg]:size-4 [&>svg]:shrink-0",
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function PermissionTile({
+  icon,
+  label,
+  selected,
+  disabled,
+  onToggle,
+}: {
+  icon: ReactNode;
+  label: string;
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onToggle}
+      className={cn(
+        "flex min-h-10 w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold leading-tight transition-colors",
+        selected
+          ? "border-violet-300 bg-violet-50 text-violet-800 shadow-sm"
+          : "border-border bg-muted/20 text-muted-foreground",
+        disabled && "cursor-not-allowed opacity-60",
+        "[&>svg]:size-4 [&>svg]:shrink-0",
+      )}
+    >
+      {icon}
+      <span className="min-w-0">{label}</span>
+    </button>
+  );
+}
+
+function getInitials(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "U";
 }

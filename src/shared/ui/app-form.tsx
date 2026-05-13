@@ -311,7 +311,7 @@ export function AppSection({
   description,
   children,
 }: {
-  title: string;
+  title: ReactNode;
   description?: string;
   children: ReactNode;
 }) {
@@ -361,7 +361,7 @@ export function ResponsiveModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   trigger: ReactNode;
-  title: string;
+  title: ReactNode;
   description?: string;
   children: ReactNode;
   footer?: ReactNode;

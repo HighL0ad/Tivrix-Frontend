@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiRequest } from "@/shared/api/http";
-import type { UserRole } from "@/entities/auth/model/types";
+import type { OperationPermissionKey, UserRole } from "@/entities/auth/model/types";
 
 export type UserListItem = {
   id: number;
@@ -14,6 +14,12 @@ export type UserListItem = {
   can_access_finance: boolean;
   can_access_debts: boolean;
   can_access_catalogs: boolean;
+  can_view_finance_history: boolean;
+  can_view_finance_profit: boolean;
+  can_view_finance_expenses: boolean;
+  can_transfer_wallets: boolean;
+  can_adjust_wallets: boolean;
+  can_undo_transactions: boolean;
   restriction_comment: string | null;
 };
 
@@ -34,7 +40,10 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: (userId: number) =>
       apiRequest<{ ok: boolean }>(`/api/users/${userId}`, { method: "DELETE" }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
   });
 }
 
@@ -48,8 +57,26 @@ export type UserPayload = {
   can_access_finance: boolean;
   can_access_debts: boolean;
   can_access_catalogs: boolean;
+  can_view_finance_history: boolean;
+  can_view_finance_profit: boolean;
+  can_view_finance_expenses: boolean;
+  can_transfer_wallets: boolean;
+  can_adjust_wallets: boolean;
+  can_undo_transactions: boolean;
   restriction_comment?: string | null;
 };
+
+export const financeOperationFields: Array<{
+  key: OperationPermissionKey;
+  label: string;
+}> = [
+  { key: "can_view_finance_history", label: "История" },
+  { key: "can_view_finance_profit", label: "Прибыль" },
+  { key: "can_view_finance_expenses", label: "Расходы" },
+  { key: "can_transfer_wallets", label: "Переводы" },
+  { key: "can_adjust_wallets", label: "Корректировка" },
+  { key: "can_undo_transactions", label: "Отмена операций" },
+];
 
 export function useCreateUser() {
   const queryClient = useQueryClient();
@@ -59,7 +86,10 @@ export function useCreateUser() {
         method: "POST",
         json: payload,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
   });
 }
 
@@ -71,6 +101,9 @@ export function useUpdateUser() {
         method: "PUT",
         json: payload,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
   });
 }
