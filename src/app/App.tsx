@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router";
 import { AppLayout } from "@/widgets/app-layout/AppLayout";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
 import { LoginPage } from "@/pages/login/LoginPage";
+import { SetPasswordPage } from "@/pages/login/SetPasswordPage";
 import { ProductCreatePage } from "@/pages/products/ProductCreatePage";
 import { ProductDetailPage } from "@/pages/products/ProductDetailPage";
 import { ProductEditPage } from "@/pages/products/ProductEditPage";
@@ -19,6 +20,7 @@ export function App() {
     <>
       <Routes>
         <Route path="login" element={<LoginPage />} />
+        <Route path="set-password" element={<SetPasswordPage />} />
         <Route element={<AppLayout />}>
           <Route index element={<AccessGuard resource="dashboard"><DashboardPage /></AccessGuard>} />
           <Route path="products" element={<AccessGuard resource="products"><ProductsPage /></AccessGuard>} />

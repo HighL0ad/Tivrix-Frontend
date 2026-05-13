@@ -61,8 +61,8 @@ export function UserDialog({
   const updateUser = useUpdateUser();
   const currentUser = useCurrentUser();
   const [open, setOpen] = useState(false);
+  const [setupUrl, setSetupUrl] = useState<string | null>(null);
   const [username, setUsername] = useState(user?.username ?? "");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>(user?.role ?? "user");
   const [isActive, setIsActive] = useState(user?.is_active ?? true);
   const [permissions, setPermissions] = useState({
@@ -100,7 +100,6 @@ export function UserDialog({
   function buildPayload(): UserPayload {
     return {
       username: username.trim(),
-      ...(password ? { password } : {}),
       is_active: isActive,
       role,
       ...permissions,
@@ -112,11 +111,24 @@ export function UserDialog({
   return (
     <ResponsiveModal
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setSetupUrl(null);
+        }
+      }}
       title={
         <div className="flex items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-black uppercase text-primary">
-            {initials}
+          <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-black uppercase text-primary">
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt=""
+                className="size-full object-cover"
+              />
+            ) : (
+              initials
+            )}
           </span>
           <span className="min-w-0">
             <span className="block truncate text-base font-black text-foreground">
@@ -159,7 +171,7 @@ export function UserDialog({
             className="w-full sm:w-auto"
             disabled={
               !username.trim() ||
-              (mode === "create" && password.length < 4) ||
+              (mode === "create" && Boolean(setupUrl)) ||
               pending
             }
           >
@@ -175,10 +187,10 @@ export function UserDialog({
             event.preventDefault();
             if (mode === "create") {
               createUser.mutate(
-                { ...buildPayload(), password },
+                buildPayload(),
                 {
-                  onSuccess: () => {
-                    setOpen(false);
+                  onSuccess: (createdUser) => {
+                    setSetupUrl(createdUser.password_setup_url ?? null);
                     toast.success("Пользователь создан");
                   },
                   onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -205,15 +217,6 @@ export function UserDialog({
                 onChange={(event) => setUsername(event.target.value)}
                 required
                 minLength={3}
-              />
-            </FormField>
-            <FormField label={mode === "create" ? "Пароль" : "Новый пароль"}>
-              <Input
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                type="password"
-                required={mode === "create"}
-                minLength={mode === "create" ? 4 : undefined}
               />
             </FormField>
             <FormField label="Роль">
@@ -331,6 +334,28 @@ export function UserDialog({
               onChange={(event) => setRestrictionComment(event.target.value)}
             />
           </FormField>
+
+          {setupUrl ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+              <div className="font-bold">Ссылка для установки пароля</div>
+              <div className="mt-1 break-all text-xs">
+                {window.location.origin}
+                {setupUrl}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-3 bg-white"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}${setupUrl}`);
+                  toast.success("Ссылка скопирована");
+                }}
+              >
+                Скопировать ссылку
+              </Button>
+            </div>
+          ) : null}
 
           {createUser.isError || updateUser.isError ? (
             <FormError

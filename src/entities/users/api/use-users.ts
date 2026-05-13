@@ -7,6 +7,7 @@ export type UserListItem = {
   id: number;
   username: string;
   avatar_url: string | null;
+  password_setup_url: string | null;
   is_active: boolean;
   role: UserRole;
   is_admin: boolean;
@@ -50,7 +51,6 @@ export function useDeleteUser() {
 
 export type UserPayload = {
   username: string;
-  password?: string;
   is_active: boolean;
   role: UserRole;
   can_access_dashboard: boolean;
@@ -82,7 +82,7 @@ export const financeOperationFields: Array<{
 export function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: UserPayload & { password: string }) =>
+    mutationFn: (payload: UserPayload) =>
       apiRequest<UserListItem>("/api/users", {
         method: "POST",
         json: payload,
@@ -90,6 +90,20 @@ export function useCreateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
+  });
+}
+
+export function useCreatePasswordSetupLink() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: number) =>
+      apiRequest<{ user: UserListItem; password_setup_url: string }>(
+        `/api/users/${userId}/password-setup-link`,
+        { method: "POST" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }

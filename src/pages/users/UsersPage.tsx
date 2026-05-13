@@ -1,9 +1,15 @@
-import { Crown, ShieldCheck, UserRound } from "lucide-react";
+import { Crown, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import { toast } from "sonner";
 
-import { useUsers } from "@/entities/users/api/use-users";
+import {
+  useCreatePasswordSetupLink,
+  useUsers,
+} from "@/entities/users/api/use-users";
 import { DeleteUserButton } from "@/features/users/DeleteUserButton";
 import { UserDialog } from "@/features/users/UserDialog";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
@@ -29,6 +35,7 @@ const RoleIcon = {
 
 export function UsersPage() {
   const usersQuery = useUsers();
+  const passwordSetupLink = useCreatePasswordSetupLink();
 
   if (usersQuery.isLoading) {
     return <PageLoading />;
@@ -106,6 +113,28 @@ export function UsersPage() {
                     <TableCell>
                       <div className="flex gap-2">
                         <UserDialog mode="edit" user={user} />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon-sm"
+                          disabled={passwordSetupLink.isPending}
+                          aria-label="Сбросить пароль"
+                          title="Сбросить пароль"
+                          onClick={() =>
+                            passwordSetupLink.mutate(user.id, {
+                              onSuccess: (data) => {
+                                navigator.clipboard.writeText(
+                                  `${window.location.origin}${data.password_setup_url}`,
+                                );
+                                toast.success("Ссылка сброса пароля скопирована");
+                              },
+                              onError: (error) =>
+                                toast.error(getApiErrorMessage(error)),
+                            })
+                          }
+                        >
+                          <KeyRound />
+                        </Button>
                         <DeleteUserButton
                           userId={user.id}
                           username={user.username}

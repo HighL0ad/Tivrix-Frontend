@@ -57,6 +57,7 @@ export function DashboardPage() {
         <MetricCard
           title="Прибыль сегодня"
           value={money(data.profit_today)}
+          hint={`Продано: ${data.sales_today.count} шт.`}
           tone={Number(data.profit_today) >= 0 ? "good" : "bad"}
           icon={<TrendingUp className="size-4" />}
         />

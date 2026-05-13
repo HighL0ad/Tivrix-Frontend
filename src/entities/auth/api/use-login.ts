@@ -21,3 +21,17 @@ export function useLogin() {
     mutationFn: login,
   });
 }
+
+export function setPassword(payload: { token: string; password: string }) {
+  return apiRequest<{ ok: boolean }>("/api/auth/set-password", {
+    method: "POST",
+    json: payload,
+    redirectOnUnauthorized: false,
+  });
+}
+
+export function useSetPassword() {
+  return useMutation({
+    mutationFn: setPassword,
+  });
+}
