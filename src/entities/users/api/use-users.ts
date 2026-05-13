@@ -6,6 +6,7 @@ import type { OperationPermissionKey, UserRole } from "@/entities/auth/model/typ
 export type UserListItem = {
   id: number;
   username: string;
+  avatar_url: string | null;
   is_active: boolean;
   role: UserRole;
   is_admin: boolean;

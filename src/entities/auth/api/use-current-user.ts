@@ -26,6 +26,7 @@ export function useUploadAvatar() {
     },
     onSuccess: (currentUser) => {
       queryClient.setQueryData(["auth", "me"], currentUser);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }

@@ -64,7 +64,22 @@ export function UsersPage() {
 
                 return (
                   <TableRow key={user.id}>
-                    <TableCell className="font-semibold">{user.username}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-black uppercase text-primary">
+                          {user.avatar_url ? (
+                            <img
+                              src={user.avatar_url}
+                              alt=""
+                              className="size-full object-cover"
+                            />
+                          ) : (
+                            getInitials(user.username)
+                          )}
+                        </span>
+                        <span className="font-semibold">{user.username}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -107,4 +122,8 @@ export function UsersPage() {
       </Card>
     </section>
   );
+}
+
+function getInitials(value: string) {
+  return value.trim().slice(0, 2).toUpperCase() || "U";
 }
