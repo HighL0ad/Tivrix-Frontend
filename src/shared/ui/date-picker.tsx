@@ -14,6 +14,7 @@ import {
   subMonths,
 } from "date-fns";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -23,12 +24,20 @@ import {
   PopoverTrigger,
 } from "@/shared/ui/popover";
 
-const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const weekDayKeys = [
+  "common.weekDays.mon",
+  "common.weekDays.tue",
+  "common.weekDays.wed",
+  "common.weekDays.thu",
+  "common.weekDays.fri",
+  "common.weekDays.sat",
+  "common.weekDays.sun",
+];
 
 export function DatePicker({
   value,
   onChange,
-  placeholder = "Выберите дату",
+  placeholder,
   className,
 }: {
   value: string;
@@ -36,6 +45,8 @@ export function DatePicker({
   placeholder?: string;
   className?: string;
 }) {
+  const { t } = useTranslation();
+  const datePlaceholder = placeholder ?? t("common.selectDate");
   const selectedDate = useMemo(() => (value ? parseISO(value) : undefined), [value]);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<Date>(selectedDate ?? new Date());
@@ -66,7 +77,7 @@ export function DatePicker({
         >
           <CalendarDays className="size-4" aria-hidden="true" />
           <span>
-            {selectedDate ? format(selectedDate, "dd.MM.yyyy") : placeholder}
+            {selectedDate ? format(selectedDate, "dd.MM.yyyy") : datePlaceholder}
           </span>
         </Button>
       </PopoverTrigger>
@@ -77,7 +88,7 @@ export function DatePicker({
             variant="ghost"
             size="icon-sm"
             onClick={() => setMonth((current) => subMonths(current, 1))}
-            aria-label="Предыдущий месяц"
+            aria-label={t("common.previousMonth")}
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -89,19 +100,19 @@ export function DatePicker({
             variant="ghost"
             size="icon-sm"
             onClick={() => setMonth((current) => addMonths(current, 1))}
-            aria-label="Следующий месяц"
+            aria-label={t("common.nextMonth")}
           >
             <ChevronRight className="size-4" aria-hidden="true" />
           </Button>
         </div>
 
         <div className="grid grid-cols-7 gap-1">
-          {weekDays.map((day) => (
+          {weekDayKeys.map((dayKey) => (
             <div
-              key={day}
+              key={dayKey}
               className="flex h-8 items-center justify-center text-[11px] font-bold uppercase text-muted-foreground"
             >
-              {day}
+              {t(dayKey)}
             </div>
           ))}
           {calendarDays.map((day) => {

@@ -1,5 +1,6 @@
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import {
   type Payable,
@@ -19,6 +20,7 @@ import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 
 export function DebtsPage() {
+  const { t } = useTranslation();
   const debtsQuery = useDebts();
 
   if (debtsQuery.isLoading) {
@@ -33,19 +35,19 @@ export function DebtsPage() {
   const debtSections = [
     {
       key: "we_owe" as const,
-      title: "Мы должны",
+      title: t("debts.weOwe"),
       wallets: data.we_owe,
       operationType: "pay_supplier" as const,
     },
     {
       key: "shops" as const,
-      title: "Нам должны магазины",
+      title: t("debts.shopsOweUs"),
       wallets: data.shops_owe_us,
       operationType: "receive_client" as const,
     },
     {
       key: "clients" as const,
-      title: "Нам должны клиенты",
+      title: t("debts.clientsOweUs"),
       wallets: data.clients_owe_us,
       operationType: "receive_client" as const,
     },
@@ -58,20 +60,20 @@ export function DebtsPage() {
   return (
     <section className="space-y-5">
       <PageHeader
-        title="Долги"
-        description="Поставщики, клиенты, партнёры и неоплаченные обязательства."
+        title={t("app.nav.debts")}
+        description={t("debts.description")}
         actions={
           <>
         <MoneyFlowDialog
-          title="Одолжить"
-          trigger="Одолжить клиенту/партнёру"
+          title={t("debts.lend")}
+          trigger={t("debts.lendToClientPartner")}
           sourceWallets={data.my_wallets}
           targetWallets={data.lend_counterparties}
           mode="lend"
         />
         <MoneyFlowDialog
-          title="Взять в долг"
-          trigger="Взять в долг"
+          title={t("debts.borrow")}
+          trigger={t("debts.borrow")}
           sourceWallets={data.all_partners}
           targetWallets={data.my_wallets}
           mode="borrow"
@@ -82,8 +84,8 @@ export function DebtsPage() {
 
       {!hasAnyDebts ? (
         <EmptyState
-          title="Долговых записей пока нет"
-          description="Добавьте клиента, поставщика или оформите долг, чтобы быстро отслеживать взаиморасчёты."
+          title={t("debts.emptyTitle")}
+          description={t("debts.emptyDescription")}
         />
       ) : null}
 
@@ -113,12 +115,13 @@ function PayablesBlock({
   payables: Payable[];
   myWallets: Wallet[];
 }) {
+  const { t } = useTranslation();
   const total = sumPayables(payables);
 
   return (
     <Card className="gap-0 py-0">
       <CardHeader className="flex flex-row items-center justify-between gap-3 border-b px-4 py-3">
-        <CardTitle className="min-w-0 text-sm">Неоплаченные обязательства</CardTitle>
+        <CardTitle className="min-w-0 text-sm">{t("debts.unpaidPayables")}</CardTitle>
         <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
           {money(total)}
         </Badge>
@@ -139,10 +142,11 @@ function PayableRows({
   payables: Payable[];
   myWallets: Wallet[];
 }) {
+  const { t } = useTranslation();
   if (!payables.length) {
     return (
       <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-        Неоплаченных обязательств нет
+        {t("debts.noUnpaidPayables")}
       </div>
     );
   }
@@ -165,7 +169,7 @@ function PayableRows({
               <div className="min-w-0">
                 <div className="break-words font-semibold">{payable.category}</div>
                 <div className="mt-0.5 break-words text-xs text-muted-foreground">
-                  {payable.product_name ?? "Без товара"}
+                  {payable.product_name ?? t("products.noProduct")}
                 </div>
                 {imeis.length ? (
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -175,8 +179,8 @@ function PayableRows({
                       variant="ghost"
                       size="icon"
                       className="size-7 shrink-0"
-                      aria-label="Скопировать IMEI"
-                      onClick={() => copyImei(imeis.join("\n"))}
+                      aria-label={t("products.copyImei")}
+                      onClick={() => copyImei(imeis.join("\n"), t)}
                     >
                       <Copy className="size-3.5" aria-hidden="true" />
                     </Button>
@@ -255,6 +259,7 @@ function WalletRows({
   operationType: "pay_supplier" | "receive_client";
   tone: "good" | "bad";
 }) {
+  const { t } = useTranslation();
   const dotClass = tone === "bad" ? "bg-rose-500" : "bg-emerald-500";
   const amountClass = tone === "bad" ? "text-rose-700" : "text-emerald-700";
 
@@ -287,8 +292,8 @@ function WalletRows({
         )) : (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             {operationType === "pay_supplier"
-              ? "Поставщики ещё не добавлены"
-              : "Клиенты ещё не добавлены"}
+              ? t("catalogs.suppliersEmptyTitle")
+              : t("catalogs.clientsEmptyTitle")}
           </div>
         )}
     </div>
@@ -303,7 +308,7 @@ function sumPayables(payables: Payable[]) {
   return payables.reduce((total, payable) => total + Number(payable.amount), 0);
 }
 
-async function copyImei(value: string) {
+async function copyImei(value: string, t: (key: string) => string) {
   await navigator.clipboard.writeText(value);
-  toast.success("IMEI скопирован");
+  toast.success(t("products.imeiCopied"));
 }

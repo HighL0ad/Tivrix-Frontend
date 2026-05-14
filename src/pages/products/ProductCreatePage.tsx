@@ -4,6 +4,7 @@ import {
   useState,
 } from "react";
 import { AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -45,6 +46,7 @@ import {
 } from "@/features/products/product-form/model";
 
 export function ProductCreatePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const optionsQuery = useProductCreateOptions();
   const createMutation = useCreateProduct();
@@ -111,7 +113,7 @@ export function ProductCreatePage() {
     setCheckingImei(true);
     try {
       const result = await checkProductImei(normalizedImei);
-      if (result.exists) setImeiError("Товар с таким IMEI уже существует");
+      if (result.exists) setImeiError(t("products.imeiExists"));
     } finally {
       setCheckingImei(false);
     }
@@ -156,11 +158,11 @@ export function ProductCreatePage() {
 
     createMutation.mutate(formData, {
       onSuccess: (product) => {
-        toast.success("Товар добавлен");
+        toast.success(t("products.created"));
         navigate(`/products/${product.id}`, { replace: true });
       },
       onError: (error) =>
-        toast.error(getApiErrorMessage(error, "Не удалось создать закупку")),
+        toast.error(getApiErrorMessage(error, t("products.createPurchaseError"))),
     });
   };
 
@@ -168,7 +170,7 @@ export function ProductCreatePage() {
     createMutation.error instanceof ApiError
       ? getProductFormErrorMessage(
           createMutation.error.payload,
-          "Не удалось создать закупку. Попробуйте ещё раз.",
+          t("products.createPurchaseTryAgain"),
         )
       : null;
 
@@ -185,7 +187,7 @@ export function ProductCreatePage() {
         onSuccess: (wallet) => {
           onCreated(String(wallet.id));
           optionsQuery.refetch();
-          toast.success("Кошелёк создан");
+          toast.success(t("catalogs.walletCreated"));
         },
         onError: (error) => toast.error(getApiErrorMessage(error)),
       },
@@ -196,7 +198,7 @@ export function ProductCreatePage() {
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="p-8 text-sm text-muted-foreground">
-          Загружаем форму закупки...
+          {t("products.loadingPurchaseForm")}
         </CardContent>
       </Card>
     );
@@ -205,8 +207,8 @@ export function ProductCreatePage() {
   return (
     <section className="mx-auto max-w-6xl space-y-5">
       <PageHeader
-        title="Новая закупка"
-        description="Выберите сценарий оплаты, добавьте товар и привяжите финансовое движение."
+        title={t("products.newPurchase")}
+        description={t("products.newPurchaseDescription")}
       />
 
       <form
@@ -226,9 +228,9 @@ export function ProductCreatePage() {
           {/* Scenario */}
           <Card>
             <CardHeader>
-              <CardTitle>Как прошла оплата?</CardTitle>
+              <CardTitle>{t("sell.paymentQuestion")}</CardTitle>
               <CardDescription>
-                От сценария зависит, какой кошелек или долг будет затронут.
+                {t("products.paymentScenarioDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -253,10 +255,10 @@ export function ProductCreatePage() {
                         <RadioGroupItem value={value} className="mt-0.5" />
                         <span>
                           <span className="block text-[13px] font-bold leading-5 text-foreground">
-                            {meta.title}
+                            {t(meta.titleKey)}
                           </span>
                           <span className="mt-1 block text-[13px] leading-5 text-gray-500">
-                            {meta.description}
+                            {t(meta.descriptionKey)}
                           </span>
                         </span>
                       </label>
@@ -270,11 +272,11 @@ export function ProductCreatePage() {
           {/* Product */}
           <Card>
             <CardHeader>
-              <CardTitle>Товар</CardTitle>
-              <CardDescription>Основные данные товара и IMEI.</CardDescription>
+              <CardTitle>{t("sell.product")}</CardTitle>
+              <CardDescription>{t("products.mainDataDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field label="Название / Модель">
+              <Field label={t("products.nameModel")}>
                 <Input
                   required
                   placeholder="iPhone 13..."
@@ -284,7 +286,7 @@ export function ProductCreatePage() {
               </Field>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Field label="IMEI / Серийный номер">
+                <Field label={t("products.imeiSerial")}>
                   <Input
                     required
                     placeholder="35..."
@@ -303,21 +305,21 @@ export function ProductCreatePage() {
                     </p>
                   ) : checkingImei ? (
                     <p className="mt-1 text-[13px] font-medium leading-5 text-gray-500">
-                      Проверяем IMEI...
+                      {t("products.checkingImei")}
                     </p>
                   ) : null}
                 </Field>
 
                 <Field label="IMEI 2">
                   <Input
-                    placeholder="Необязательно"
+                    placeholder={t("common.optional")}
                     className="font-mono"
                     value={imei2}
                     onChange={(e) => setImei2(e.target.value)}
                   />
                 </Field>
 
-                <Field label="Номер телефона">
+                <Field label={t("products.phoneNumber")}>
                   <Input
                     type="tel"
                     placeholder="+994..."
@@ -327,7 +329,7 @@ export function ProductCreatePage() {
                   />
                 </Field>
 
-                <Field label="Цена закупки (AZN)">
+                <Field label={t("products.buyPriceAzn")}>
                   <Input
                     required
                     type="number"
@@ -346,9 +348,9 @@ export function ProductCreatePage() {
           {/* Registration */}
           <Card>
             <CardHeader>
-              <CardTitle>Регистрация</CardTitle>
+              <CardTitle>{t("products.registration")}</CardTitle>
               <CardDescription>
-                Отметьте статусы, которые относятся к товару.
+                {t("products.registrationDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -362,8 +364,8 @@ export function ProductCreatePage() {
           {/* Photo */}
           <Card>
             <CardHeader>
-              <CardTitle>Фото</CardTitle>
-              <CardDescription>Фото товара или чека.</CardDescription>
+              <CardTitle>{t("products.photo")}</CardTitle>
+              <CardDescription>{t("products.photoDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <AppFileUpload
@@ -371,7 +373,7 @@ export function ProductCreatePage() {
                 onChange={(files) => setPhotos(Array.isArray(files) ? files : [])}
                 multiple
                 accept="image/*"
-                label="Загрузить фото товара"
+                label={t("products.uploadProductPhoto")}
               />
             </CardContent>
           </Card>
@@ -379,19 +381,19 @@ export function ProductCreatePage() {
           {/* Payment */}
           <Card>
             <CardHeader>
-              <CardTitle>Оплата</CardTitle>
+              <CardTitle>{t("sell.payment")}</CardTitle>
               <CardDescription>
-                Поставщик, кошелек оплаты и сплит-платеж.
+                {t("products.paymentDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <Field label="У кого покупаем?" strong>
+              <Field label={t("products.buyFrom")} strong>
                 <SearchableSelect
                   value={supplierId}
                   onValueChange={setSupplierId}
                   options={options?.supplier_wallet_options ?? []}
-                  placeholder="Выберите поставщика или партнёра"
-                  searchPlaceholder="Поиск поставщика..."
+                  placeholder={t("products.selectSupplierOrPartner")}
+                  searchPlaceholder={t("products.supplierSearch")}
                 />
                 <InlineCreate
                   value={newSupplierName}
@@ -402,32 +404,31 @@ export function ProductCreatePage() {
                       setNewSupplierName("");
                     })
                   }
-                  placeholder="Новый поставщик"
+                  placeholder={t("debts.newSupplier")}
                 />
               </Field>
 
               {scenario === "supplier_debt" ? (
-                <InfoBox color="red" title="Оплата сейчас не списывается.">
-                  Система создаст закупку и запишет сумму в долг поставщику.
+                <InfoBox color="red" title={t("products.supplierDebtInfoTitle")}>
+                  {t("products.supplierDebtInfo")}
                 </InfoBox>
               ) : null}
 
               {scenario === "cash_now" ? (
-                <InfoBox color="green" title="Основная сумма уйдёт из кассы.">
-                  Если включить сплит, остаток останется за кассой, а вторая
-                  сумма уйдёт из другого кошелька.
+                <InfoBox color="green" title={t("products.cashInfoTitle")}>
+                  {t("products.cashInfo")}
                 </InfoBox>
               ) : null}
 
               {scenario === "transfer_now" ? (
                 <div className="space-y-4 rounded-lg border border-sky-200 bg-background p-4">
-                  <Field label="Основной счёт или карта" strong>
+                  <Field label={t("products.primaryAccountOrCard")} strong>
                     <SearchableSelect
                       value={paymentWalletId}
                       onValueChange={setPaymentWalletId}
                       options={options?.payment_wallet_options ?? []}
-                      placeholder="Выберите карту или счёт"
-                      searchPlaceholder="Поиск счёта или карты..."
+                      placeholder={t("products.selectCardOrAccount")}
+                      searchPlaceholder={t("products.cardOrAccountSearch")}
                     />
                     <InlineCreate
                       value={newPaymentWalletName}
@@ -438,7 +439,7 @@ export function ProductCreatePage() {
                           setNewPaymentWalletName("");
                         })
                       }
-                      placeholder="Новая карта / счёт"
+                      placeholder={t("products.newCardOrAccount")}
                     />
                   </Field>
                 </div>
@@ -456,10 +457,10 @@ export function ProductCreatePage() {
                     />
                     <span>
                       <span className="block text-[13px] font-bold leading-5 text-foreground">
-                        Сплит-платёж
+                        {t("products.splitPayment")}
                       </span>
                       <span className="mt-1 block text-[13px] leading-5 text-gray-500">
-                        Часть суммы списать из второго кошелька.
+                        {t("products.splitPaymentDescription")}
                       </span>
                     </span>
                   </label>
@@ -470,8 +471,8 @@ export function ProductCreatePage() {
                         <Field
                           label={
                             scenario === "cash_now"
-                              ? "Сумма из кассы"
-                              : "Сумма с основного счёта"
+                              ? t("products.amountFromCash")
+                              : t("products.amountFromPrimaryAccount")
                           }
                           strong
                         >
@@ -498,25 +499,25 @@ export function ProductCreatePage() {
                           </div>
                           {splitAmountInvalid ? (
                             <p className="mt-1 text-xs font-semibold text-red-600">
-                              Сумма должна быть больше 0 и меньше цены закупки
+                              {t("products.splitAmountError")}
                             </p>
                           ) : null}
                         </Field>
 
-                        <Field label="Сумма со второго кошелька" strong>
+                        <Field label={t("products.amountFromSecondWallet")} strong>
                           <div className="rounded-lg border border-sky-200 bg-sky-50 p-3 font-bold text-sky-700">
                             {secondarySplitAmount.toFixed(2)} ₼
                           </div>
                         </Field>
                       </div>
 
-                      <Field label="Второй кошелёк для сплит-платежа" strong>
+                      <Field label={t("products.secondSplitWallet")} strong>
                         <SearchableSelect
                           value={splitWalletId}
                           onValueChange={setSplitWalletId}
                           options={visibleSplitWalletOptions}
-                          placeholder="Выберите второй кошелёк"
-                          searchPlaceholder="Поиск кошелька..."
+                          placeholder={t("products.selectSecondWallet")}
+                          searchPlaceholder={t("products.walletSearch")}
                         />
                         <InlineCreate
                           value={newSplitWalletName}
@@ -527,7 +528,7 @@ export function ProductCreatePage() {
                               setNewSplitWalletName("");
                             })
                           }
-                          placeholder="Новый кошелёк"
+                          placeholder={t("products.newWallet")}
                         />
                       </Field>
                     </>
@@ -542,22 +543,22 @@ export function ProductCreatePage() {
         <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardHeader>
-              <CardTitle>Итог</CardTitle>
-              <CardDescription>Проверьте перед созданием.</CardDescription>
+              <CardTitle>{t("products.summary")}</CardTitle>
+              <CardDescription>{t("products.checkBeforeCreate")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
-                label="Как прошла оплата?"
-                value={scenarioMeta[scenario].title}
+                label={t("sell.paymentQuestion")}
+                value={t(scenarioMeta[scenario].titleKey)}
               />
               <SummaryRow
-                label="Цена закупки"
+                label={t("products.buyPrice")}
                 value={buyPrice ? `${buyPrice} ₼` : "-"}
               />
               <SummaryRow
-                label="Сплит"
+                label={t("products.split")}
                 value={
-                  splitEnabled ? `${secondarySplitAmount.toFixed(2)} ₼` : "Нет"
+                  splitEnabled ? `${secondarySplitAmount.toFixed(2)} ₼` : t("common.no")
                 }
               />
               <Button
@@ -565,7 +566,7 @@ export function ProductCreatePage() {
                 disabled={createMutation.isPending || !isFormValid()}
                 className="mt-2 w-full py-4"
               >
-                {createMutation.isPending ? "Создаём..." : "Создать закупку"}
+                {createMutation.isPending ? t("products.creating") : t("products.createPurchase")}
               </Button>
             </CardContent>
           </Card>

@@ -1,6 +1,7 @@
 import { ApiError } from "@/shared/api/http";
+import { i18n } from "@/shared/i18n";
 
-export function getApiErrorMessage(error: unknown, fallback = "Операция не выполнена") {
+export function getApiErrorMessage(error: unknown, fallback = i18n.t("common.operationFailed")) {
   if (error instanceof ApiError) {
     const payload = error.payload;
     if (

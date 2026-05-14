@@ -1,5 +1,6 @@
 import { type ComponentProps, useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -30,6 +31,7 @@ import { getProductFormErrorMessage, productStatusOptions } from "@/features/pro
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
 
 export function ProductEditPage() {
+  const { t } = useTranslation();
   const location = useLocation();
   const params = useParams();
   const navigate = useNavigate();
@@ -112,7 +114,7 @@ export function ProductEditPage() {
     updateProduct.mutate(formData, {
       onSuccess: (updatedProduct) => {
         if (!shouldUpdateSalePrice) {
-          toast.success("Товар обновлён");
+          toast.success(t("products.updated"));
           navigate(`/products/${updatedProduct.id}`, {
             replace: true,
             state: { from: productsHref },
@@ -125,7 +127,7 @@ export function ProductEditPage() {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             queryClient.invalidateQueries({ queryKey: ["dashboard"] });
             queryClient.invalidateQueries({ queryKey: ["finance"] });
-            toast.success("Товар и цена продажи обновлены");
+            toast.success(t("products.updatedWithSalePrice"));
             navigate(`/products/${updatedWithSalePrice.id}`, {
               replace: true,
               state: { from: productsHref },
@@ -135,7 +137,7 @@ export function ProductEditPage() {
         });
       },
       onError: (error) =>
-        toast.error(getApiErrorMessage(error, "Не удалось обновить товар")),
+        toast.error(getApiErrorMessage(error, t("products.updateError"))),
     });
   };
 
@@ -144,7 +146,7 @@ export function ProductEditPage() {
   }
 
   if (!product || !optionsQuery.data) {
-    return <PageError message="Товар не найден" />;
+    return <PageError message={t("products.notFound")} />;
   }
 
   const saleProfit = Number(salePrice || 0) - Number(buyPrice || 0);
@@ -163,7 +165,7 @@ export function ProductEditPage() {
       />
 
       <PageHeader
-        title="Редактировать товар"
+        title={t("products.editTitle")}
         description={`${product.name} · IMEI ${product.imei}`}
       />
 
@@ -178,10 +180,10 @@ export function ProductEditPage() {
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Модель">
+              <Field label={t("products.model")}>
                 <Input value={name} onChange={(event) => setName(event.target.value)} required />
               </Field>
-              <Field label="Цена закупки">
+              <Field label={t("products.buyPrice")}>
                 <Input
                   value={buyPrice}
                   onChange={(event) => setBuyPrice(event.target.value)}
@@ -192,38 +194,38 @@ export function ProductEditPage() {
               <Field label="IMEI">
                 <Input value={imei} onChange={(event) => setImei(event.target.value)} required />
               </Field>
-              <Field label="IMEI 2">
+              <Field label={t("products.imei2")}>
                 <Input value={imei2} onChange={(event) => setImei2(event.target.value)} />
               </Field>
-              <Field label="SIM номер">
+              <Field label={t("products.simNumber")}>
                 <Input
                   value={phoneNumber}
                   onChange={(event) => setPhoneNumber(event.target.value)}
                 />
               </Field>
-              <Field label="Статус">
+              <Field label={t("common.status")}>
                 <AppSelect
                   value={status}
                   onValueChange={setStatus}
                   disabled={product.status === "sold"}
                   options={productStatusOptions
                     .filter((option) => option.value !== "sold" || product.status === "sold")
-                    .map((option) => ({ id: option.value, name: option.label }))}
+                    .map((option) => ({ id: option.value, name: t(option.labelKey) }))}
                 />
                 {product.status === "sold" ? (
                   <div className="mt-2 flex items-center gap-2 text-[13px] leading-5 text-gray-500">
                     <ProductStatusBadge status={product.status} />
-                    Статус продажи меняется через продажу или отмену сделки.
+                    {t("products.soldStatusLocked")}
                   </div>
                 ) : null}
               </Field>
-              <Field label="Поставщик">
+              <Field label={t("catalogs.suppliers")}>
                 <SearchableSelect
                   value={supplierId}
                   onValueChange={setSupplierId}
                   options={optionsQuery.data.supplier_wallet_options}
-                  placeholder={product.supplier_name ?? "Выберите поставщика"}
-                  searchPlaceholder="Поиск поставщика"
+                  placeholder={product.supplier_name ?? t("products.selectSupplier")}
+                  searchPlaceholder={t("products.supplierSearch")}
                 />
                 <InlineCreate
                   value={newSupplierName}
@@ -238,22 +240,22 @@ export function ProductEditPage() {
                         setSupplierId(String(wallet.id));
                         setNewSupplierName("");
                         optionsQuery.refetch();
-                        toast.success("Поставщик создан");
+                        toast.success(t("catalogs.supplierCreated"));
                       },
                       onError: (error) => toast.error(getApiErrorMessage(error)),
                     },
                   );
                   }}
-                  placeholder="Новый поставщик"
+                  placeholder={t("debts.newSupplier")}
                   disabled={createWallet.isPending}
                 />
               </Field>
             </div>
 
             {product.current_sale ? (
-              <AppFormField label="Продажа">
+              <AppFormField label={t("products.sale")}>
                 <div className="grid gap-4 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2">
-                  <Field label="Цена продажи">
+                  <Field label={t("products.salePrice")}>
                     <Input
                       value={salePrice}
                       onChange={(event) => setSalePrice(event.target.value)}
@@ -266,11 +268,11 @@ export function ProductEditPage() {
                   </Field>
                   <div className="rounded-lg border bg-background p-3 text-sm">
                     <div className="flex justify-between gap-3">
-                      <span className="text-muted-foreground">Закупка</span>
+                      <span className="text-muted-foreground">{t("sell.purchase")}</span>
                       <span className="font-bold">{buyPrice || "0"} ₼</span>
                     </div>
                     <div className="mt-2 flex justify-between gap-3">
-                      <span className="text-muted-foreground">Прибыль</span>
+                      <span className="text-muted-foreground">{t("products.profit")}</span>
                       <span
                         className={
                           saleProfit >= 0
@@ -286,14 +288,14 @@ export function ProductEditPage() {
               </AppFormField>
             ) : null}
 
-            <AppFormField label="Регистрация">
+            <AppFormField label={t("products.registration")}>
               <RegistrationCheckboxGroup
                 value={registrationStatuses}
                 onChange={setRegistrationStatuses}
               />
             </AppFormField>
 
-            <AppFormField label="Фото">
+            <AppFormField label={t("products.photo")}>
               {product.images.length ? (
                 <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {product.images.map((image) => {
@@ -319,7 +321,7 @@ export function ProductEditPage() {
                               );
                             }}
                           />
-                          Удалить фото
+                          {t("products.deletePhoto")}
                         </span>
                       </label>
                     );
@@ -327,7 +329,7 @@ export function ProductEditPage() {
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  Текущих фото нет
+                  {t("products.noCurrentPhotos")}
                 </div>
               )}
               <label className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium">
@@ -335,20 +337,20 @@ export function ProductEditPage() {
                   checked={replacePhotos}
                   onCheckedChange={(value) => setReplacePhotos(Boolean(value))}
                 />
-                Заменить текущие фото
+                {t("products.replaceCurrentPhotos")}
               </label>
               <AppFileUpload
                 value={photos}
                 onChange={(files) => setPhotos(Array.isArray(files) ? files : [])}
                 multiple
                 accept="image/*"
-                label="Выбрать фото"
+                label={t("products.selectPhoto")}
               />
             </AppFormField>
 
             <div className="flex justify-end">
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Сохранение..." : "Сохранить"}
+                {isSaving ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>
@@ -368,5 +370,5 @@ function getApiErrorDetail(payload: unknown) {
     return payload.detail;
   }
 
-  return "Не удалось изменить цену продажи";
+  return "Could not update sale price";
 }

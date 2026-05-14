@@ -1,4 +1,5 @@
 import type { ProductSellPayload } from "@/entities/products/model/types";
+import { i18n } from "@/shared/i18n";
 
 export function toNumber(value: string) {
   const parsed = Number(value);
@@ -42,5 +43,5 @@ export function getErrorMessage(payload: unknown) {
     return payload.detail;
   }
 
-  return "Не удалось завершить продажу.";
+  return i18n.t("sell.error");
 }

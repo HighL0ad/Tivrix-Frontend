@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AppFormField } from "@/shared/ui/app-form";
 import { Button } from "@/shared/ui/button";
@@ -35,6 +36,8 @@ export function InlineCreate({
   placeholder: string;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="mt-2 flex items-start gap-2">
       <Input
@@ -50,7 +53,7 @@ export function InlineCreate({
         onClick={onCreate}
         disabled={disabled || !value.trim()}
       >
-        <span className="text-base font-medium leading-5">Создать</span>
+        <span className="text-base font-medium leading-5">{t("common.create")}</span>
       </Button>
     </div>
   );
@@ -94,6 +97,8 @@ export function RegistrationCheckboxGroup({
   value: string[];
   onChange: (value: string[]) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {registrationOptions.map((option) => (
@@ -112,7 +117,7 @@ export function RegistrationCheckboxGroup({
             }}
             className="size-5"
           />
-          <span>{option.label}</span>
+          <span>{t(option.labelKey)}</span>
         </label>
       ))}
     </div>

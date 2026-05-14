@@ -1,35 +1,37 @@
+import { i18n } from "@/shared/i18n";
+
 export type PurchaseScenario = "supplier_debt" | "cash_now" | "transfer_now";
 
 export const registrationOptions = [
-  { value: "registered", label: "Зарегистрирован" },
-  { value: "unregistered", label: "Без регистрации" },
-  { value: "no_declaration", label: "Без декларации" },
-  { value: "own_property", label: "Собственность" },
-  { value: "credit", label: "Кредитный" },
-  { value: "mismatch", label: "Несоответствие" },
+  { value: "registered", labelKey: "products.registrationStatus.registered" },
+  { value: "unregistered", labelKey: "products.registrationStatus.unregistered" },
+  { value: "no_declaration", labelKey: "products.registrationStatus.no_declaration" },
+  { value: "own_property", labelKey: "products.registrationStatus.own_property" },
+  { value: "credit", labelKey: "products.registrationStatus.credit" },
+  { value: "mismatch", labelKey: "products.registrationStatus.mismatch" },
 ];
 
 export const productStatusOptions = [
-  { value: "in_stock", label: "В наличии" },
-  { value: "reserved", label: "В резерве" },
-  { value: "sold", label: "Продан" },
+  { value: "in_stock", labelKey: "products.status.inStockForm" },
+  { value: "reserved", labelKey: "products.status.reservedForm" },
+  { value: "sold", labelKey: "products.status.sold" },
 ];
 
 export const scenarioMeta: Record<
   PurchaseScenario,
-  { title: string; description: string }
+  { titleKey: string; descriptionKey: string }
 > = {
   supplier_debt: {
-    title: "Взяли у поставщика в долг",
-    description: "Товар пришёл сейчас, оплату поставщику закроем позже.",
+    titleKey: "products.scenario.supplierDebt.title",
+    descriptionKey: "products.scenario.supplierDebt.description",
   },
   cash_now: {
-    title: "Основная оплата наличными",
-    description: "Основная сумма будет списана из кассы.",
+    titleKey: "products.scenario.cashNow.title",
+    descriptionKey: "products.scenario.cashNow.description",
   },
   transfer_now: {
-    title: "Основная оплата переводом",
-    description: "Выберите карту или счёт для основной суммы.",
+    titleKey: "products.scenario.transferNow.title",
+    descriptionKey: "products.scenario.transferNow.description",
   },
 };
 
@@ -41,7 +43,7 @@ export function getPaymentMethod(scenario: PurchaseScenario) {
 
 export function getProductFormErrorMessage(
   payload: unknown,
-  fallback = "Ошибка сохранения",
+  fallback = i18n.t("products.saveError"),
 ) {
   if (
     payload &&

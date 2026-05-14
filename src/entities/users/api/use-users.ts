@@ -69,14 +69,14 @@ export type UserPayload = {
 
 export const financeOperationFields: Array<{
   key: OperationPermissionKey;
-  label: string;
+  labelKey: string;
 }> = [
-  { key: "can_view_finance_history", label: "История" },
-  { key: "can_view_finance_profit", label: "Прибыль" },
-  { key: "can_view_finance_expenses", label: "Расходы" },
-  { key: "can_transfer_wallets", label: "Переводы" },
-  { key: "can_adjust_wallets", label: "Корректировка" },
-  { key: "can_undo_transactions", label: "Отмена операций" },
+  { key: "can_view_finance_history", labelKey: "permissions.financeHistory" },
+  { key: "can_view_finance_profit", labelKey: "permissions.financeProfit" },
+  { key: "can_view_finance_expenses", labelKey: "permissions.financeExpenses" },
+  { key: "can_transfer_wallets", labelKey: "permissions.transferWallets" },
+  { key: "can_adjust_wallets", labelKey: "permissions.adjustWallets" },
+  { key: "can_undo_transactions", labelKey: "permissions.undoTransactions" },
 ];
 
 export function useCreateUser() {

@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
   WalletCards,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
@@ -31,32 +32,35 @@ import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
 const resourceAccessFields = [
-  { key: "can_access_dashboard", label: "Главная", icon: Gauge },
-  { key: "can_access_products", label: "Товары", icon: Boxes },
-  { key: "can_access_finance", label: "Касса", icon: WalletCards },
-  { key: "can_access_debts", label: "Долги", icon: HandCoins },
-  { key: "can_access_catalogs", label: "Справочники", icon: Banknote },
+  { key: "can_access_dashboard", labelKey: "permissions.dashboard", icon: Gauge },
+  { key: "can_access_products", labelKey: "permissions.products", icon: Boxes },
+  { key: "can_access_finance", labelKey: "permissions.finance", icon: WalletCards },
+  { key: "can_access_debts", labelKey: "permissions.debts", icon: HandCoins },
+  { key: "can_access_catalogs", labelKey: "permissions.catalogs", icon: Banknote },
 ] as const;
 
 const financeViewFields = [
-  { key: "can_view_finance_history", label: "История", icon: History },
-  { key: "can_view_finance_profit", label: "Прибыль", icon: ChartNoAxesColumnIncreasing },
-  { key: "can_view_finance_expenses", label: "Расходы", icon: ReceiptText },
+  { key: "can_view_finance_history", labelKey: "permissions.financeHistory", icon: History },
+  { key: "can_view_finance_profit", labelKey: "permissions.financeProfit", icon: ChartNoAxesColumnIncreasing },
+  { key: "can_view_finance_expenses", labelKey: "permissions.financeExpenses", icon: ReceiptText },
 ] as const;
 
 const financeDetailFields = [
-  { key: "can_transfer_wallets", label: "Переводы", icon: CreditCard },
-  { key: "can_adjust_wallets", label: "Корректировка", icon: SlidersHorizontal },
-  { key: "can_undo_transactions", label: "Отмена операций", icon: RotateCcw },
+  { key: "can_transfer_wallets", labelKey: "permissions.transferWallets", icon: CreditCard },
+  { key: "can_adjust_wallets", labelKey: "permissions.adjustWallets", icon: SlidersHorizontal },
+  { key: "can_undo_transactions", labelKey: "permissions.undoTransactions", icon: RotateCcw },
 ] as const;
 
 export function UserDialog({
   mode,
   user,
+  disabled,
 }: {
   mode: "create" | "edit";
   user?: UserListItem;
+  disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const currentUser = useCurrentUser();
@@ -87,14 +91,16 @@ export function UserDialog({
   const formId = `user-${mode}-${user?.id ?? "new"}`;
   const canManageSuperAdmins = currentUser.data?.role === "super_admin";
   const roleOptions = [
-    { id: "user", name: "Пользователь" },
-    { id: "admin", name: "Администратор" },
-    ...(canManageSuperAdmins || role === "super_admin"
-      ? [{ id: "super_admin", name: "Супер администратор" }]
+    { id: "user", name: t("common.user") },
+    ...(canManageSuperAdmins
+      ? [{ id: "admin", name: t("common.admin") }]
+      : []),
+    ...(canManageSuperAdmins
+      ? [{ id: "super_admin", name: t("common.superAdmin") }]
       : []),
   ];
   const canEditResourceAccess = role === "user";
-  const displayName = username.trim() || (mode === "create" ? "Новый пользователь" : user?.username ?? "Пользователь");
+  const displayName = username.trim() || (mode === "create" ? t("users.new") : user?.username ?? t("common.user"));
   const initials = getInitials(displayName);
 
   function buildPayload(): UserPayload {
@@ -135,7 +141,7 @@ export function UserDialog({
               {displayName}
             </span>
             <span className="block text-xs font-medium text-muted-foreground">
-              {mode === "create" ? "Создание пользователя" : "Редактирование пользователя"}
+              {mode === "create" ? t("users.createTitle") : t("users.editTitle")}
             </span>
           </span>
         </div>
@@ -143,13 +149,14 @@ export function UserDialog({
       className="md:max-w-xl"
       trigger={
         mode === "create" ? (
-          <Button type="button">Новый пользователь</Button>
+          <Button type="button">{t("users.new")}</Button>
         ) : (
           <Button
             type="button"
             variant="outline"
             size="icon-sm"
-            aria-label="Редактировать"
+            disabled={disabled}
+            aria-label={t("common.edit")}
           >
             <Pencil />
           </Button>
@@ -163,7 +170,7 @@ export function UserDialog({
             className="w-full sm:w-auto"
             onClick={() => setOpen(false)}
           >
-            Отмена
+            {t("common.cancel")}
           </Button>
           <Button
             type="submit"
@@ -175,7 +182,7 @@ export function UserDialog({
               pending
             }
           >
-            Сохранить
+            {t("common.save")}
           </Button>
         </div>
       }
@@ -191,7 +198,7 @@ export function UserDialog({
                 {
                   onSuccess: (createdUser) => {
                     setSetupUrl(createdUser.password_setup_url ?? null);
-                    toast.success("Пользователь создан");
+                    toast.success(t("users.created"));
                   },
                   onError: (error) => toast.error(getApiErrorMessage(error)),
                 },
@@ -202,7 +209,7 @@ export function UserDialog({
                 {
                   onSuccess: () => {
                     setOpen(false);
-                    toast.success("Пользователь обновлён");
+                    toast.success(t("users.updated"));
                   },
                   onError: (error) => toast.error(getApiErrorMessage(error)),
                 },
@@ -211,7 +218,7 @@ export function UserDialog({
           }}
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <FormField label="Логин">
+            <FormField label={t("common.login")}>
               <Input
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
@@ -219,7 +226,7 @@ export function UserDialog({
                 minLength={3}
               />
             </FormField>
-            <FormField label="Роль">
+            <FormField label={t("common.role")}>
               <AppSelect
                 value={role}
                 onValueChange={(value) => setRole(value as UserRole)}
@@ -227,7 +234,7 @@ export function UserDialog({
                 disabled={role === "super_admin" && !canManageSuperAdmins}
               />
             </FormField>
-            <FormField label="Статус">
+            <FormField label={t("common.status")}>
               <button
                 type="button"
                 onClick={() => setIsActive((current) => !current)}
@@ -238,7 +245,7 @@ export function UserDialog({
                     : "border-border bg-card text-muted-foreground",
                 )}
               >
-                <span>Активен</span>
+                <span>{t("common.active")}</span>
                 <span
                   className={cn(
                     "flex h-5 w-9 items-center rounded-full p-0.5 transition-colors",
@@ -259,16 +266,16 @@ export function UserDialog({
           <PermissionSection
             title={
               canEditResourceAccess
-                ? "Доступные разделы"
-                : "Админам доступны все разделы"
+                ? t("permissions.sections")
+                : t("permissions.adminAllSections")
             }
           >
             <div className="flex flex-wrap gap-2">
-              {resourceAccessFields.map(({ key, label, icon: Icon }) => (
+              {resourceAccessFields.map(({ key, labelKey, icon: Icon }) => (
                 <PermissionPill
                   key={key}
                   icon={<Icon />}
-                  label={label}
+                  label={t(labelKey)}
                   selected={permissions[key]}
                   disabled={!canEditResourceAccess}
                   onToggle={() =>
@@ -284,15 +291,15 @@ export function UserDialog({
 
           <PermissionSection
             title={
-              canEditResourceAccess ? "Права внутри кассы" : "Админам доступны все операции"
+              canEditResourceAccess ? t("permissions.insideFinance") : t("permissions.adminAllOperations")
             }
           >
             <div className="grid gap-2 sm:grid-cols-3">
-              {financeViewFields.map(({ key, label, icon: Icon }) => (
+              {financeViewFields.map(({ key, labelKey, icon: Icon }) => (
                 <PermissionTile
                   key={key}
                   icon={<Icon />}
-                  label={label}
+                  label={t(labelKey)}
                   selected={operationPermissions[key]}
                   disabled={!canEditResourceAccess}
                   onToggle={() =>
@@ -306,14 +313,14 @@ export function UserDialog({
             </div>
             <div className="border-t border-border pt-3">
               <div className="mb-2 text-[11px] font-black uppercase tracking-wide text-muted-foreground">
-                Детальные операции
+                {t("permissions.detailOperations")}
               </div>
               <div className="grid gap-2 sm:grid-cols-3">
-                {financeDetailFields.map(({ key, label, icon: Icon }) => (
+                {financeDetailFields.map(({ key, labelKey, icon: Icon }) => (
                   <PermissionTile
                     key={key}
                     icon={<Icon />}
-                    label={label}
+                    label={t(labelKey)}
                     selected={operationPermissions[key]}
                     disabled={!canEditResourceAccess}
                     onToggle={() =>
@@ -328,7 +335,7 @@ export function UserDialog({
             </div>
           </PermissionSection>
 
-          <FormField label="Комментарий ограничения">
+          <FormField label={t("permissions.restrictedComment")}>
             <Input
               value={restrictionComment}
               onChange={(event) => setRestrictionComment(event.target.value)}
@@ -337,7 +344,7 @@ export function UserDialog({
 
           {setupUrl ? (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-              <div className="font-bold">Ссылка для установки пароля</div>
+              <div className="font-bold">{t("users.passwordSetupLink")}</div>
               <div className="mt-1 break-all text-xs">
                 {window.location.origin}
                 {setupUrl}
@@ -349,10 +356,10 @@ export function UserDialog({
                 className="mt-3 bg-white"
                 onClick={() => {
                   navigator.clipboard.writeText(`${window.location.origin}${setupUrl}`);
-                  toast.success("Ссылка скопирована");
+                  toast.success(t("common.copied"));
                 }}
               >
-                Скопировать ссылку
+                {t("users.copySetupLink")}
               </Button>
             </div>
           ) : null}

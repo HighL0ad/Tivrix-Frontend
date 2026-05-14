@@ -1,4 +1,5 @@
 import { toNumber } from "@/features/products/sell-product/lib";
+import { useTranslation } from "react-i18next";
 
 export function DealSummary({
   saleType,
@@ -15,6 +16,7 @@ export function DealSummary({
   registrationFee: number;
   netProfit: number;
 }) {
+  const { t } = useTranslation();
   const total = toNumber(totalPrice);
   const paid =
     saleType === "client" ? toNumber(paidNowTotal) : total - shopDebt;
@@ -23,17 +25,17 @@ export function DealSummary({
 
   return (
     <div className="space-y-2 border bg-muted/40 p-3 text-xs">
-      <SummaryRow label="Цена продажи" value={`${total.toFixed(2)} ₼`} />
+      <SummaryRow label={t("sell.summary.salePrice")} value={`${total.toFixed(2)} ₼`} />
       <SummaryRow
-        label="Чистыми заработано"
+        label={t("sell.summary.netEarned")}
         value={`${netProfit.toFixed(2)} ₼`}
         valueClassName={profitTone}
       />
-      <SummaryRow label="Получено сейчас" value={`${paid.toFixed(2)} ₼`} />
-      <SummaryRow label="Записано в долг" value={`${debt.toFixed(2)} ₼`} />
+      <SummaryRow label={t("sell.summary.paidNow")} value={`${paid.toFixed(2)} ₼`} />
+      <SummaryRow label={t("sell.summary.debt")} value={`${debt.toFixed(2)} ₼`} />
       {registrationFee > 0 ? (
         <SummaryRow
-          label="Регистрация отдельным долгом"
+          label={t("sell.summary.registrationDebt")}
           value={`${registrationFee.toFixed(2)} ₼`}
         />
       ) : null}

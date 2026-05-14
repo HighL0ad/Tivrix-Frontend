@@ -1,13 +1,16 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
+  const { t } = useTranslation();
+
   return (
     <nav
       data-slot="pagination"
-      aria-label="Пагинация"
+      aria-label={t("common.pagination")}
       className={cn("flex min-w-fit justify-start sm:justify-end", className)}
       {...props}
     />
@@ -35,6 +38,8 @@ function PaginationPrevious({
   className,
   ...props
 }: React.ComponentProps<"button">) {
+  const { t } = useTranslation();
+
   return (
     <Button
       data-slot="pagination-previous"
@@ -45,7 +50,7 @@ function PaginationPrevious({
       {...props}
     >
       <ChevronLeft aria-hidden="true" />
-      <span>Назад</span>
+      <span>{t("common.back")}</span>
     </Button>
   );
 }
@@ -54,6 +59,8 @@ function PaginationNext({
   className,
   ...props
 }: React.ComponentProps<"button">) {
+  const { t } = useTranslation();
+
   return (
     <Button
       data-slot="pagination-next"
@@ -63,7 +70,7 @@ function PaginationNext({
       className={cn("gap-1", className)}
       {...props}
     >
-      <span>Вперед</span>
+      <span>{t("common.next")}</span>
       <ChevronRight aria-hidden="true" />
     </Button>
   );

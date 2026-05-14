@@ -21,8 +21,8 @@ function SearchableSelect({
   onValueChange,
   options,
   placeholder,
-  searchPlaceholder = "Поиск...",
-  emptyMessage = "Ничего не найдено",
+  searchPlaceholder,
+  emptyMessage,
   disabled = false,
   className,
 }: SearchableSelectProps) {

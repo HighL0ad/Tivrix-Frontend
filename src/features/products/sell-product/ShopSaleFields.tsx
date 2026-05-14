@@ -1,6 +1,7 @@
 import { Checkbox } from "@/shared/ui/checkbox";
 import { AppFormField } from "@/shared/ui/app-form";
 import { Input } from "@/shared/ui/input";
+import { useTranslation } from "react-i18next";
 import type { ProductOption } from "@/entities/products/model/types";
 import {
   InlineCreate,
@@ -23,20 +24,22 @@ export function ShopBuyerFields({
   setNewShopName: (value: string) => void;
   onCreateShop: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <SelectField
-        label="Магазин / партнер"
+        label={t("sell.shopPartner")}
         value={shopWalletId}
         onValueChange={setShopWalletId}
         options={shopOptions}
-        placeholder="Выберите партнера"
+        placeholder={t("sell.selectPartner")}
       />
       <InlineCreate
         value={newShopName}
         onChange={setNewShopName}
         onCreate={onCreateShop}
-        placeholder="Новый партнер"
+        placeholder={t("sell.newPartner")}
       />
     </div>
   );
@@ -71,6 +74,8 @@ export function ShopPaymentFields({
   setShopSplitPaymentWalletId: (value: string) => void;
   walletOptions: ProductOption[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <label className="flex items-center gap-2 text-[13px] font-medium leading-5 text-foreground">
@@ -80,12 +85,12 @@ export function ShopPaymentFields({
             setShopPrepaymentEnabled(Boolean(checked))
           }
         />
-        Есть оплата сейчас
+        {t("sell.hasPaymentNow")}
       </label>
 
       {shopPrepaymentEnabled ? (
         <>
-          <AppFormField label="Сумма оплаты сейчас">
+          <AppFormField label={t("sell.paymentNowAmount")}>
             <Input
               id="shop-prepayment"
               type="number"
@@ -97,11 +102,11 @@ export function ShopPaymentFields({
             />
           </AppFormField>
           <SelectField
-            label="Куда зачислить оплату"
+            label={t("sell.creditPaymentTo")}
             value={shopPrepaymentWalletId}
             onValueChange={setShopPrepaymentWalletId}
             options={walletOptions}
-            placeholder="Выберите кошелек"
+            placeholder={t("sell.selectWallet")}
           />
           <SplitPaymentFields
             enabled={shopSplitPaymentEnabled}
@@ -113,7 +118,7 @@ export function ShopPaymentFields({
             walletOptions={walletOptions.filter(
               (option) => option.id !== shopPrepaymentWalletId,
             )}
-            title="Разнести часть предоплаты на второй кошелек"
+            title={t("sell.splitPrepayment")}
           />
         </>
       ) : null}

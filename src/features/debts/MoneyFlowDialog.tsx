@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
@@ -27,6 +28,7 @@ export function MoneyFlowDialog({
   targetWallets: Wallet[];
   mode: "lend" | "borrow";
 }) {
+  const { t } = useTranslation();
   const lend = useLendMoney();
   const borrow = useBorrowMoney();
   const createWallet = useCreateDebtWallet();
@@ -47,7 +49,7 @@ export function MoneyFlowDialog({
     mode === "lend" && createdCounterparty
       ? mergeWallets(targetWallets, createdCounterparty)
       : targetWallets;
-  const counterpartyLabel = mode === "lend" ? "Новый клиент" : "Новый поставщик";
+  const counterpartyLabel = mode === "lend" ? t("debts.newClient") : t("debts.newSupplier");
   const counterpartyWalletType = mode === "lend" ? "client_debt" : "debt";
   const counterpartyPending = createWallet.isPending;
 
@@ -66,7 +68,7 @@ export function MoneyFlowDialog({
             setSourceId(String(wallet.id));
           }
           setNewCounterpartyName("");
-          toast.success(mode === "lend" ? "Клиент добавлен" : "Поставщик добавлен");
+          toast.success(mode === "lend" ? t("debts.clientAdded") : t("debts.supplierAdded"));
         },
         onError: (error) => toast.error(getApiErrorMessage(error)),
       },
@@ -89,7 +91,7 @@ export function MoneyFlowDialog({
           form={formId}
           disabled={!sourceId || !targetId || !amount || pending}
         >
-          Сохранить
+          {t("common.save")}
         </Button>
       }
     >
@@ -100,7 +102,7 @@ export function MoneyFlowDialog({
             event.preventDefault();
             const onSuccess = () => {
               setOpen(false);
-              toast.success(mode === "lend" ? "Деньги выданы" : "Деньги получены");
+              toast.success(mode === "lend" ? t("debts.moneyLent") : t("debts.moneyBorrowed"));
             };
             const onError = (error: unknown) => toast.error(getApiErrorMessage(error));
             if (mode === "lend") {
@@ -127,7 +129,7 @@ export function MoneyFlowDialog({
           }}
         >
           <WalletSelect
-            label={mode === "lend" ? "Откуда" : "У кого"}
+            label={mode === "lend" ? t("debts.from") : t("debts.who")}
             value={sourceId}
             onChange={setSourceId}
             wallets={sourceOptions}
@@ -142,7 +144,7 @@ export function MoneyFlowDialog({
             />
           ) : null}
           <WalletSelect
-            label={mode === "lend" ? "Кому" : "Куда"}
+            label={mode === "lend" ? t("debts.lendTo") : t("debts.target")}
             value={targetId}
             onChange={setTargetId}
             wallets={targetOptions}
@@ -156,7 +158,7 @@ export function MoneyFlowDialog({
               disabled={counterpartyPending}
             />
           ) : null}
-          <FormField label="Сумма">
+          <FormField label={t("debts.amount")}>
             <Input
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
@@ -164,7 +166,7 @@ export function MoneyFlowDialog({
               required
             />
           </FormField>
-          <FormField label="Комментарий">
+          <FormField label={t("finance.comment")}>
             <Input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -195,6 +197,8 @@ function InlineCreate({
   placeholder: string;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-start gap-2">
       <Input
@@ -210,7 +214,7 @@ function InlineCreate({
         onClick={onCreate}
         disabled={disabled || !value.trim()}
       >
-        <span className="text-base font-medium leading-5">Создать</span>
+        <span className="text-base font-medium leading-5">{t("common.create")}</span>
       </Button>
     </div>
   );

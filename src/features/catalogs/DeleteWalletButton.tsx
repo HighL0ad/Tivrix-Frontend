@@ -1,4 +1,5 @@
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useDeleteWallet } from "@/entities/catalogs/api/use-catalogs";
@@ -24,6 +25,7 @@ export function DeleteWalletButton({
   walletId: number;
   walletName: string;
 }) {
+  const { t } = useTranslation();
   const deleteWallet = useDeleteWallet();
 
   return (
@@ -34,30 +36,30 @@ export function DeleteWalletButton({
           variant="outline"
           size="icon-sm"
           className={cn("text-muted-foreground hover:bg-red-50 hover:text-red-600")}
-          aria-label="Удалить"
+          aria-label={t("common.delete")}
         >
           <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Удалить запись?</AlertDialogTitle>
+          <AlertDialogTitle>{t("catalogs.deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {walletName} будет удалён, если не участвует в транзакциях.
+            {t("catalogs.deleteDescription", { name: walletName })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Отмена</AlertDialogCancel>
+          <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={deleteWallet.isPending}
             onClick={() =>
               deleteWallet.mutate(walletId, {
-                onSuccess: () => toast.success("Запись удалена"),
+                onSuccess: () => toast.success(t("catalogs.deleted")),
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }
           >
-            Удалить
+            {t("common.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

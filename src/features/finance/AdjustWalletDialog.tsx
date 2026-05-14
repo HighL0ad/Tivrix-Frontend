@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { type Wallet, useAdjustWallet } from "@/entities/finance/api/use-finance";
@@ -10,6 +11,7 @@ import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
 export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
+  const { t } = useTranslation();
   const adjust = useAdjustWallet();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"set_balance" | "delta">("delta");
@@ -26,7 +28,7 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
       onOpenChange={setOpen}
       title={wallet.name}
       trigger={
-        <Button type="button" variant="outline" size="icon-sm" aria-label={`Изменить баланс ${wallet.name}`}>
+        <Button type="button" variant="outline" size="icon-sm" aria-label={t("finance.adjustBalance", { name: wallet.name })}>
           <Plus />
         </Button>
       }
@@ -36,7 +38,7 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
           form={`adjust-wallet-${wallet.id}`}
           disabled={adjust.isPending}
         >
-          Сохранить
+          {t("common.save")}
         </Button>
       }
     >
@@ -65,25 +67,25 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
               {
                 onSuccess: () => {
                   setOpen(false);
-                  toast.success("Баланс обновлён");
+                  toast.success(t("finance.balanceUpdated"));
                 },
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               },
             );
           }}
         >
-          <FormField label="Режим">
+          <FormField label={t("finance.mode")}>
             <AppSelect
               value={mode}
               onValueChange={(value) => setMode(value as "set_balance" | "delta")}
               options={[
-                { id: "delta", name: "Приход / расход" },
-                { id: "set_balance", name: "Установить баланс" },
+                { id: "delta", name: t("finance.incomeExpense") },
+                { id: "set_balance", name: t("finance.setBalance") },
               ]}
             />
           </FormField>
           {mode === "set_balance" ? (
-            <FormField label="Новый баланс">
+            <FormField label={t("finance.newBalance")}>
               <Input
                 value={newBalance}
                 onChange={(event) => setNewBalance(event.target.value)}
@@ -93,19 +95,19 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
             </FormField>
           ) : (
             <>
-              <FormField label="Тип">
+              <FormField label={t("finance.type")}>
                 <AppSelect
                   value={deltaDirection}
                   onValueChange={(value) =>
                     setDeltaDirection(value as "income" | "expense")
                   }
                   options={[
-                    { id: "income", name: "Приход" },
-                    { id: "expense", name: "Расход" },
+                    { id: "income", name: t("finance.income") },
+                    { id: "expense", name: t("finance.expense") },
                   ]}
                 />
               </FormField>
-              <FormField label="Сумма">
+              <FormField label={t("finance.amount")}>
                 <Input
                   value={deltaAmount}
                   onChange={(event) => setDeltaAmount(event.target.value)}
@@ -115,7 +117,7 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
               </FormField>
             </>
           )}
-          <FormField label="Комментарий">
+          <FormField label={t("finance.comment")}>
             <Input
               value={description}
               onChange={(event) => setDescription(event.target.value)}

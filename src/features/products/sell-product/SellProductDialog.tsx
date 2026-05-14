@@ -1,5 +1,6 @@
 import { type ComponentProps, type ReactNode, useState } from "react";
 import { AlertCircle, Banknote, Store } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
@@ -42,6 +43,7 @@ export function SellProductDialog({
   open: controlledOpen,
   onOpenChange,
 }: SellProductDialogProps) {
+  const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -155,7 +157,7 @@ export function SellProductDialog({
         });
         onSold(soldProduct);
         setOpen(false);
-        toast.success("Продажа оформлена");
+        toast.success(t("sell.completed"));
       },
       onError: (error) => toast.error(getApiErrorMessage(error)),
     });
@@ -165,9 +167,9 @@ export function SellProductDialog({
     <ResponsiveModal
       open={open}
       onOpenChange={setOpen}
-      trigger={trigger ?? <Button type="button">Продать товар</Button>}
-      title="Оформление продажи"
-      description="Оплата и долг будут разнесены автоматически."
+      trigger={trigger ?? <Button type="button">{t("sell.trigger")}</Button>}
+      title={t("sell.title")}
+      description={t("sell.description")}
       className="md:max-w-2xl"
       footer={
         <div className="grid w-full gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -185,7 +187,7 @@ export function SellProductDialog({
             disabled={isSubmitDisabled}
             className="w-full sm:w-auto"
           >
-            {sellMutation.isPending ? "Завершаем..." : "Завершить продажу"}
+            {sellMutation.isPending ? t("sell.completing") : t("sell.complete")}
           </Button>
         </div>
       }
@@ -198,17 +200,17 @@ export function SellProductDialog({
             </Alert>
           ) : null}
 
-          <AppSection title="Товар">
+          <AppSection title={t("sell.product")}>
             <div className="rounded-lg border bg-muted/40 p-3">
               <div className="font-bold">{product.name}</div>
               <div className="mt-2 grid grid-cols-2 gap-3 text-[13px] leading-5 text-gray-500">
-                <span>Закупка: {product.buy_price} ₼</span>
+                <span>{t("sell.purchase")}: {product.buy_price} ₼</span>
                 <span className="font-mono">IMEI: {product.imei}</span>
               </div>
             </div>
           </AppSection>
 
-          <AppSection title="Покупатель">
+          <AppSection title={t("sell.buyer")}>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"
@@ -219,7 +221,7 @@ export function SellProductDialog({
                 }}
               >
                 <Banknote aria-hidden="true" />
-                Клиент
+                {t("sell.client")}
               </Button>
               <Button
                 type="button"
@@ -227,7 +229,7 @@ export function SellProductDialog({
                 onClick={() => setSaleType("shop")}
               >
                 <Store aria-hidden="true" />
-                Магазин
+                {t("sell.shop")}
               </Button>
             </div>
 
@@ -248,7 +250,7 @@ export function SellProductDialog({
                         setShopWalletId(String(wallet.id));
                         setNewShopName("");
                         optionsQuery.refetch();
-                        toast.success("Магазин создан");
+                        toast.success(t("sell.shopCreated"));
                       },
                       onError: (error) => toast.error(getApiErrorMessage(error)),
                     },
@@ -258,15 +260,15 @@ export function SellProductDialog({
             ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <AppFormField label="Покупатель / контакт">
+            <AppFormField label={t("sell.buyerContact")}>
               <Input
                 id="client-name"
                 value={clientName}
                 onChange={(event) => setClientName(event.target.value)}
-                placeholder="Имя клиента или магазина"
+                placeholder={t("sell.customerOrShopName")}
               />
             </AppFormField>
-            <AppFormField label="Телефон">
+            <AppFormField label={t("products.phone")}>
               <Input
                 id="client-phone"
                 value={clientPhone}
@@ -276,18 +278,21 @@ export function SellProductDialog({
           </div>
 
           <SelectField
-            label="Источник клиента"
+            label={t("sell.customerSource")}
             value={source}
             onValueChange={setSource}
             options={optionsQuery.data?.sale_source_options ?? []}
-            placeholder="Не указано"
+            placeholder={t("products.notSpecified")}
           />
           </AppSection>
 
-          <AppSection title="Оплата" description="Как прошла оплата?">
+          <AppSection title={t("sell.payment")} description={t("sell.paymentQuestion")}>
             <AppFormField
-              label="Итоговая цена продажи"
-              helper={`Закупка: ${product.buy_price} ₼. Чистыми: ${netProfit.toFixed(2)} ₼`}
+              label={t("sell.totalPrice")}
+              helper={t("sell.totalPriceHelper", {
+                buyPrice: product.buy_price,
+                profit: netProfit.toFixed(2),
+              })}
             >
               <Input
                 id="total-price"
@@ -332,7 +337,7 @@ export function SellProductDialog({
             )}
           </AppSection>
 
-          <AppSection title="Долг">
+          <AppSection title={t("sell.debt")}>
             {saleType === "client" ? (
               <ClientDebtFields
                 saleMode={saleMode}
@@ -353,7 +358,7 @@ export function SellProductDialog({
                         setClientDebtWalletId(String(wallet.id));
                         setNewDebtName("");
                         optionsQuery.refetch();
-                        toast.success("Клиент создан");
+                        toast.success(t("sell.clientCreated"));
                       },
                       onError: (error) => toast.error(getApiErrorMessage(error)),
                     },
@@ -369,17 +374,17 @@ export function SellProductDialog({
               />
             ) : (
               <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
-                Долг магазина будет рассчитан автоматически от итоговой цены и оплаты сейчас.
+                {t("sell.shopDebtAuto")}
               </div>
             )}
           </AppSection>
 
-          <AppSection title="Подтверждение">
+          <AppSection title={t("sell.confirmation")}>
             <AppFileUpload
               value={proofPhoto}
               onChange={(file) => setProofPhoto(file instanceof File ? file : null)}
               accept="image/*"
-              label="Загрузить фото подтверждения"
+              label={t("sell.uploadProof")}
             />
           </AppSection>
         </form>

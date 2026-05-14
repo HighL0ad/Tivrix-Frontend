@@ -19,7 +19,7 @@ export function WalletSelect({
       <AppCombobox
         value={value}
         onValueChange={onChange}
-        placeholder="Выберите"
+        placeholder={label}
         options={wallets.map((wallet) => ({
           id: String(wallet.id),
           name: `${wallet.name} (${money(wallet.balance)})`,

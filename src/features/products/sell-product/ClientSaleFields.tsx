@@ -1,6 +1,7 @@
 import { Checkbox } from "@/shared/ui/checkbox";
 import { AppFormField, AppRadioCards } from "@/shared/ui/app-form";
 import { Input } from "@/shared/ui/input";
+import { useTranslation } from "react-i18next";
 import type { ProductOption } from "@/entities/products/model/types";
 import {
   InlineCreate,
@@ -33,26 +34,28 @@ export function ClientPaymentFields({
   setSplitPaymentWalletId: (value: string) => void;
   walletOptions: ProductOption[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <AppRadioCards
         value={saleMode}
         onValueChange={setSaleMode}
         options={[
-          { value: "full_payment", label: "Полная оплата" },
-          { value: "partial_debt", label: "Частично в долг" },
-          { value: "full_debt", label: "Полностью в долг" },
+          { value: "full_payment", label: t("sell.fullPayment") },
+          { value: "partial_debt", label: t("sell.partialDebt") },
+          { value: "full_debt", label: t("sell.fullDebt") },
         ]}
       />
 
       {saleMode !== "full_debt" ? (
         <>
           <SelectField
-            label="Куда поступила оплата"
+            label={t("sell.paymentWallet")}
             value={paymentWalletId}
             onValueChange={setPaymentWalletId}
             options={walletOptions}
-            placeholder="Выберите кошелек"
+            placeholder={t("sell.selectWallet")}
           />
           <SplitPaymentFields
             enabled={splitPaymentEnabled}
@@ -64,7 +67,7 @@ export function ClientPaymentFields({
             walletOptions={walletOptions.filter(
               (option) => option.id !== paymentWalletId,
             )}
-            title="Разнести часть оплаты на второй кошелек"
+            title={t("sell.splitPayment")}
           />
         </>
       ) : null}
@@ -103,6 +106,8 @@ export function ClientDebtFields({
   registrationFeeAmount: string;
   setRegistrationFeeAmount: (value: string) => void;
 }) {
+  const { t } = useTranslation();
+
   if (saleMode === "full_payment" && !registrationFeeAvailable) {
     return null;
   }
@@ -110,7 +115,7 @@ export function ClientDebtFields({
   return (
     <div className="space-y-4">
       {saleMode === "partial_debt" ? (
-        <AppFormField label="Оплачено сейчас">
+        <AppFormField label={t("sell.paidNow")}>
           <Input
             id="paid-now"
             type="number"
@@ -126,17 +131,17 @@ export function ClientDebtFields({
       {saleMode !== "full_payment" ? (
         <div className="space-y-2">
           <SelectField
-            label="На кого записать долг"
+            label={t("sell.debtWallet")}
             value={clientDebtWalletId}
             onValueChange={setClientDebtWalletId}
             options={debtOptions}
-            placeholder="Выберите клиента"
+            placeholder={t("sell.selectClient")}
           />
           <InlineCreate
             value={newDebtName}
             onChange={setNewDebtName}
             onCreate={onCreateDebt}
-            placeholder="Новый клиент"
+            placeholder={t("sell.newClient")}
           />
         </div>
       ) : null}
@@ -150,10 +155,10 @@ export function ClientDebtFields({
                 setRegistrationFeeEnabled(Boolean(checked))
               }
             />
-            Регистрация IMEI отдельным долгом
+            {t("sell.registrationSeparateDebt")}
           </label>
           {registrationFeeEnabled ? (
-            <AppFormField label="Сумма регистрации">
+            <AppFormField label={t("sell.registrationAmount")}>
               <Input
                 type="number"
                 step="1"

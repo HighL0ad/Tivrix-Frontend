@@ -1,6 +1,7 @@
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Input } from "@/shared/ui/input";
+import { useTranslation } from "react-i18next";
 import {
   AppCombobox,
   AppFormField,
@@ -18,6 +19,8 @@ export function InlineCreate({
   onCreate: () => void;
   placeholder: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-start gap-2">
       <Input
@@ -33,7 +36,7 @@ export function InlineCreate({
         onClick={onCreate}
         disabled={!value.trim()}
       >
-        <span className="text-base font-medium leading-5">Создать</span>
+        <span className="text-base font-medium leading-5">{t("common.create")}</span>
       </Button>
     </div>
   );
@@ -58,6 +61,8 @@ export function SplitPaymentFields({
   walletOptions: ProductOption[];
   title: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-3 border p-3">
       <label className="flex items-center gap-2 text-[13px] font-medium leading-5 text-foreground">
@@ -69,7 +74,7 @@ export function SplitPaymentFields({
       </label>
       {enabled ? (
         <div className="grid gap-3 sm:grid-cols-2">
-            <AppFormField label="Сумма на второй кошелек">
+            <AppFormField label={t("sell.secondWalletAmount")}>
               <Input
                 type="number"
                 step="1"
@@ -80,11 +85,11 @@ export function SplitPaymentFields({
               />
             </AppFormField>
           <SelectField
-            label="Второй кошелек"
+            label={t("sell.secondWallet")}
             value={walletId}
             onValueChange={setWalletId}
             options={walletOptions}
-            placeholder="Выберите кошелек"
+            placeholder={t("sell.selectWallet")}
           />
         </div>
       ) : null}

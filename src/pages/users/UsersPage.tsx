@@ -1,6 +1,8 @@
 import { Crown, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import type { UserListItem } from "@/entities/users/api/use-users";
 import {
   useCreatePasswordSetupLink,
   useUsers,
@@ -15,10 +17,10 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 
-const roleLabel: Record<string, string> = {
-  super_admin: "Супер админ",
-  admin: "Админ",
-  user: "Пользователь",
+const roleLabelKey: Record<string, string> = {
+  super_admin: "common.superAdmin",
+  admin: "common.admin",
+  user: "common.user",
 };
 
 const roleBadgeClassName: Record<string, string> = {
@@ -34,6 +36,7 @@ const RoleIcon = {
 };
 
 export function UsersPage() {
+  const { t } = useTranslation();
   const usersQuery = useUsers();
   const passwordSetupLink = useCreatePasswordSetupLink();
 
@@ -45,29 +48,36 @@ export function UsersPage() {
     return <PageError />;
   }
 
+  const currentUser = usersQuery.data.items.find(
+    (user) => user.id === usersQuery.data.current_user_id,
+  );
+
   return (
     <section className="space-y-5">
-      <PageHeader title="Пользователи" description="Роли и доступы." />
+      <PageHeader title={t("users.title")} description={t("users.description")} />
 
       <Card>
         <CardHeader className="grid grid-cols-[1fr_auto] items-center">
-          <CardTitle>Список</CardTitle>
+          <CardTitle>{t("users.list")}</CardTitle>
           <UserDialog mode="create" />
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Логин</TableHead>
-                <TableHead>Роль</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead>Доступы</TableHead>
+                <TableHead>{t("common.login")}</TableHead>
+                <TableHead>{t("common.role")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead>{t("permissions.accesses")}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {usersQuery.data.items.map((user) => {
                 const Icon = RoleIcon[user.role] ?? UserRound;
+                const canManageUser = currentUser
+                  ? canManageTargetUser(currentUser, user)
+                  : false;
 
                 return (
                   <TableRow key={user.id}>
@@ -93,40 +103,44 @@ export function UsersPage() {
                         className={roleBadgeClassName[user.role]}
                       >
                         <Icon />
-                        {roleLabel[user.role] ?? user.role}
+                        {roleLabelKey[user.role] ? t(roleLabelKey[user.role]) : user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={user.is_active ? "secondary" : "outline"}>
-                        {user.is_active ? "Активен" : "Отключен"}
+                        {user.is_active ? t("common.active") : t("common.disabled")}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {user.role === "super_admin" ? "Все + управление админами" : user.is_admin ? "Все" : [
-                        user.can_access_dashboard && "Главная",
-                        user.can_access_products && "Товары",
-                        user.can_access_finance && "Касса",
-                        user.can_access_debts && "Долги",
-                        user.can_access_catalogs && "Справочники",
+                      {user.role === "super_admin" ? t("permissions.withAdminManagement") : user.is_admin ? t("common.all") : [
+                        user.can_access_dashboard && t("permissions.dashboard"),
+                        user.can_access_products && t("permissions.products"),
+                        user.can_access_finance && t("permissions.finance"),
+                        user.can_access_debts && t("permissions.debts"),
+                        user.can_access_catalogs && t("permissions.catalogs"),
                       ].filter(Boolean).join(", ")}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <UserDialog mode="edit" user={user} />
+                        <UserDialog
+                          mode="edit"
+                          user={user}
+                          disabled={!canManageUser}
+                        />
                         <Button
                           type="button"
                           variant="outline"
                           size="icon-sm"
-                          disabled={passwordSetupLink.isPending}
-                          aria-label="Сбросить пароль"
-                          title="Сбросить пароль"
+                          disabled={!canManageUser || passwordSetupLink.isPending}
+                          aria-label={t("users.resetPassword")}
+                          title={t("users.resetPassword")}
                           onClick={() =>
                             passwordSetupLink.mutate(user.id, {
                               onSuccess: (data) => {
                                 navigator.clipboard.writeText(
                                   `${window.location.origin}${data.password_setup_url}`,
                                 );
-                                toast.success("Ссылка сброса пароля скопирована");
+                                toast.success(t("users.resetPasswordCopied"));
                               },
                               onError: (error) =>
                                 toast.error(getApiErrorMessage(error)),
@@ -138,7 +152,10 @@ export function UsersPage() {
                         <DeleteUserButton
                           userId={user.id}
                           username={user.username}
-                          disabled={user.id === usersQuery.data.current_user_id}
+                          disabled={
+                            user.id === usersQuery.data.current_user_id ||
+                            !canManageUser
+                          }
                         />
                       </div>
                     </TableCell>
@@ -155,4 +172,12 @@ export function UsersPage() {
 
 function getInitials(value: string) {
   return value.trim().slice(0, 2).toUpperCase() || "U";
+}
+
+function canManageTargetUser(currentUser: UserListItem, targetUser: UserListItem) {
+  if (currentUser.role === "super_admin") {
+    return true;
+  }
+
+  return !targetUser.is_admin;
 }

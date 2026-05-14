@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { type Payable, usePayPayable } from "@/entities/debts/api/use-debts";
@@ -17,6 +18,7 @@ export function PayableDialog({
   payable: Payable;
   wallets: Wallet[];
 }) {
+  const { t } = useTranslation();
   const pay = usePayPayable();
   const [open, setOpen] = useState(false);
   const [walletId, setWalletId] = useState("");
@@ -33,7 +35,7 @@ export function PayableDialog({
           variant="ghost"
           className="h-8 rounded-full bg-amber-100 px-3 text-xs font-bold text-amber-700 shadow-none hover:bg-amber-200 hover:text-amber-800"
         >
-          Оплатить
+          {t("debts.pay")}
         </Button>
       }
       footer={
@@ -42,7 +44,7 @@ export function PayableDialog({
           form={`payable-${payable.id}`}
           disabled={!walletId || pay.isPending}
         >
-          Оплатить {money(payable.amount)}
+          {t("debts.payAmount", { amount: money(payable.amount) })}
         </Button>
       }
     >
@@ -56,7 +58,7 @@ export function PayableDialog({
               {
                 onSuccess: () => {
                   setOpen(false);
-                  toast.success("Обязательство оплачено");
+                  toast.success(t("debts.payablePaid"));
                 },
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               },
@@ -64,7 +66,7 @@ export function PayableDialog({
           }}
         >
           <WalletSelect
-            label="Кошелек оплаты"
+            label={t("debts.paymentWallet")}
             value={walletId}
             onChange={setWalletId}
             wallets={wallets}

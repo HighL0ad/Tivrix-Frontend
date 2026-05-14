@@ -1,11 +1,13 @@
 import { type ComponentProps, useState } from "react";
 import { LockKeyhole, LogIn, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { useLogin } from "@/entities/auth/api/use-login";
 import { queryClient } from "@/shared/api/query-client";
 import { ApiError } from "@/shared/api/http";
+import { LanguageRow } from "@/shared/i18n/LanguageSwitcher";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import {
@@ -19,6 +21,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const loginMutation = useLogin();
   const [username, setUsername] = useState("");
@@ -26,7 +29,7 @@ export function LoginPage() {
 
   const error =
     loginMutation.error instanceof ApiError
-      ? getErrorMessage(loginMutation.error.payload)
+      ? getErrorMessage(loginMutation.error.payload, t("login.failed"))
       : null;
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (
@@ -39,7 +42,7 @@ export function LoginPage() {
       {
         onSuccess: (currentUser) => {
           queryClient.setQueryData(["auth", "me"], currentUser);
-          toast.success("Вход выполнен");
+          toast.success(t("login.success"));
           navigate(currentUser.first_accessible_route ?? "/", { replace: true });
         },
       },
@@ -55,11 +58,15 @@ export function LoginPage() {
             Ferdi <span className="text-lg text-indigo-200">Telefon</span>
           </CardTitle>
           <CardDescription className="mt-2 text-sm text-slate-300">
-            Авторизация сотрудника
+            {t("login.description")}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="px-8 pb-8">
+          <div className="mb-5 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
+            <LanguageRow />
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {error ? (
               <Alert variant="destructive" className="mb-6 rounded-lg">
@@ -72,7 +79,7 @@ export function LoginPage() {
                 htmlFor="username"
                 className="mb-1 ml-1 block text-xs font-bold uppercase text-slate-300"
               >
-                Логин
+                {t("login.username")}
               </Label>
               <div className="relative">
                 <User
@@ -82,7 +89,7 @@ export function LoginPage() {
                 <Input
                   id="username"
                   className="border-white/15 bg-white/10 pl-10 text-white placeholder:text-slate-400"
-                  placeholder="Введите имя"
+                  placeholder={t("login.usernamePlaceholder")}
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                   autoComplete="username"
@@ -96,7 +103,7 @@ export function LoginPage() {
                 htmlFor="password"
                 className="mb-1 ml-1 block text-xs font-bold uppercase text-slate-300"
               >
-                Пароль
+                {t("login.password")}
               </Label>
               <div className="relative">
                 <LockKeyhole
@@ -122,13 +129,13 @@ export function LoginPage() {
               className="mt-2 w-full bg-[#4f46e5] py-3.5 shadow-lg shadow-indigo-950/30 hover:bg-indigo-500"
             >
               <LogIn aria-hidden="true" />
-              {loginMutation.isPending ? "Входим..." : "Войти в систему"}
+              {loginMutation.isPending ? t("login.loading") : t("login.submit")}
             </Button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-xs text-slate-400">
-              © 2026 Ferdi Telefon. Internal Use Only.
+              {t("login.copyright")}
             </p>
           </div>
         </CardContent>
@@ -137,7 +144,7 @@ export function LoginPage() {
   );
 }
 
-function getErrorMessage(payload: unknown) {
+function getErrorMessage(payload: unknown, fallback: string) {
   if (
     payload &&
     typeof payload === "object" &&
@@ -147,5 +154,5 @@ function getErrorMessage(payload: unknown) {
     return payload.detail;
   }
 
-  return "Не удалось войти. Попробуйте ещё раз.";
+  return fallback;
 }

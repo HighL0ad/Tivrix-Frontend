@@ -8,6 +8,17 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ["public/sw.js"],
+    languageOptions: {
+      globals: {
+        caches: "readonly",
+        fetch: "readonly",
+        self: "readonly",
+        URL: "readonly",
+      },
+    },
+  },
+  {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2022,

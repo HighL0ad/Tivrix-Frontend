@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import { az } from "date-fns/locale";
 
+import { i18n } from "@/shared/i18n";
+
 export function formatProductDate(value: string | null) {
   if (!value) {
     return "-";
@@ -10,27 +12,9 @@ export function formatProductDate(value: string | null) {
 }
 
 export function getRegistrationLabel(status: string) {
-  const labels: Record<string, string> = {
-    registered: "Зарегистрирован",
-    unregistered: "Без регистрации",
-    no_declaration: "Без декларации",
-    own_property: "Собственность",
-    credit: "Кредитный",
-    mismatch: "Несоответствие",
-  };
-
-  return labels[status] ?? status;
+  return i18n.t(`products.registrationStatus.${status}`, { defaultValue: status });
 }
 
 export function getSaleSourceLabel(source: string | null) {
-  const labels: Record<string, string> = {
-    instagram: "Instagram",
-    tap_az: "Tap.az",
-    lalafo: "Lalafo",
-    recommendation: "Рекомендация",
-    passing_by: "Проходил мимо",
-    regular: "Постоянный клиент",
-  };
-
-  return source ? labels[source] ?? source : "-";
+  return source ? i18n.t(`products.saleSource.${source}`, { defaultValue: source }) : "-";
 }

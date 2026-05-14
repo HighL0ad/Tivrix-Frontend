@@ -8,6 +8,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Banknote, Boxes, ChartNoAxesColumnIncreasing, HandCoins, Landmark, Plus, ReceiptText, ShoppingCart, TrendingUp } from "lucide-react";
 import { NavLink } from "react-router";
+import { useTranslation } from "react-i18next";
 
 import { useDashboard } from "@/entities/dashboard/api/use-dashboard";
 import { money, shortDate } from "@/shared/lib/format";
@@ -19,6 +20,7 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const [profitPeriod, setProfitPeriod] = useState<"7d" | "30d" | "90d">("7d");
   const dashboardQuery = useDashboard();
   const data = dashboardQuery.data;
@@ -47,17 +49,17 @@ export function DashboardPage() {
   return (
     <section className="space-y-5">
       <PageHeader
-        title="Главная"
-        description="Касса, склад, долги и прибыль в одном рабочем обзоре."
+        title={t("app.nav.dashboard")}
+        description={t("dashboard.description")}
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Живой баланс" value={money(data.total_money)} hint={`После долгов: ${money(data.projected_balance)}`} tone="violet" icon={<Banknote className="size-4" />} />
-        <MetricCard title="Товар на складе" value={money(data.stock_value)} hint={`${data.stock_count} шт. · Итого: ${money(data.projected_balance_with_stock)}`} tone="info" icon={<Boxes className="size-4" />} />
+        <MetricCard title={t("dashboard.liveBalance")} value={money(data.total_money)} hint={t("dashboard.afterDebts", { amount: money(data.projected_balance) })} tone="violet" icon={<Banknote className="size-4" />} />
+        <MetricCard title={t("dashboard.stockValue")} value={money(data.stock_value)} hint={t("dashboard.stockHint", { count: data.stock_count, total: money(data.projected_balance_with_stock) })} tone="info" icon={<Boxes className="size-4" />} />
         <MetricCard
-          title="Прибыль сегодня"
+          title={t("dashboard.profitToday")}
           value={money(data.profit_today)}
-          hint={`Продано: ${data.sales_today.count} шт.`}
+          hint={t("dashboard.soldCount", { count: data.sales_today.count })}
           tone={Number(data.profit_today) >= 0 ? "good" : "bad"}
           icon={<TrendingUp className="size-4" />}
         />
@@ -68,11 +70,11 @@ export function DashboardPage() {
           <CardContent className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                Долговая нагрузка
+                {t("dashboard.debtLoad")}
               </div>
               <div className="mt-2 space-y-1 text-xs font-bold">
-                <div className="text-emerald-600">Нам: +{money(data.they_owe)}</div>
-                <div className="text-rose-500">Мы: -{money(data.we_owe)}</div>
+                <div className="text-emerald-600">{t("dashboard.toUs", { amount: money(data.they_owe) })}</div>
+                <div className="text-rose-500">{t("dashboard.fromUs", { amount: money(data.we_owe) })}</div>
               </div>
             </div>
             <div className="rounded-lg border border-white/80 bg-amber-100 p-2 text-amber-700 shadow-sm">
@@ -85,19 +87,19 @@ export function DashboardPage() {
       <Card>
         <CardContent className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
           <Button asChild>
-            <NavLink to="/products/new"><Plus />Добавить товар</NavLink>
+            <NavLink to="/products/new"><Plus />{t("app.addProduct")}</NavLink>
           </Button>
           <Button asChild variant="outline">
-            <NavLink to="/products?status=in_stock"><Boxes />Товары в наличии</NavLink>
+            <NavLink to="/products?status=in_stock"><Boxes />{t("dashboard.inStock")}</NavLink>
           </Button>
           <Button asChild variant="outline">
-            <NavLink to="/finance?tab=history"><ReceiptText />История операций</NavLink>
+            <NavLink to="/finance?tab=history"><ReceiptText />{t("finance.history")}</NavLink>
           </Button>
           <Button asChild variant="outline">
-            <NavLink to="/finance?tab=profit"><ChartNoAxesColumnIncreasing />Прибыль</NavLink>
+            <NavLink to="/finance?tab=profit"><ChartNoAxesColumnIncreasing />{t("finance.profit")}</NavLink>
           </Button>
           <Button asChild variant="outline">
-            <NavLink to="/finance"><Banknote />Касса</NavLink>
+            <NavLink to="/finance"><Banknote />{t("app.nav.finance")}</NavLink>
           </Button>
         </CardContent>
       </Card>
@@ -106,12 +108,12 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle>Прибыль</CardTitle>
+              <CardTitle>{t("finance.profit")}</CardTitle>
               <div className="inline-flex w-fit items-center rounded-lg bg-muted p-1">
                 {[
-                  { value: "7d", label: "7д" },
-                  { value: "30d", label: "30д" },
-                  { value: "90d", label: "90д" },
+                  { value: "7d", label: t("dashboard.period.7dShort") },
+                  { value: "30d", label: t("dashboard.period.30dShort") },
+                  { value: "90d", label: t("dashboard.period.90dShort") },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -134,30 +136,30 @@ export function DashboardPage() {
           <CardContent>
             <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <ColorMetric
-                title={`Чистая прибыль за ${periodLabel(profitPeriod)}`}
+                title={t("dashboard.netProfitFor", { period: periodLabel(profitPeriod, t) })}
                 value={money(selectedProfitPeriod.profit_total)}
-                hint="Продажа минус закупка"
+                hint={t("dashboard.saleMinusPurchase")}
                 className="border-emerald-200 bg-emerald-50 text-emerald-800"
                 icon={<ChartNoAxesColumnIncreasing className="size-4" />}
               />
               <ColorMetric
-                title={`Выручка за ${periodLabel(profitPeriod)}`}
+                title={t("dashboard.revenueFor", { period: periodLabel(profitPeriod, t) })}
                 value={money(selectedProfitPeriod.revenue_total)}
-                hint="Сумма продаж"
+                hint={t("dashboard.salesAmount")}
                 className="border-sky-200 bg-sky-50 text-sky-800"
                 icon={<Landmark className="size-4" />}
               />
               <ColorMetric
-                title="Продано в долг"
+                title={t("dashboard.soldInDebt")}
                 value={money(selectedProfitPeriod.debt_sales_total)}
-                hint="Клиенты и партнёры"
+                hint={t("dashboard.clientsAndPartners")}
                 className="border-amber-200 bg-amber-50 text-amber-800"
                 icon={<HandCoins className="size-4" />}
               />
               <ColorMetric
-                title="Продано товаров"
-                value={`${selectedProfitPeriod.sales_count} шт.`}
-                hint="Закрытые продажи"
+                title={t("dashboard.soldProducts")}
+                value={t("common.pcs", { count: selectedProfitPeriod.sales_count })}
+                hint={t("dashboard.closedSales")}
                 className="border-violet-200 bg-violet-50 text-violet-800"
                 icon={<ShoppingCart className="size-4" />}
               />
@@ -168,7 +170,7 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Последние операции</CardTitle>
+            <CardTitle>{t("dashboard.recentTransactions")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recent_transactions.map((tx) => (
@@ -179,7 +181,7 @@ export function DashboardPage() {
                     <div className="mt-1 text-xs text-gray-500">{tx.operation_kind} · {tx.route_label}</div>
                     {tx.created_by_username ? (
                       <div className="mt-1 text-xs text-gray-500">
-                        пользователь: {tx.created_by_username}
+                        {t("common.user")}: {tx.created_by_username}
                       </div>
                     ) : null}
                     {[tx.from_wallet_name, tx.to_wallet_name, tx.product_name].filter(Boolean).length ? (
@@ -215,6 +217,7 @@ function ProfitChart({
   data: ProfitChartPoint[];
   period: "7d" | "30d" | "90d";
 }) {
+  const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const height = width < 640 ? 220 : 280;
@@ -282,18 +285,18 @@ function ProfitChart({
       ) : (
         <EmptyState
           className="h-full"
-          title="Недостаточно данных"
-          description="За выбранный период график пока пуст."
+          title={t("dashboard.notEnoughData")}
+          description={t("dashboard.emptyChart")}
         />
       )}
     </div>
   );
 }
 
-function periodLabel(value: "7d" | "30d" | "90d") {
-  if (value === "7d") return "7 дней";
-  if (value === "30d") return "30 дней";
-  return "90 дней";
+function periodLabel(value: "7d" | "30d" | "90d", t: (key: string) => string) {
+  if (value === "7d") return t("dashboard.period.7d");
+  if (value === "30d") return t("dashboard.period.30d");
+  return t("dashboard.period.90d");
 }
 
 type ProfitTooltipPayload = {

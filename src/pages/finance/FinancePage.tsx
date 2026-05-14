@@ -15,6 +15,7 @@ import {
   useQueryStates,
 } from "nuqs";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/entities/finance/api/use-finance";
 import type { Transaction } from "@/entities/dashboard/api/use-dashboard";
 import { AdjustWalletDialog } from "@/features/finance/AdjustWalletDialog";
+import { getSaleSourceLabel } from "@/features/products/product-display/format";
 import { TransferDialog } from "@/features/finance/TransferDialog";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { money, shortDate } from "@/shared/lib/format";
@@ -62,6 +64,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 const financeTabValues = ["overview", "history", "profit", "expenses"] as const;
 
 export function FinancePage() {
+  const { t } = useTranslation();
   const [{ q, page, tab, profitFrom, profitTo, expensesFrom, expensesTo }, setFinanceParams] = useQueryStates({
     q: parseAsString.withDefault(""),
     page: parseAsInteger.withDefault(1),
@@ -126,8 +129,8 @@ export function FinancePage() {
   return (
     <section className="space-y-5">
       <PageHeader
-        title="Касса"
-        description="Позиция, кошельки, прибыль, расходы и история операций."
+        title={t("app.nav.finance")}
+        description={t("finance.description")}
         actions={
           canTransferWallets ? (
             <TransferDialog wallets={data.my_wallets} />
@@ -138,7 +141,7 @@ export function FinancePage() {
       <Card className="border-violet-200 bg-linear-to-r from-violet-600 to-indigo-700 text-white">
         <CardContent className="flex flex-col gap-2 p-6">
           <div className="text-sm font-bold uppercase tracking-wide text-violet-100">
-            Чистая прибыль за всё время
+            {t("finance.allTimeNetProfit")}
           </div>
           <div className="text-4xl font-black tracking-tight">
             {money(data.total_profit)}
@@ -147,10 +150,10 @@ export function FinancePage() {
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="На руках" value={money(data.position.cash_total)} hint="Касса, карты и счета" tone="info" icon={<WalletCards className="size-4" />} />
-        <MetricCard title="К получению" value={money(data.position.receivable_total)} tone="good" icon={<TrendingUp className="size-4" />} />
-        <MetricCard title="К оплате" value={money(data.position.owed_total)} tone="bad" icon={<TrendingDown className="size-4" />} />
-        <MetricCard title="Итого после долгов" value={money(data.position.net_balance)} tone={Number(data.position.net_balance) >= 0 ? "good" : "bad"} icon={<Banknote className="size-4" />} />
+        <MetricCard title={t("finance.onHand")} value={money(data.position.cash_total)} hint={t("finance.cashCardsAccounts")} tone="info" icon={<WalletCards className="size-4" />} />
+        <MetricCard title={t("finance.receivable")} value={money(data.position.receivable_total)} tone="good" icon={<TrendingUp className="size-4" />} />
+        <MetricCard title={t("finance.payable")} value={money(data.position.owed_total)} tone="bad" icon={<TrendingDown className="size-4" />} />
+        <MetricCard title={t("finance.netAfterDebts")} value={money(data.position.net_balance)} tone={Number(data.position.net_balance) >= 0 ? "good" : "bad"} icon={<Banknote className="size-4" />} />
       </div>
 
       <Tabs
@@ -160,10 +163,10 @@ export function FinancePage() {
         }
       >
         <TabsList>
-          <TabsTrigger value="overview">Обзор</TabsTrigger>
-          <TabsTrigger value="history">История</TabsTrigger>
-          <TabsTrigger value="profit">Прибыль</TabsTrigger>
-          <TabsTrigger value="expenses">Расходы</TabsTrigger>
+          <TabsTrigger value="overview">{t("finance.overview")}</TabsTrigger>
+          <TabsTrigger value="history">{t("finance.historyShort")}</TabsTrigger>
+          <TabsTrigger value="profit">{t("finance.profit")}</TabsTrigger>
+          <TabsTrigger value="expenses">{t("finance.expenses")}</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <OverviewCard data={data} canAdjustWallets={canAdjustWallets} />
@@ -180,13 +183,13 @@ export function FinancePage() {
             setPage={setPage}
             onUndo={(transactionId) =>
               undoTransaction.mutate(transactionId, {
-                onSuccess: () => toast.success("Операция отменена"),
+                onSuccess: () => toast.success(t("finance.operationUndone")),
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }
             onUndoSale={(transactionId) =>
               undoSaleTransaction.mutate(transactionId, {
-                onSuccess: () => toast.success("Сделка отменена"),
+                onSuccess: () => toast.success(t("products.saleUndone")),
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }
@@ -194,7 +197,7 @@ export function FinancePage() {
             undoPending={undoTransaction.isPending || undoSaleTransaction.isPending}
           />
           ) : (
-            <FinancePermissionBlock title="История операций закрыта" />
+            <FinancePermissionBlock title={t("finance.historyClosed")} />
           )}
         </TabsContent>
         <TabsContent value="profit">
@@ -208,7 +211,7 @@ export function FinancePage() {
             }
           />
           ) : (
-            <FinancePermissionBlock title="Прибыль закрыта" />
+            <FinancePermissionBlock title={t("finance.profitClosed")} />
           )}
         </TabsContent>
         <TabsContent value="expenses">
@@ -222,7 +225,7 @@ export function FinancePage() {
             }
           />
           ) : (
-            <FinancePermissionBlock title="Расходы закрыты" />
+            <FinancePermissionBlock title={t("finance.expensesClosed")} />
           )}
         </TabsContent>
       </Tabs>
@@ -259,13 +262,14 @@ function HistoryCard({
   canUndoTransactions: boolean;
   undoPending: boolean;
 }) {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
   ]);
   const columns: ColumnDef<Transaction>[] = [
     {
       accessorKey: "display_description",
-      header: "Операция",
+      header: t("finance.operation"),
       cell: ({ row }) => (
         <div>
           <div className="max-w-md whitespace-normal font-semibold">
@@ -274,7 +278,7 @@ function HistoryCard({
           <div className="text-xs text-gray-500">{row.original.operation_kind}</div>
           {row.original.created_by_username ? (
             <div className="mt-1 text-xs text-gray-500">
-              пользователь: {row.original.created_by_username}
+              {t("common.user")}: {row.original.created_by_username}
             </div>
           ) : null}
           <div className="mt-1 text-xs text-gray-500">
@@ -287,7 +291,7 @@ function HistoryCard({
     },
     {
       accessorKey: "route_label",
-      header: "Маршрут",
+      header: t("finance.route"),
       cell: ({ row }) => (
         <div className="max-w-64 whitespace-normal text-muted-foreground">
           {row.original.route_label}
@@ -296,7 +300,7 @@ function HistoryCard({
     },
     {
       accessorKey: "created_at",
-      header: "Дата",
+      header: t("finance.date"),
       sortingFn: (a, b) =>
         new Date(a.original.created_at ?? 0).getTime() -
         new Date(b.original.created_at ?? 0).getTime(),
@@ -304,7 +308,7 @@ function HistoryCard({
     },
     {
       accessorKey: "amount",
-      header: () => <div className="text-right">Сумма</div>,
+      header: () => <div className="text-right">{t("finance.amount")}</div>,
       sortingFn: (a, b) =>
         Number(a.original.amount) - Number(b.original.amount),
       cell: ({ row }) => (
@@ -327,26 +331,26 @@ function HistoryCard({
                     variant="outline"
                     disabled={undoPending}
                     className="h-8 rounded-full border-transparent bg-muted px-3 text-xs font-bold text-muted-foreground shadow-none transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-                    aria-label="Отменить"
+                    aria-label={t("finance.undo")}
                   >
                     <RotateCcw aria-hidden="true" />
-                    Отменить
+                    {t("finance.undo")}
                   </Button>
                 </AlertDialogTrigger>
               </TooltipTrigger>
-              <TooltipContent>Отменить</TooltipContent>
+              <TooltipContent>{t("finance.undo")}</TooltipContent>
             </Tooltip>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Отменить операцию?</AlertDialogTitle>
+                <AlertDialogTitle>{t("finance.undoOperationTitle")}</AlertDialogTitle>
                 <AlertDialogDescription>
                   {row.original.can_undo_sale
-                    ? "Продажа будет отменена, товар вернётся в склад, балансы будут пересчитаны."
-                    : "Деньги и связанные балансы будут пересчитаны. Действие нельзя отменить."}
+                    ? t("finance.undoSaleDescription")
+                    : t("finance.undoOperationDescription")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Нет</AlertDialogCancel>
+                <AlertDialogCancel>{t("common.no")}</AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-red-50 text-red-700 hover:bg-red-100"
                   onClick={() =>
@@ -355,7 +359,7 @@ function HistoryCard({
                       : onUndo(row.original.id)
                   }
                 >
-                  Да, отменить
+                  {t("finance.confirmUndo")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -365,7 +369,7 @@ function HistoryCard({
             <TooltipTrigger asChild>
               <Button type="button" size="sm" variant="outline" disabled className="h-8">
                 <RotateCcw aria-hidden="true" />
-                Недоступно
+                {t("common.unavailable")}
               </Button>
             </TooltipTrigger>
             <TooltipContent>{row.original.undo_disabled_reason}</TooltipContent>
@@ -385,7 +389,7 @@ function HistoryCard({
   return (
     <Card>
       <CardHeader className="gap-3">
-        <CardTitle>История</CardTitle>
+        <CardTitle>{t("finance.historyShort")}</CardTitle>
         <form
           className="flex flex-col gap-2 sm:flex-row"
           onSubmit={(event) => {
@@ -399,10 +403,10 @@ function HistoryCard({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="pl-9"
-              placeholder="Поиск по операциям"
+              placeholder={t("finance.searchTransactions")}
             />
           </div>
-          <Button type="submit">Найти</Button>
+          <Button type="submit">{t("common.searchButton")}</Button>
           {currentQuery ? (
             <Button
               type="button"
@@ -412,7 +416,7 @@ function HistoryCard({
                 updateFinanceParams({ q: "" });
               }}
             >
-              Сбросить
+              {t("common.reset")}
             </Button>
           ) : null}
         </form>
@@ -458,7 +462,7 @@ function HistoryCard({
         </Table>
         <div className="mt-4 flex flex-col gap-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
           <span className="shrink-0 whitespace-nowrap">
-            Страница {data.transactions_page} / {data.transactions_total_pages}
+            {t("common.pageOf", { page: data.transactions_page, total: data.transactions_total_pages })}
           </span>
           <Pagination className="shrink-0">
             <PaginationContent>
@@ -495,25 +499,26 @@ function OverviewCard({
   data: NonNullable<ReturnType<typeof useFinance>["data"]>;
   canAdjustWallets: boolean;
 }) {
+  const { t } = useTranslation();
   const nonZeroWallets = data.my_wallets.filter((wallet) => Number(wallet.balance) !== 0);
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
       <Card className="overflow-hidden">
         <CardHeader>
-          <CardTitle>Периоды</CardTitle>
+          <CardTitle>{t("finance.periods")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid md:grid-cols-3">
-            <PeriodBlock title="Сегодня" summary={data.today} icon={<SunMedium className="size-3.5" />} accentClassName="bg-slate-400" />
-            <PeriodBlock title="Неделя" summary={data.week} icon={<CalendarDays className="size-3.5" />} accentClassName="bg-sky-500" />
-            <PeriodBlock title="Месяц" summary={data.month} icon={<CalendarDays className="size-3.5" />} accentClassName="bg-emerald-500" />
+            <PeriodBlock title={t("finance.today")} summary={data.today} icon={<SunMedium className="size-3.5" />} accentClassName="bg-slate-400" />
+            <PeriodBlock title={t("finance.week")} summary={data.week} icon={<CalendarDays className="size-3.5" />} accentClassName="bg-sky-500" />
+            <PeriodBlock title={t("finance.month")} summary={data.month} icon={<CalendarDays className="size-3.5" />} accentClassName="bg-emerald-500" />
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Баланс по кошелькам</CardTitle>
+          <CardTitle>{t("finance.walletBalances")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {nonZeroWallets.length ? nonZeroWallets.map((wallet) => (
@@ -529,7 +534,7 @@ function OverviewCard({
             </div>
           )) : (
             <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Кошельки ещё не добавлены
+              {t("catalogs.walletsEmptyTitle")}
             </div>
           )}
         </CardContent>
@@ -538,7 +543,7 @@ function OverviewCard({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HandCoins className="size-5 text-rose-600" />
-            Долги поставщикам
+            {t("finance.supplierDebts")}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -549,7 +554,7 @@ function OverviewCard({
             </div>
           )) : (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center text-sm font-semibold text-emerald-700 sm:col-span-2 lg:col-span-3">
-              Никому не должны
+              {t("finance.noSupplierDebts")}
             </div>
           )}
         </CardContent>
@@ -559,6 +564,7 @@ function OverviewCard({
 }
 
 function FinancePermissionBlock({ title }: { title: string }) {
+  const { t } = useTranslation();
   return (
     <Card className="border-amber-200 bg-amber-50/50">
       <CardContent className="flex min-h-64 flex-col items-center justify-center px-6 py-10 text-center">
@@ -567,7 +573,7 @@ function FinancePermissionBlock({ title }: { title: string }) {
         </span>
         <h2 className="mt-4 text-lg font-black text-foreground">{title}</h2>
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-          Администратор ограничил доступ к этому блоку.
+          {t("finance.permissionRestricted")}
         </p>
       </CardContent>
     </Card>
@@ -585,6 +591,7 @@ function PeriodBlock({
   icon: ReactNode;
   accentClassName: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="border-t border-gray-200 bg-muted/20 p-5 first:border-t-0 md:border-l md:border-t-0 md:first:border-l-0">
       <div className={`mb-4 h-0.5 w-full rounded-full ${accentClassName}`} />
@@ -593,10 +600,10 @@ function PeriodBlock({
         {title}
       </div>
       <div className="mt-4 space-y-2 text-sm">
-        <MetricLine label="Доходы" value={money(summary.income)} tone="good" />
-        <MetricLine label="Расходы" value={money(summary.expenses)} tone="bad" />
-        <MetricLine label="Прибыль" value={money(summary.profit)} />
-        <MetricLine label="Операций" value={String(summary.operations_count)} />
+        <MetricLine label={t("finance.incomes")} value={money(summary.income)} tone="good" />
+        <MetricLine label={t("finance.expenses")} value={money(summary.expenses)} tone="bad" />
+        <MetricLine label={t("finance.profit")} value={money(summary.profit)} />
+        <MetricLine label={t("finance.operations")} value={String(summary.operations_count)} />
       </div>
     </div>
   );
@@ -613,37 +620,38 @@ function ProfitCard({
   dateTo: string;
   setDateRange: (dateFrom: string, dateTo: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader className="gap-3">
-        <CardTitle>Прибыль</CardTitle>
+        <CardTitle>{t("finance.profit")}</CardTitle>
         <DateFilters
           dateFrom={dateFrom}
           dateTo={dateTo}
           setDateRange={setDateRange}
         />
         <div className="text-xs font-medium text-muted-foreground">
-          {periodLabel(dateFrom, dateTo)}
+          {periodLabel(dateFrom, dateTo, t)}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {data ? (
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <InlineMetric title="Сегодня" value={money(data.today.profit)} />
-              <InlineMetric title="Неделя" value={money(data.week.profit)} />
-              <InlineMetric title="Месяц" value={money(data.month.profit)} />
-              <InlineMetric title="Всего" value={money(data.all_time.profit)} />
+              <InlineMetric title={t("finance.today")} value={money(data.today.profit)} />
+              <InlineMetric title={t("finance.week")} value={money(data.week.profit)} />
+              <InlineMetric title={t("finance.month")} value={money(data.month.profit)} />
+              <InlineMetric title={t("finance.total")} value={money(data.all_time.profit)} />
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <InlineMetric title="Чистыми за период" value={money(data.selected_period.profit)} />
-              <InlineMetric title="Себестоимость" value={money(data.selected_period.buy_total)} />
-              <InlineMetric title="Маржа" value={`${Number(data.selected_period.margin_percent).toFixed(1)}%`} />
-              <InlineMetric title="Средняя прибыль" value={money(data.avg_profit_per_sale)} />
+              <InlineMetric title={t("finance.netForPeriod")} value={money(data.selected_period.profit)} />
+              <InlineMetric title={t("finance.cost")} value={money(data.selected_period.buy_total)} />
+              <InlineMetric title={t("finance.margin")} value={`${Number(data.selected_period.margin_percent).toFixed(1)}%`} />
+              <InlineMetric title={t("finance.averageProfit")} value={money(data.avg_profit_per_sale)} />
             </div>
             {data.best_sale ? (
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm">
-                <div className="font-bold text-emerald-900">Лучшая продажа</div>
+                <div className="font-bold text-emerald-900">{t("finance.bestSale")}</div>
                 <div className="mt-1 flex justify-between gap-3">
                   <span>{data.best_sale.product_name}</span>
                   <span className={`font-bold ${profitToneClass(data.best_sale.profit)}`}>
@@ -656,11 +664,11 @@ function ProfitCard({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Товар</TableHead>
-                    <TableHead>Продан</TableHead>
-                    <TableHead className="text-right">Закупка</TableHead>
-                    <TableHead className="text-right">Продажа</TableHead>
-                    <TableHead className="text-right">Прибыль</TableHead>
+                    <TableHead>{t("sell.product")}</TableHead>
+                    <TableHead>{t("products.soldAt")}</TableHead>
+                    <TableHead className="text-right">{t("sell.purchase")}</TableHead>
+                    <TableHead className="text-right">{t("products.sale")}</TableHead>
+                    <TableHead className="text-right">{t("finance.profit")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -669,7 +677,7 @@ function ProfitCard({
                       <TableCell>
                         <div className="font-semibold">{sale.product_name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {sale.client_name || "Без имени"}
+                          {sale.client_name || t("finance.noName")}
                         </div>
                       </TableCell>
                       <TableCell>{shortDate(sale.sold_at)}</TableCell>
@@ -683,7 +691,7 @@ function ProfitCard({
                   {!data.recent_sales.length ? (
                     <TableRow>
                       <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                        За выбранный период продаж нет
+                        {t("finance.noSalesForPeriod")}
                       </TableCell>
                     </TableRow>
                   ) : null}
@@ -694,8 +702,10 @@ function ProfitCard({
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {data.source_stats.map((source) => (
                   <div key={source.source ?? source.label} className="rounded-lg border p-3 text-sm">
-                    <div className="font-semibold">{source.label}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{source.count} продаж</div>
+                    <div className="font-semibold">
+                      {source.source ? getSaleSourceLabel(source.source) : t("products.notSpecified")}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">{t("finance.salesCount", { count: source.count })}</div>
                     <div className="mt-2 font-bold">{money(source.profit)}</div>
                   </div>
                 ))}
@@ -703,7 +713,7 @@ function ProfitCard({
             ) : null}
           </>
         ) : (
-          <div className="text-sm text-gray-500">Загрузка прибыли</div>
+          <div className="text-sm text-gray-500">{t("finance.loadingProfit")}</div>
         )}
       </CardContent>
     </Card>
@@ -721,24 +731,25 @@ function ExpensesCard({
   dateTo: string;
   setDateRange: (dateFrom: string, dateTo: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader className="gap-3">
-        <CardTitle>Расходы</CardTitle>
+        <CardTitle>{t("finance.expenses")}</CardTitle>
         <DateFilters
           dateFrom={dateFrom}
           dateTo={dateTo}
           setDateRange={setDateRange}
         />
         <div className="text-xs font-medium text-muted-foreground">
-          {periodLabel(dateFrom, dateTo)}
+          {periodLabel(dateFrom, dateTo, t)}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {data ? (
           <>
-            <InlineMetric title="Всего расходов" value={money(data.total)} />
-            <InlineMetric title="Операций" value={String(data.items.length)} />
+            <InlineMetric title={t("finance.totalExpenses")} value={money(data.total)} />
+            <InlineMetric title={t("finance.operations")} value={String(data.items.length)} />
             <div className="max-h-[60vh] space-y-2 overflow-auto pr-1">
               {data.items.map((expense) => (
                 <div
@@ -758,13 +769,13 @@ function ExpensesCard({
               ))}
               {!data.items.length ? (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  Расходов за выбранный период нет
+                  {t("finance.noExpensesForPeriod")}
                 </div>
               ) : null}
             </div>
           </>
         ) : (
-          <div className="text-sm text-gray-500">Загрузка расходов</div>
+          <div className="text-sm text-gray-500">{t("finance.loadingExpenses")}</div>
         )}
       </CardContent>
     </Card>
@@ -780,6 +791,7 @@ function DateFilters({
   dateTo: string;
   setDateRange: (dateFrom: string, dateTo: string) => void;
 }) {
+  const { t } = useTranslation();
   function updateRange(nextFrom: string, nextTo: string) {
     const normalized = normalizeDateRange(nextFrom, nextTo);
     setDateRange(normalized.dateFrom, normalized.dateTo);
@@ -790,15 +802,15 @@ function DateFilters({
       <DatePicker
         value={dateFrom}
         onChange={(value) => updateRange(value, dateTo)}
-        placeholder="Дата с"
+        placeholder={t("finance.dateFrom")}
       />
       <DatePicker
         value={dateTo}
         onChange={(value) => updateRange(dateFrom, value)}
-        placeholder="Дата по"
+        placeholder={t("finance.dateTo")}
       />
       <Button type="button" variant="outline" onClick={() => setDateRange("", "")}>
-        Сбросить
+        {t("common.reset")}
       </Button>
     </div>
   );
@@ -812,11 +824,11 @@ function normalizeDateRange(dateFrom: string, dateTo: string) {
   return { dateFrom, dateTo };
 }
 
-function periodLabel(dateFrom: string, dateTo: string) {
-  if (dateFrom && dateTo) return `Период: ${dateFrom} - ${dateTo}`;
-  if (dateFrom) return `Период: с ${dateFrom}`;
-  if (dateTo) return `Период: по ${dateTo}`;
-  return "Период: всё время";
+function periodLabel(dateFrom: string, dateTo: string, t: (key: string, options?: Record<string, string>) => string) {
+  if (dateFrom && dateTo) return t("finance.periodRange", { dateFrom, dateTo });
+  if (dateFrom) return t("finance.periodFrom", { dateFrom });
+  if (dateTo) return t("finance.periodTo", { dateTo });
+  return t("finance.periodAllTime");
 }
 
 function profitToneClass(value: string | number) {

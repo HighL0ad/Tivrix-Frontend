@@ -28,6 +28,7 @@ import {
 } from "nuqs";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { useDeleteProduct } from "@/entities/products/api/use-product-actions";
 import { useProductCreateOptions } from "@/entities/products/api/use-product-create";
@@ -90,19 +91,19 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 
-const statusFilters: Array<{ value: ProductStatus | "all"; label: string }> = [
-  { value: "all", label: "Все" },
-  { value: "in_stock", label: "На складе" },
-  { value: "sold", label: "Проданы" },
-  { value: "reserved", label: "Бронь" },
+const statusFilters: Array<{ value: ProductStatus | "all"; labelKey: string }> = [
+  { value: "all", labelKey: "common.all" },
+  { value: "in_stock", labelKey: "products.status.in_stock" },
+  { value: "sold", labelKey: "products.status.soldPlural" },
+  { value: "reserved", labelKey: "products.status.reserved" },
 ];
 const productStatusValues = ["new", "in_stock", "sold", "reserved", "returned"] as const;
 const productSortFields = ["name", "supplier", "buy_price", "deal_price"] as const;
 const sortDirections = ["asc", "desc"] as const;
 
 export function ProductsPage() {
+  const { t } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [{ status, supplierId, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
     status: parseAsStringLiteral(productStatusValues),
@@ -126,7 +127,7 @@ export function ProductsPage() {
   const products = productsQuery.data;
   const supplierOptions = useMemo(
     () => [
-      { id: "all", name: "Все поставщики" },
+      { id: "all", name: t("products.allSuppliers") },
       ...(
         createOptionsQuery.data?.supplier_wallet_options.map((supplier) => ({
           id: supplier.id,
@@ -134,7 +135,7 @@ export function ProductsPage() {
         })) ?? []
       ),
     ],
-    [createOptionsQuery.data?.supplier_wallet_options],
+    [createOptionsQuery.data?.supplier_wallet_options, t],
   );
 
   useEffect(() => {
@@ -182,13 +183,13 @@ export function ProductsPage() {
   return (
     <section className="space-y-5">
       <PageHeader
-        title="Товары"
-        description={products ? `Всего товаров: ${products.total}` : "Загрузка товаров"}
+        title={t("app.nav.products")}
+        description={products ? t("products.total", { count: products.total }) : t("products.loading")}
         actions={
         <Button asChild>
           <NavLink to="/products/new">
             <Plus aria-hidden="true" />
-            Добавить товар
+            {t("app.addProduct")}
           </NavLink>
         </Button>
         }
@@ -205,7 +206,7 @@ export function ProductsPage() {
             <TabsList>
               {statusFilters.map((filter) => (
                 <TabsTrigger key={filter.value} value={filter.value}>
-                  {filter.label}
+                  {t(filter.labelKey)}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -221,10 +222,10 @@ export function ProductsPage() {
                 className="pl-9"
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="IMEI, модель, поставщик, цена..."
+                placeholder={t("products.searchPlaceholder")}
               />
             </div>
-            <Button type="submit" className="sm:w-28">Найти</Button>
+            <Button type="submit" className="sm:w-28">{t("common.searchButton")}</Button>
             {q ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -232,7 +233,7 @@ export function ProductsPage() {
                     type="button"
                     variant="outline"
                     size="icon"
-                    aria-label="Очистить поиск"
+                    aria-label={t("common.clearSearch")}
                     onClick={() => {
                       setSearchValue("");
                       updateParams({ q: "" });
@@ -241,7 +242,7 @@ export function ProductsPage() {
                     <X aria-hidden="true" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Очистить поиск</TooltipContent>
+                <TooltipContent>{t("common.clearSearch")}</TooltipContent>
               </Tooltip>
             ) : null}
           </form>
@@ -253,9 +254,9 @@ export function ProductsPage() {
                 updateParams({ supplierId: value === "all" ? "" : value })
               }
               options={supplierOptions}
-              placeholder="Все поставщики"
-              searchPlaceholder="Поиск поставщика"
-              emptyMessage="Поставщик не найден"
+              placeholder={t("products.allSuppliers")}
+              searchPlaceholder={t("products.supplierSearch")}
+              emptyMessage={t("products.supplierNotFound")}
             />
             {(supplierId || sortBy) ? (
               <Button
@@ -263,7 +264,7 @@ export function ProductsPage() {
                 variant="outline"
                 onClick={() => updateParams({ supplierId: "", sortBy: null, sortDir: null })}
               >
-                Сбросить фильтры
+                {t("common.resetFilters")}
               </Button>
             ) : null}
           </div>
@@ -291,11 +292,11 @@ export function ProductsPage() {
             )
           ) : (
             <EmptyState
-              title="Товары не найдены"
+              title={t("products.emptyTitle")}
               description={
                 q || supplierId || activeStatus
-                  ? "Попробуйте сбросить фильтры или изменить запрос."
-                  : "Добавьте первый товар, чтобы начать работу."
+                  ? t("products.emptyFilteredDescription")
+                  : t("products.emptyDescription")
               }
               action={
                 q || supplierId || activeStatus ? (
@@ -314,13 +315,13 @@ export function ProductsPage() {
                       });
                     }}
                   >
-                    Сбросить фильтры
+                    {t("common.resetFilters")}
                   </Button>
                 ) : (
                   <Button asChild>
                     <NavLink to="/products/new">
                       <Plus aria-hidden="true" />
-                      Добавить первый товар
+                      {t("products.addFirst")}
                     </NavLink>
                   </Button>
                 )
@@ -331,7 +332,7 @@ export function ProductsPage() {
           {products ? (
             <div className="mt-4 flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <span className="shrink-0 whitespace-nowrap">
-                Страница {products.page} / {products.total_pages}
+                {t("common.pageOf", { page: products.page, total: products.total_pages })}
               </span>
               <Pagination className="shrink-0">
                 <PaginationContent>
@@ -364,6 +365,7 @@ function ProductsCardList({
   products: ProductListItem[];
   returnTo: string;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const rowVirtualizer = useWindowVirtualizer({
     count: products.length,
@@ -412,7 +414,7 @@ function ProductsCardList({
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <div className="text-xs font-bold uppercase text-muted-foreground">
-                      Поставщик
+                      {t("catalogs.suppliers")}
                     </div>
                     <div className="mt-1 break-words font-semibold">
                       {product.supplier_name ?? "-"}
@@ -420,7 +422,7 @@ function ProductsCardList({
                   </div>
                   <div className="text-right">
                     <div className="text-xs font-bold uppercase text-muted-foreground">
-                      Закупка
+                      {t("sell.purchase")}
                     </div>
                     <div className="mt-1 font-black">{product.buy_price} ₼</div>
                   </div>
@@ -430,7 +432,7 @@ function ProductsCardList({
                   {product.current_sale ? (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-muted-foreground">Сделка</span>
+                        <span className="text-muted-foreground">{t("products.deal")}</span>
                         <span className="font-black">
                           {product.current_sale.total_price} ₼
                           <span className={`ml-2 ${profitTextClass(product.current_sale.profit)}`}>
@@ -439,7 +441,7 @@ function ProductsCardList({
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-3 text-xs">
-                        <span className="text-muted-foreground">Продан</span>
+                        <span className="text-muted-foreground">{t("products.soldAt")}</span>
                         <span className="font-semibold">
                           {formatProductDate(product.current_sale.sold_at)}
                         </span>
@@ -447,7 +449,7 @@ function ProductsCardList({
                     </div>
                   ) : (
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-muted-foreground">Добавлен</span>
+                      <span className="text-muted-foreground">{t("products.createdAt")}</span>
                       <span className="font-semibold">
                         {formatProductDate(product.created_at)}
                       </span>
@@ -463,7 +465,7 @@ function ProductsCardList({
                       productId={product.id}
                       trigger={
                         <Button type="button" className="w-full">
-                          Продать
+                          {t("sell.sell")}
                         </Button>
                       }
                     />
@@ -484,14 +486,14 @@ function ProductsCardList({
                         })
                       }
                     >
-                      Детали
+                      {t("common.details")}
                     </Button>
                     <Button asChild type="button" variant="outline">
                       <NavLink
                         to={`/products/${product.id}/edit`}
                         state={{ from: returnTo }}
                       >
-                        Редактировать
+                        {t("common.edit")}
                       </NavLink>
                     </Button>
                   </div>
@@ -521,6 +523,7 @@ function ProductsTable({
     sortDir: (typeof sortDirections)[number] | null,
   ) => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const sorting = useMemo<SortingState>(
     () => (sortBy && sortDir ? [{ id: sortBy, desc: sortDir === "desc" }] : []),
@@ -531,7 +534,7 @@ function ProductsTable({
       {
         id: "name",
         accessorKey: "name",
-        header: () => "Товар",
+        header: () => t("sell.product"),
         cell: ({ row }) => (
           <TableCellContent>
             <div className="font-medium text-foreground">{row.original.name}</div>
@@ -546,14 +549,14 @@ function ProductsTable({
       {
         id: "status",
         accessorKey: "status",
-        header: () => "Статус",
+        header: () => t("common.status"),
         enableSorting: false,
         cell: ({ row }) => <ProductStatusBadge status={row.original.status} />,
       },
       {
         id: "supplier",
         accessorKey: "supplier_name",
-        header: () => "Поставщик",
+        header: () => t("catalogs.suppliers"),
         cell: ({ row }) => (
           <div className="min-w-48 whitespace-normal text-muted-foreground">
             {row.original.supplier_name ?? "-"}
@@ -563,14 +566,14 @@ function ProductsTable({
       {
         id: "buy_price",
         accessorKey: "buy_price",
-        header: () => <div className="text-right">Закупка</div>,
+        header: () => <div className="text-right">{t("sell.purchase")}</div>,
         cell: ({ row }) => (
           <div className="text-right font-medium">{row.original.buy_price} ₼</div>
         ),
       },
       {
         id: "deal_price",
-        header: () => <div className="text-right">Сделка</div>,
+        header: () => <div className="text-right">{t("products.deal")}</div>,
         cell: ({ row }) => (
           <div className="relative text-right">
             {row.original.current_sale ? (
@@ -582,7 +585,7 @@ function ProductsTable({
                   {signedMoney(row.original.current_sale.profit)}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Продан: {formatProductDate(row.original.current_sale.sold_at)}
+                  {t("products.soldWithColon", { date: formatProductDate(row.original.current_sale.sold_at) })}
                 </div>
               </div>
             ) : (
@@ -595,7 +598,7 @@ function ProductsTable({
       },
       {
         id: "actions",
-        header: () => <div className="sr-only">Действия</div>,
+        header: () => <div className="sr-only">{t("common.actions")}</div>,
         enableSorting: false,
         cell: ({ row }) => (
           <div
@@ -607,7 +610,7 @@ function ProductsTable({
                 productId={row.original.id}
                 trigger={
                   <Button type="button" size="sm">
-                    Продать
+                    {t("sell.sell")}
                   </Button>
                 }
               />
@@ -622,7 +625,7 @@ function ProductsTable({
                   })
                 }
               >
-                Детали
+                {t("common.details")}
               </Button>
             )}
             <ProductActionsMenu
@@ -634,7 +637,7 @@ function ProductsTable({
         ),
       },
     ],
-    [navigate, returnTo],
+    [navigate, returnTo, t],
   );
   const table = useReactTable({
     data: products,
@@ -739,6 +742,7 @@ function SellProductByIdDialog({
   productId: number;
   trigger: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const productQuery = useProductDetail(productId, open);
 
@@ -748,12 +752,12 @@ function SellProductByIdDialog({
         open={open}
         onOpenChange={setOpen}
         trigger={trigger}
-        title="Оформление продажи"
-        description="Загружаем данные товара."
+        title={t("sell.title")}
+        description={t("products.loadingProductDescription")}
         className="md:max-w-lg"
       >
         <div className="py-8 text-center text-sm text-muted-foreground">
-          Загрузка товара...
+          {t("products.loadingProduct")}
         </div>
       </ResponsiveModal>
     );
@@ -782,13 +786,14 @@ function ProductActionsMenu({
   returnTo: string;
   compact?: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const deleteProduct = useDeleteProduct(product.id);
 
   async function copyImei() {
     await navigator.clipboard.writeText(product.imei);
-    toast.success("IMEI скопирован");
+    toast.success(t("products.imeiCopied"));
   }
 
   return (
@@ -799,7 +804,7 @@ function ProductActionsMenu({
             type="button"
             variant="outline"
             size={compact ? "icon" : "sm"}
-            aria-label="Действия"
+            aria-label={t("common.actions")}
             onClick={(event) => event.stopPropagation()}
           >
             <MoreHorizontal aria-hidden="true" />
@@ -815,7 +820,7 @@ function ProductActionsMenu({
             }
           >
             <Eye aria-hidden="true" />
-            Детали
+            {t("common.details")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() =>
@@ -825,11 +830,11 @@ function ProductActionsMenu({
             }
           >
             <Edit aria-hidden="true" />
-            Редактировать
+            {t("common.edit")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={copyImei}>
             <Copy aria-hidden="true" />
-            Скопировать IMEI
+            {t("products.copyImei")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -837,7 +842,7 @@ function ProductActionsMenu({
             onSelect={() => setConfirmOpen(true)}
           >
             <Trash2 aria-hidden="true" />
-            Удалить
+            {t("common.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -845,25 +850,25 @@ function ProductActionsMenu({
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent onClick={(event) => event.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить товар?</AlertDialogTitle>
+            <AlertDialogTitle>{t("products.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите удалить товар «{product.name}»?
+              {t("products.deleteDescription", { name: product.name })}
               <span className="mt-2 block text-foreground">
                 IMEI: {product.imei}
                 {product.imei2 ? ` / ${product.imei2}` : ""}
               </span>
               {product.supplier_name ? (
                 <span className="mt-1 block text-foreground">
-                  Поставщик: {product.supplier_name}
+                  {t("products.supplierWithColon", { name: product.supplier_name })}
                 </span>
               ) : null}
               <span className="mt-2 block">
-                Финансовые движения по покупке и продаже будут пересчитаны. Это действие нельзя отменить.
+                {t("products.deleteWarning")}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive/10 text-destructive hover:bg-destructive/20"
               onClick={() =>
@@ -872,13 +877,13 @@ function ProductActionsMenu({
                     queryClient.invalidateQueries({ queryKey: ["products"] });
                     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
                     queryClient.invalidateQueries({ queryKey: ["finance"] });
-                    toast.success("Товар удалён");
+                    toast.success(t("products.deleted"));
                   },
                   onError: (error) => toast.error(getApiErrorMessage(error)),
                 })
               }
             >
-              Удалить товар
+              {t("products.deleteAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -940,18 +945,4 @@ function signedMoney(value: string | number) {
 
 function profitTextClass(value: string | number) {
   return Number(value) >= 0 ? "text-emerald-700" : "text-rose-600";
-}
-
-function isTypingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-
-  const tagName = target.tagName.toLowerCase();
-  return (
-    target.isContentEditable ||
-    tagName === "input" ||
-    tagName === "textarea" ||
-    tagName === "select"
-  );
 }

@@ -1,10 +1,12 @@
 import { type ComponentProps, useState } from "react";
 import { LockKeyhole } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { useSetPassword } from "@/entities/auth/api/use-login";
 import { getApiErrorMessage } from "@/shared/api/error";
+import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import {
@@ -18,6 +20,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
 export function SetPasswordPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -38,7 +41,7 @@ export function SetPasswordPage() {
       { token, password },
       {
         onSuccess: () => {
-          toast.success("Пароль установлен");
+          toast.success(t("setPassword.success"));
           navigate("/login", { replace: true });
         },
       },
@@ -48,13 +51,16 @@ export function SetPasswordPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-4">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(79,70,229,0.28),transparent_32%),radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.16),transparent_28%)]" />
+      <div className="absolute right-4 top-4 z-10">
+        <LanguageSwitcher />
+      </div>
       <Card className="relative w-full max-w-md border-white/15 bg-white/10 p-0 text-white shadow-2xl backdrop-blur-xl">
         <CardHeader className="mb-2 items-center px-8 pt-8 text-center">
           <CardTitle className="text-2xl font-bold tracking-tight text-white">
-            Установить пароль
+            {t("setPassword.title")}
           </CardTitle>
           <CardDescription className="mt-2 whitespace-nowrap text-xs text-slate-300 sm:text-sm">
-            Ссылка действует 1 час. Используется один раз.
+            {t("setPassword.subtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -62,7 +68,7 @@ export function SetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {!token ? (
               <Alert variant="destructive" className="rounded-lg">
-                <AlertDescription>Ссылка недействительна.</AlertDescription>
+                <AlertDescription>{t("setPassword.invalidLink")}</AlertDescription>
               </Alert>
             ) : null}
 
@@ -76,20 +82,20 @@ export function SetPasswordPage() {
 
             <PasswordField
               id="password"
-              label="Новый пароль"
+              label={t("setPassword.newPassword")}
               value={password}
               onChange={setPasswordValue}
             />
             <PasswordField
               id="confirm-password"
-              label="Повторите пароль"
+              label={t("setPassword.confirmPassword")}
               value={confirmPassword}
               onChange={setConfirmPassword}
             />
 
             {passwordsMismatch ? (
               <div className="text-sm font-semibold text-red-200">
-                Пароли не совпадают.
+                {t("setPassword.mismatch")}
               </div>
             ) : null}
 
@@ -104,7 +110,7 @@ export function SetPasswordPage() {
               className="mt-2 w-full bg-[#4f46e5] py-3.5 shadow-lg shadow-indigo-950/30 hover:bg-indigo-500"
             >
               <LockKeyhole aria-hidden="true" />
-              {setPassword.isPending ? "Сохраняем..." : "Сохранить пароль"}
+              {setPassword.isPending ? t("setPassword.saving") : t("setPassword.save")}
             </Button>
           </form>
         </CardContent>

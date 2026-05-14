@@ -1,20 +1,8 @@
-const walletTypeLabels: Record<string, string> = {
-  cash: "Наличные",
-  card: "Карта / счёт",
-  bank_account: "Банковский счёт",
-  employee: "Сотрудник",
-  client_debt: "Клиент должен",
-  debt: "Мы должны поставщику",
-  debt_supplier: "Мы должны поставщику",
-  shop: "Партнёр / поставщик",
-  partner: "Партнёр / поставщик",
-  supplier: "Поставщик",
-  market: "Маркетплейс",
-};
+import { i18n } from "@/shared/i18n";
 
 export function walletTypeLabel(type: string | null | undefined) {
-  if (!type) return "Не указан";
-  return walletTypeLabels[type] ?? type;
+  if (!type) return i18n.t("walletTypes.unknown");
+  return i18n.t(`walletTypes.${type}`, { defaultValue: type });
 }
 
 export function walletTypeOptions<T extends { value: string; label: string }>(

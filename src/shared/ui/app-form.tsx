@@ -2,6 +2,7 @@ import { Check, ChevronsUpDown, Upload, X } from "lucide-react";
 import * as RadixPopover from "@radix-ui/react-popover";
 import type { ComponentProps, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/shared/lib/utils";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
@@ -74,7 +75,7 @@ export function AppSelect({
   value,
   onValueChange,
   options,
-  placeholder = "Выберите",
+  placeholder,
   disabled,
 }: {
   value: string;
@@ -83,6 +84,8 @@ export function AppSelect({
   placeholder?: string;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
+  const selectPlaceholder = placeholder ?? t("common.select");
   const selectedOption = options.find((option) => option.id === value);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -100,7 +103,7 @@ export function AppSelect({
         >
           {!selectedOption ? (
             <option value="" disabled>
-              {placeholder}
+              {selectPlaceholder}
             </option>
           ) : null}
           {options.map((option) => (
@@ -123,7 +126,7 @@ export function AppSelect({
             !selectedOption && "text-muted-foreground",
           )}
         >
-          {selectedOption?.name ?? placeholder}
+          {selectedOption?.name ?? selectPlaceholder}
         </span>
       </SelectTrigger>
       <SelectContent>
@@ -142,8 +145,8 @@ export function AppCombobox({
   onValueChange,
   options,
   placeholder,
-  searchPlaceholder = "Поиск...",
-  emptyMessage = "Ничего не найдено",
+  searchPlaceholder,
+  emptyMessage,
   disabled,
   loading,
 }: {
@@ -156,6 +159,7 @@ export function AppCombobox({
   disabled?: boolean;
   loading?: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selectedOption = useMemo(
     () => options.find((option) => option.id === value),
@@ -176,7 +180,7 @@ export function AppCombobox({
           )}
         >
           <span className={selectedControlTextClassName}>
-            {loading ? "Загрузка..." : selectedOption?.name ?? placeholder}
+            {loading ? t("common.loading") : selectedOption?.name ?? placeholder}
           </span>
           <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
         </Button>
@@ -188,9 +192,9 @@ export function AppCombobox({
           className="z-50 w-[var(--radix-popover-trigger-width)] rounded-lg border bg-card p-0 shadow-lg"
         >
           <Command>
-            <CommandInput placeholder={searchPlaceholder} />
+            <CommandInput placeholder={searchPlaceholder ?? t("common.search")} />
             <CommandList className="max-h-72">
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
+              <CommandEmpty>{emptyMessage ?? t("common.noResults")}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem
@@ -222,7 +226,7 @@ export function AppCombobox({
 export function AppFileUpload({
   value,
   onChange,
-  label = "Загрузить файл",
+  label,
   accept,
   multiple = false,
 }: {
@@ -232,7 +236,9 @@ export function AppFileUpload({
   accept?: string;
   multiple?: boolean;
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const uploadLabel = label ?? t("common.uploadFile");
   const files = useMemo(
     () => (Array.isArray(value) ? value : value ? [value] : []),
     [value],
@@ -277,10 +283,10 @@ export function AppFileUpload({
         )}
         <span className="min-w-0 flex-1">
           <span className="block text-[14px] font-medium leading-5 text-foreground">
-            {label}
+            {uploadLabel}
           </span>
           <span className="block break-words text-[13px] leading-5 text-gray-500">
-            {files.length ? files.map((file) => file.name).join(", ") : "Файл не выбран"}
+            {files.length ? files.map((file) => file.name).join(", ") : t("common.fileNotSelected")}
           </span>
         </span>
       </button>
@@ -299,7 +305,7 @@ export function AppFileUpload({
       {files.length ? (
         <Button type="button" variant="outline" size="sm" onClick={() => onChange(multiple ? [] : null)}>
           <X className="size-4" />
-          Удалить {multiple ? "файлы" : "файл"}
+          {multiple ? t("common.deleteFiles") : t("common.deleteFile")}
         </Button>
       ) : null}
     </div>

@@ -1,4 +1,5 @@
 import { Skeleton } from "@/shared/ui/skeleton";
+import { i18n } from "@/shared/i18n";
 
 export function PageLoading() {
   return (
@@ -10,7 +11,7 @@ export function PageLoading() {
   );
 }
 
-export function PageError({ message = "Не удалось загрузить данные" }: { message?: string }) {
+export function PageError({ message = i18n.t("common.noData") }: { message?: string }) {
   return (
     <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
       {message}

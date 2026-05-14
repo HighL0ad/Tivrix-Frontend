@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Banknote, Building2, CreditCard, Handshake, Landmark, Search, UserRound } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
@@ -28,6 +29,7 @@ const walletGroups = {
 };
 
 export function CatalogsPage() {
+  const { t } = useTranslation();
   const catalogsQuery = useCatalogs();
   const createWallet = useCreateWallet();
   const currentUser = useCurrentUser().data;
@@ -64,14 +66,14 @@ export function CatalogsPage() {
   return (
     <section className="space-y-5">
       <PageHeader
-        title="Справочники"
-        description="Кошельки, поставщики, клиенты и партнёры."
+        title={t("catalogs.title")}
+        description={t("catalogs.description")}
       />
 
       {canAdjustWallets ? (
       <Card>
         <CardHeader>
-          <CardTitle>Новая запись</CardTitle>
+          <CardTitle>{t("catalogs.newRecord")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -84,23 +86,23 @@ export function CatalogsPage() {
                 {
                   onSuccess: () => {
                     setName("");
-                    toast.success("Запись создана");
+                    toast.success(t("catalogs.created"));
                   },
                   onError: (error) => toast.error(getApiErrorMessage(error)),
                 },
               );
             }}
           >
-            <Input ref={nameInputRef} value={name} onChange={(event) => setName(event.target.value)} placeholder="Название" />
+            <Input ref={nameInputRef} value={name} onChange={(event) => setName(event.target.value)} placeholder={t("common.name")} />
             <AppSelect
               value={walletType}
               onValueChange={setWalletType}
               options={catalogsQuery.data.wallet_types.map((type) => ({
                 id: type.value,
-                name: type.label === type.value ? walletTypeLabel(type.value) : type.label,
+                name: walletTypeLabel(type.value),
               }))}
             />
-            <Button type="submit">Создать</Button>
+            <Button type="submit">{t("common.create")}</Button>
           </form>
         </CardContent>
       </Card>
@@ -108,7 +110,7 @@ export function CatalogsPage() {
 
       <Card>
         <CardHeader className="gap-3">
-          <CardTitle>Все записи</CardTitle>
+          <CardTitle>{t("catalogs.allRecords")}</CardTitle>
           <div className="grid gap-3">
             <div className="relative min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
@@ -116,7 +118,7 @@ export function CatalogsPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="pl-9"
-                placeholder="Поиск по названию"
+                placeholder={t("catalogs.searchByName")}
               />
             </div>
           </div>
@@ -124,51 +126,51 @@ export function CatalogsPage() {
         <CardContent>
           <Tabs defaultValue="wallets">
             <TabsList className="mb-4">
-              <TabsTrigger value="wallets">Кошельки</TabsTrigger>
-              <TabsTrigger value="clients">Клиенты</TabsTrigger>
-              <TabsTrigger value="suppliers">Поставщики</TabsTrigger>
-              <TabsTrigger value="advanced">Прочее</TabsTrigger>
+              <TabsTrigger value="wallets">{t("catalogs.wallets")}</TabsTrigger>
+              <TabsTrigger value="clients">{t("catalogs.clients")}</TabsTrigger>
+              <TabsTrigger value="suppliers">{t("catalogs.suppliers")}</TabsTrigger>
+              <TabsTrigger value="advanced">{t("catalogs.advanced")}</TabsTrigger>
             </TabsList>
             <TabsContent value="wallets">
               <WalletTable
-                tableLabel="Таблица кошельков"
+                tableLabel={t("catalogs.walletsTable")}
                 wallets={groupedWallets.wallets}
                 walletTypes={catalogsQuery.data.wallet_types}
-                emptyTitle="Кошельки ещё не добавлены"
-                emptyDescription="Создайте первый кошелёк, чтобы учитывать кассу, карты и счета."
+                emptyTitle={t("catalogs.walletsEmptyTitle")}
+                emptyDescription={t("catalogs.walletsEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
             <TabsContent value="clients">
               <WalletTable
-                tableLabel="Таблица клиентов"
+                tableLabel={t("catalogs.clientsTable")}
                 wallets={groupedWallets.clients}
                 walletTypes={catalogsQuery.data.wallet_types}
-                emptyTitle="Клиенты ещё не добавлены"
-                emptyDescription="Добавьте первого клиента, чтобы потом быстро выбирать его в продаже и долгах."
+                emptyTitle={t("catalogs.clientsEmptyTitle")}
+                emptyDescription={t("catalogs.clientsEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
             <TabsContent value="suppliers">
               <WalletTable
-                tableLabel="Таблица поставщиков"
+                tableLabel={t("catalogs.suppliersTable")}
                 wallets={groupedWallets.suppliers}
                 walletTypes={catalogsQuery.data.wallet_types}
-                emptyTitle="Поставщики ещё не добавлены"
-                emptyDescription="Добавьте первого поставщика или партнёра, чтобы привязывать закупки к каталогу."
+                emptyTitle={t("catalogs.suppliersEmptyTitle")}
+                emptyDescription={t("catalogs.suppliersEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
               />
             </TabsContent>
             <TabsContent value="advanced">
               <WalletTable
-                tableLabel="Прочие записи"
+                tableLabel={t("catalogs.advancedTable")}
                 wallets={groupedWallets.advanced}
                 walletTypes={catalogsQuery.data.wallet_types}
-                emptyTitle="Прочих записей нет"
-                emptyDescription="Записи без основной категории будут показаны здесь."
+                emptyTitle={t("catalogs.advancedEmptyTitle")}
+                emptyDescription={t("catalogs.advancedEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
               />
@@ -197,6 +199,8 @@ function WalletTable({
   onCreateClick: () => void;
   canAdjustWallets: boolean;
 }) {
+  const { t } = useTranslation();
+
   if (!wallets.length) {
     return (
       <EmptyState
@@ -205,7 +209,7 @@ function WalletTable({
         action={
           canAdjustWallets ? (
           <Button type="button" onClick={onCreateClick}>
-            Создать запись
+            {t("catalogs.createRecord")}
           </Button>
           ) : undefined
         }
@@ -222,9 +226,9 @@ function WalletTable({
       <Table className="[&_td]:h-[52px]" containerClassName="rounded-none border-0">
         <TableHeader className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
           <TableRow>
-            <TableHead>Название</TableHead>
-            <TableHead>Тип</TableHead>
-            <TableHead className="text-right">Баланс</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            <TableHead>{t("common.type")}</TableHead>
+            <TableHead className="text-right">{t("common.balance")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>

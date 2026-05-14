@@ -11,6 +11,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 
 import {
   useDeleteProduct,
@@ -52,6 +53,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { toast } from "sonner";
 
 export function ProductDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const productId = Number(params.productId);
   const productQuery = useProductDetail(productId);
@@ -64,7 +66,7 @@ export function ProductDetailPage() {
     return (
       <Card>
         <CardContent className="p-10 text-center text-sm text-muted-foreground">
-          Товар не найден
+          {t("products.notFound")}
         </CardContent>
       </Card>
     );
@@ -74,6 +76,7 @@ export function ProductDetailPage() {
 }
 
 function ProductDetailView({ product }: { product: ProductDetail }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [currentProduct, setCurrentProduct] = useState(product);
@@ -130,7 +133,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
               <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed bg-background text-muted-foreground">
                 <div className="grid justify-items-center gap-2 text-sm">
                   <ImageIcon className="size-10" aria-hidden="true" />
-                  Нет фотографий
+                  {t("products.noPhotos")}
                 </div>
               </div>
             )}
@@ -183,27 +186,27 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
             <div className="grid grid-cols-1 gap-4 py-6 sm:grid-cols-2">
               <DetailItem
                 icon={<Store aria-hidden="true" />}
-                label="Поставщик"
+                label={t("catalogs.suppliers")}
                 value={currentProduct.supplier_name ?? "-"}
               />
               <DetailItem
                 icon={<BadgeDollarSign aria-hidden="true" />}
-                label="Цена закупки"
+                label={t("products.buyPrice")}
                 value={`${currentProduct.buy_price} ₼`}
               />
               <DetailItem
                 icon={<CalendarDays aria-hidden="true" />}
-                label="Добавлен"
+                label={t("products.createdAt")}
                 value={formatProductDate(currentProduct.created_at)}
               />
               <DetailItem
                 icon={<ReceiptText aria-hidden="true" />}
-                label="Регистрация"
+                label={t("products.registration")}
                 value={registrationLabel}
               />
               <DetailItem
                 icon={<Phone aria-hidden="true" />}
-                label="Телефон SIM"
+                label={t("products.simPhone")}
                 value={currentProduct.phone_number ?? "-"}
               />
             </div>
@@ -227,26 +230,25 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                   <AlertDialogTrigger asChild>
                     <Button type="button" variant="outline">
                       <Undo2 aria-hidden="true" />
-                      Отменить сделку
+                      {t("products.undoSale")}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Отменить сделку?</AlertDialogTitle>
+                      <AlertDialogTitle>{t("products.undoSaleTitle")}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Товар вернется на склад, а связанные движения денег будут
-                        откатаны.
+                        {t("products.undoSaleDescription")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Отмена</AlertDialogCancel>
+                      <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         disabled={undoSaleMutation.isPending}
                         onClick={() =>
                           undoSaleMutation.mutate(undefined, {
                             onSuccess: (nextProduct) => {
                               setCurrentProduct(nextProduct);
-                              toast.success("Сделка отменена");
+                              toast.success(t("products.saleUndone"));
                             },
                             onError: (error) => {
                               toast.error(getApiErrorMessage(error));
@@ -254,7 +256,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                           })
                         }
                       >
-                        {undoSaleMutation.isPending ? "Отменяем..." : "Отменить сделку"}
+                        {undoSaleMutation.isPending ? t("products.undoingSale") : t("products.undoSale")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -266,32 +268,31 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                   state={{ from: productsHref }}
                 >
                   <Edit aria-hidden="true" />
-                  Редактировать
+                  {t("common.edit")}
                 </NavLink>
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="ghost" className="text-destructive">
                     <Trash2 aria-hidden="true" />
-                    Удалить товар
+                    {t("products.deleteAction")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Удалить товар?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("products.deleteTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Финансовые движения по покупке и продаже будут пересчитаны.
-                      Действие нельзя отменить.
+                      {t("products.deleteWarning")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       className="bg-destructive/10 text-destructive hover:bg-destructive/20"
                       onClick={() =>
                         deleteProductMutation.mutate(undefined, {
                           onSuccess: () => {
-                            toast.success("Товар удалён");
+                            toast.success(t("products.deleted"));
                             navigate(productsHref, { replace: true });
                           },
                           onError: (error) => {
@@ -300,7 +301,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                         })
                       }
                     >
-                      Удалить
+                      {t("common.delete")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -313,8 +314,8 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
       <Dialog open={Boolean(lightboxImage)} onOpenChange={() => setLightboxImage(null)}>
         <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none" showCloseButton={false}>
           <DialogHeader className="sr-only">
-            <DialogTitle>Просмотр фото</DialogTitle>
-            <DialogDescription>Увеличенное фото товара</DialogDescription>
+            <DialogTitle>{t("products.photoPreview")}</DialogTitle>
+            <DialogDescription>{t("products.photoPreviewDescription")}</DialogDescription>
           </DialogHeader>
           {lightboxImage ? (
             <img

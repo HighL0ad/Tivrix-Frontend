@@ -1,5 +1,6 @@
 import { ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate, NavLink } from "react-router";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
@@ -7,6 +8,14 @@ import type { AppResourceKey } from "@/entities/auth/model/types";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { PageLoading } from "@/shared/ui/page-state";
+
+const resourceLabelKeys: Partial<Record<AppResourceKey, string>> = {
+  dashboard: "app.nav.dashboard",
+  products: "app.nav.products",
+  finance: "app.nav.finance",
+  debts: "app.nav.debts",
+  catalogs: "app.nav.catalogs",
+};
 
 export function AccessGuard({
   resource,
@@ -17,6 +26,7 @@ export function AccessGuard({
   adminOnly?: boolean;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   const currentUserQuery = useCurrentUser();
   const currentUser = currentUserQuery.data;
 
@@ -37,8 +47,9 @@ export function AccessGuard({
   if (!allowed) {
     const fallbackRoute = currentUser.first_accessible_route ?? "/";
     const resourceLabel =
-      currentUser.resources.find((item) => item.key === resource)?.label ??
-      "этот раздел";
+      (resource ? t(resourceLabelKeys[resource] ?? "") : null) ||
+      (currentUser.resources.find((item) => item.key === resource)?.label ??
+        t("common.noAccessSection"));
 
     return (
       <section className="relative h-[calc(100vh-8rem)] min-h-[420px] overflow-hidden rounded-lg md:h-[calc(100vh-4rem)]">
@@ -69,14 +80,14 @@ export function AccessGuard({
               <ShieldAlert className="size-6" />
             </span>
             <h1 className="mt-4 text-xl font-black text-foreground">
-              Доступ ограничен
+              {t("common.accessDenied")}
             </h1>
             <p className="mt-2 max-w-sm text-sm text-muted-foreground">
               {currentUser.restriction_comment ||
-                `У вас нет доступа в раздел «${resourceLabel}».`}
+                t("common.accessDeniedDescription", { resource: resourceLabel })}
             </p>
             <Button asChild className="mt-6">
-              <NavLink to={fallbackRoute}>В доступный раздел</NavLink>
+              <NavLink to={fallbackRoute}>{t("common.goToAvailableSection")}</NavLink>
             </Button>
           </CardContent>
         </Card>

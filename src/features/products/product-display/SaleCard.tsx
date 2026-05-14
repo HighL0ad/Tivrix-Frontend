@@ -1,4 +1,5 @@
 import type { ProductDetail } from "@/entities/products/model/types";
+import { useTranslation } from "react-i18next";
 import { money } from "@/shared/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 
@@ -11,18 +12,20 @@ export function SaleCard({
   sale: NonNullable<ProductDetail["current_sale"]>;
   onPreview: (image: string) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Card className="bg-muted/40">
       <CardHeader>
-        <CardTitle className="text-base">Данные покупателя</CardTitle>
+        <CardTitle className="text-base">{t("products.customerData")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <SaleRow label="Имя клиента" value={sale.client_name ?? "Не указано"} />
-        <SaleRow label="Телефон" value={sale.client_phone ?? "-"} />
-        <SaleRow label="Источник" value={getSaleSourceLabel(sale.source)} />
-        <SaleRow label="Цена продажи" value={`${sale.total_price} ₼`} strong />
+        <SaleRow label={t("products.customerName")} value={sale.client_name ?? t("products.notSpecified")} />
+        <SaleRow label={t("products.phone")} value={sale.client_phone ?? "-"} />
+        <SaleRow label={t("products.source")} value={getSaleSourceLabel(sale.source)} />
+        <SaleRow label={t("products.salePrice")} value={`${sale.total_price} ₼`} strong />
         <SaleRow
-          label="Чистая прибыль"
+          label={t("products.netProfit")}
           value={signedMoney(sale.profit)}
           tone={Number(sale.profit) >= 0 ? "good" : "bad"}
         />
@@ -35,7 +38,7 @@ export function SaleCard({
           >
             <img
               src={sale.proof_image}
-              alt="Фото подтверждения"
+              alt={t("products.proofPhoto")}
               className="h-full w-full object-cover"
             />
           </button>

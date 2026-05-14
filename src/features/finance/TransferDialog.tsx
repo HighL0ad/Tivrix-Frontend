@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { type Wallet, useTransferWallets } from "@/entities/finance/api/use-finance";
@@ -10,6 +11,7 @@ import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
 export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
+  const { t } = useTranslation();
   const transfer = useTransferWallets();
   const [open, setOpen] = useState(false);
   const [sourceId, setSourceId] = useState("");
@@ -22,10 +24,10 @@ export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
     <ResponsiveModal
       open={open}
       onOpenChange={setOpen}
-      title="Перевод между счетами"
+      title={t("finance.transfer")}
       trigger={
         <Button type="button" variant="outline">
-          Перевод между счетами
+          {t("finance.transfer")}
         </Button>
       }
       footer={
@@ -34,7 +36,7 @@ export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
           form={formId}
           disabled={!sourceId || !targetId || !amount || transfer.isPending}
         >
-          Перевести
+          {t("finance.transferSubmit")}
         </Button>
       }
     >
@@ -53,7 +55,7 @@ export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
               {
                 onSuccess: () => {
                   setOpen(false);
-                  toast.success("Перевод выполнен");
+                  toast.success(t("finance.transferDone"));
                 },
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               },
@@ -61,18 +63,18 @@ export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
           }}
         >
           <WalletSelect
-            label="Откуда"
+            label={t("finance.from")}
             value={sourceId}
             onChange={setSourceId}
             wallets={wallets}
           />
           <WalletSelect
-            label="Куда"
+            label={t("finance.to")}
             value={targetId}
             onChange={setTargetId}
             wallets={wallets.filter((wallet) => String(wallet.id) !== sourceId)}
           />
-          <FormField label="Сумма">
+          <FormField label={t("finance.amount")}>
             <Input
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
@@ -80,7 +82,7 @@ export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
               required
             />
           </FormField>
-          <FormField label="Комментарий">
+          <FormField label={t("finance.comment")}>
             <Input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -105,12 +107,14 @@ function WalletSelect({
   onChange: (value: string) => void;
   wallets: Wallet[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <FormField label={label}>
       <AppCombobox
         value={value}
         onValueChange={onChange}
-        placeholder="Выберите"
+        placeholder={t("common.select")}
         options={wallets.map((wallet) => ({
           id: String(wallet.id),
           name: `${wallet.name} (${money(wallet.balance)})`,

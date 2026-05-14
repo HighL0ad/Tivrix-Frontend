@@ -1,4 +1,5 @@
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useDeleteUser } from "@/entities/users/api/use-users";
@@ -25,6 +26,7 @@ export function DeleteUserButton({
   username: string;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const deleteUser = useDeleteUser();
 
   return (
@@ -35,30 +37,30 @@ export function DeleteUserButton({
           variant="destructive"
           size="icon-sm"
           disabled={disabled}
-          aria-label="Удалить"
+          aria-label={t("common.delete")}
         >
           <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Удалить пользователя?</AlertDialogTitle>
+          <AlertDialogTitle>{t("users.deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Аккаунт {username} будет удалён из системы.
+            {t("users.deleteDescription", { username })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Отмена</AlertDialogCancel>
+          <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={deleteUser.isPending}
             onClick={() =>
               deleteUser.mutate(userId, {
-                onSuccess: () => toast.success("Пользователь удалён"),
+                onSuccess: () => toast.success(t("users.deleted")),
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }
           >
-            Удалить
+            {t("common.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

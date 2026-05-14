@@ -11,6 +11,7 @@ import {
   Plus,
   Users,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
@@ -20,15 +21,10 @@ import {
 import type { CurrentUser } from "@/entities/auth/model/types";
 import { logout } from "@/entities/auth/api/logout";
 import { getApiErrorMessage } from "@/shared/api/error";
+import { LanguageRow } from "@/shared/i18n/LanguageSwitcher";
 import { queryClient } from "@/shared/api/query-client";
 import { Button } from "@/shared/ui/button";
 import { buttonVariants } from "@/shared/ui/button-variants";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/ui/tooltip";
 import {
   Sheet,
   SheetContent,
@@ -39,17 +35,18 @@ import {
 import { cn } from "@/shared/lib/utils";
 
 const navItems = [
-  { to: "/", label: "Главная", icon: Gauge, resource: "dashboard" },
-  { to: "/products", label: "Товары", icon: Boxes, resource: "products" },
-  { to: "/finance", label: "Касса", icon: Banknote, resource: "finance" },
-  { to: "/debts", label: "Долги", icon: HandCoins, resource: "debts" },
-  { to: "/catalogs", label: "Справочники", icon: Database, resource: "catalogs" },
-  { to: "/users", label: "Пользователи", icon: Users, adminOnly: true },
+  { to: "/", labelKey: "app.nav.dashboard", icon: Gauge, resource: "dashboard" },
+  { to: "/products", labelKey: "app.nav.products", icon: Boxes, resource: "products" },
+  { to: "/finance", labelKey: "app.nav.finance", icon: Banknote, resource: "finance" },
+  { to: "/debts", labelKey: "app.nav.debts", icon: HandCoins, resource: "debts" },
+  { to: "/catalogs", labelKey: "app.nav.catalogs", icon: Database, resource: "catalogs" },
+  { to: "/users", labelKey: "app.nav.users", icon: Users, adminOnly: true },
 ];
 
 const mobileNavLabelClass = "text-[10px] font-medium leading-none";
 
 export function AppLayout() {
+  const { t } = useTranslation();
   const currentUserQuery = useCurrentUser();
   const currentUser = currentUserQuery.data;
   const uploadAvatar = useUploadAvatar();
@@ -64,7 +61,6 @@ export function AppLayout() {
   }
 
   return (
-    <TooltipProvider>
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed z-40 hidden h-full w-64 flex-col border-r border-white/10 bg-[#0f172a] text-white md:flex">
         <NavLink to="/" className="block border-b border-white/10 px-5 py-5">
@@ -90,7 +86,7 @@ export function AppLayout() {
               }
             >
               <item.icon className="h-5 w-5" aria-hidden="true" />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </NavLink>
           ))}
 
@@ -98,49 +94,45 @@ export function AppLayout() {
             <Button asChild className="w-full bg-[#4f46e5] hover:bg-indigo-500">
               <NavLink to="/products/new">
                 <Plus aria-hidden="true" />
-                Добавить товар
+                {t("app.addProduct")}
               </NavLink>
             </Button>
           </div>
 
           <div className="mt-auto space-y-2 pt-4">
             {currentUser ? (
-              <div className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-slate-300">
-                <div className="flex min-w-0 items-center gap-2">
+              <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] text-xs text-slate-300">
+                <div className="flex min-w-0 items-center gap-2 px-3 py-2.5">
                   <UserAvatar
                     user={currentUser}
                     onUpload={(file) =>
                       uploadAvatar.mutate(file, {
-                        onSuccess: () => toast.success("Фото профиля обновлено"),
+                        onSuccess: () => toast.success(t("app.profilePhotoUpdated")),
                         onError: (error) => toast.error(getApiErrorMessage(error)),
                       })
                     }
                     pending={uploadAvatar.isPending}
                   />
                   <div className="min-w-0">
-                    <div className="font-semibold text-white">
+                    <div className="truncate font-semibold text-white">
                       {currentUser.username}
                     </div>
-                    <div className="mt-0.5 text-xs uppercase text-slate-400">
+                    <div className="mt-0.5 text-xs uppercase text-slate-500">
                       {currentUser.role}
                     </div>
                   </div>
                 </div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      onClick={handleLogout}
-                      variant="ghost"
-                      size="icon"
-                      className="text-slate-300 hover:bg-rose-500/15 hover:text-rose-200"
-                      aria-label="Выйти"
-                    >
-                      <LogOut aria-hidden="true" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">Выйти</TooltipContent>
-                </Tooltip>
+                <div className="border-t border-white/10" />
+                <LanguageRow />
+                <div className="border-t border-white/10" />
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-rose-500/10 hover:text-rose-200"
+                >
+                  <LogOut className="size-4" aria-hidden="true" />
+                  {t("auth.logout")}
+                </button>
               </div>
             ) : (
               <div className="h-10 animate-pulse rounded-lg bg-white/10" />
@@ -153,7 +145,7 @@ export function AppLayout() {
         <div className="mx-auto max-w-md p-4 pb-24 md:max-w-7xl md:p-6 lg:p-8 md:pb-8">
           <header className="sticky top-2 z-30 mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm md:hidden">
             <NavLink to="/" className="text-lg font-bold text-indigo-700">
-              Ferdi Telefon
+              {t("app.brand")}
             </NavLink>
             <div className="flex items-center gap-2">
               {currentUser ? (
@@ -161,7 +153,7 @@ export function AppLayout() {
                   user={currentUser}
                   onUpload={(file) =>
                     uploadAvatar.mutate(file, {
-                      onSuccess: () => toast.success("Фото профиля обновлено"),
+                      onSuccess: () => toast.success(t("app.profilePhotoUpdated")),
                       onError: (error) => toast.error(getApiErrorMessage(error)),
                     })
                   }
@@ -191,14 +183,14 @@ export function AppLayout() {
               }
             >
               <item.icon className="mb-0.5 h-6 w-6" aria-hidden="true" />
-              <span className={mobileNavLabelClass}>{item.label}</span>
+              <span className={mobileNavLabelClass}>{t(item.labelKey)}</span>
             </NavLink>
           ))}
           <div className="relative -top-5 flex justify-center">
             <NavLink
               to="/products/new"
               className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#4f46e5] text-white shadow-lg shadow-indigo-950/40 transition-transform hover:scale-105 hover:bg-indigo-500"
-              aria-label="Добавить товар"
+              aria-label={t("app.addProduct")}
             >
               <Plus className="h-8 w-8" aria-hidden="true" />
             </NavLink>
@@ -215,7 +207,7 @@ export function AppLayout() {
               }
             >
               <item.icon className="mb-0.5 h-6 w-6" aria-hidden="true" />
-              <span className={mobileNavLabelClass}>{item.label}</span>
+              <span className={mobileNavLabelClass}>{t(item.labelKey)}</span>
             </NavLink>
           ))}
           <MobileMoreMenu
@@ -225,7 +217,6 @@ export function AppLayout() {
         </div>
       </nav>
     </div>
-    </TooltipProvider>
   );
 }
 
@@ -240,6 +231,7 @@ function UserAvatar({
   pending: boolean;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const initials = getInitials(user.username);
 
@@ -253,8 +245,8 @@ function UserAvatar({
           "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10 text-sm font-black uppercase text-white transition-opacity hover:opacity-85 disabled:cursor-wait disabled:opacity-60",
           className,
         )}
-        aria-label="Загрузить фото профиля"
-        title="Загрузить фото профиля"
+        aria-label={t("app.uploadProfilePhoto")}
+        title={t("app.uploadProfilePhoto")}
       >
         {user.avatar_url ? (
           <img
@@ -297,6 +289,7 @@ function MobileMoreMenu({
   items: typeof navItems;
   onLogout: () => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -307,12 +300,12 @@ function MobileMoreMenu({
           className="flex h-full w-full appearance-none flex-col items-center justify-center bg-transparent p-0 text-[10px] font-medium leading-none text-slate-400"
         >
           <Menu className="mb-1 h-5 w-5" aria-hidden="true" />
-          <span className={mobileNavLabelClass}>Еще</span>
+          <span className={mobileNavLabelClass}>{t("app.more")}</span>
         </button>
       </SheetTrigger>
-      <SheetContent className="h-auto p-0">
-        <SheetHeader className="border-b px-5 py-4">
-          <SheetTitle>Меню</SheetTitle>
+      <SheetContent className="h-auto border-white/10 bg-[#0f172a] p-0 text-white">
+        <SheetHeader className="border-b border-white/10 px-5 py-4">
+          <SheetTitle className="text-white">{t("app.menu")}</SheetTitle>
         </SheetHeader>
         <div className="grid gap-1 p-3">
           {items.map((item) => (
@@ -320,23 +313,27 @@ function MobileMoreMenu({
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-foreground hover:bg-muted"
+              className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white"
             >
-              <item.icon className="size-5 text-muted-foreground" aria-hidden="true" />
-              {item.label}
+              <item.icon className="size-5 text-slate-500" aria-hidden="true" />
+              {t(item.labelKey)}
             </NavLink>
           ))}
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onLogout();
-            }}
-            className="flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-destructive hover:bg-destructive/10"
-          >
-            <LogOut className="size-5" aria-hidden="true" />
-            Выйти
-          </button>
+          <div className="mt-2 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
+            <LanguageRow />
+            <div className="border-t border-white/10" />
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onLogout();
+              }}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-rose-500/10 hover:text-rose-200"
+            >
+              <LogOut className="size-4" aria-hidden="true" />
+              {t("auth.logout")}
+            </button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

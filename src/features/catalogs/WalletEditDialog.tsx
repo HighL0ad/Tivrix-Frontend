@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useUpdateWallet } from "@/entities/catalogs/api/use-catalogs";
@@ -18,6 +19,7 @@ export function WalletEditDialog({
   wallet: Wallet;
   walletTypes: Array<{ value: string; label: string }>;
 }) {
+  const { t } = useTranslation();
   const updateWallet = useUpdateWallet();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(wallet.name);
@@ -27,13 +29,13 @@ export function WalletEditDialog({
     <ResponsiveModal
       open={open}
       onOpenChange={setOpen}
-      title="Редактировать запись"
+      title={t("catalogs.editTitle")}
       trigger={
         <Button
           type="button"
           variant="outline"
           size="icon-sm"
-          aria-label="Редактировать"
+          aria-label={t("common.edit")}
         >
           <Pencil />
         </Button>
@@ -44,7 +46,7 @@ export function WalletEditDialog({
           form="wallet-edit-form"
           disabled={!name.trim() || updateWallet.isPending}
         >
-          Сохранить
+          {t("common.save")}
         </Button>
       }
     >
@@ -61,21 +63,21 @@ export function WalletEditDialog({
               {
                 onSuccess: () => {
                   setOpen(false);
-                  toast.success("Запись обновлена");
+                  toast.success(t("catalogs.updated"));
                 },
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               },
             );
           }}
         >
-          <FormField label="Название">
+          <FormField label={t("common.name")}>
             <Input
               value={name}
               onChange={(event) => setName(event.target.value)}
               required
             />
           </FormField>
-          <FormField label="Тип">
+          <FormField label={t("common.type")}>
             <AppSelect
               value={walletType}
               onValueChange={setWalletType}

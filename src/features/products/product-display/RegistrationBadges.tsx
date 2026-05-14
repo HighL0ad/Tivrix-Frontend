@@ -6,6 +6,7 @@ import {
   Home,
   ShieldX,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/shared/ui/badge";
 
@@ -42,11 +43,13 @@ const registrationMeta: Record<
 };
 
 export function RegistrationBadges({ statuses }: { statuses: string[] }) {
+  const { t } = useTranslation();
+
   if (statuses.length === 0) {
     return (
       <div className="mt-2">
         <Badge variant="outline" className="text-muted-foreground">
-          Регистрация: -
+          {t("products.registration")}: -
         </Badge>
       </div>
     );
@@ -68,7 +71,7 @@ export function RegistrationBadges({ statuses }: { statuses: string[] }) {
             className={`gap-1.5 ${meta.className}`}
           >
             <Icon className="size-3.5" aria-hidden="true" />
-            Рег: {getRegistrationLabel(status)}
+            {t("products.registrationShort")}: {getRegistrationLabel(status)}
           </Badge>
         );
       })}

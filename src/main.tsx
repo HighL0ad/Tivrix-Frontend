@@ -6,6 +6,8 @@ import { BrowserRouter } from "react-router";
 
 import { App } from "@/app/App";
 import { queryClient } from "@/shared/api/query-client";
+import "@/shared/i18n";
+import { TooltipProvider } from "@/shared/ui/tooltip";
 import "./styles.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -13,7 +15,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <NuqsAdapter>
-          <App />
+          <TooltipProvider>
+            <App />
+          </TooltipProvider>
         </NuqsAdapter>
       </BrowserRouter>
     </QueryClientProvider>

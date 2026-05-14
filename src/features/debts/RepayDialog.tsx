@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useRepayDebt } from "@/entities/debts/api/use-debts";
@@ -19,6 +20,7 @@ export function RepayDialog({
   myWallets: Wallet[];
   operationType: "pay_supplier" | "receive_client";
 }) {
+  const { t } = useTranslation();
   const repay = useRepayDebt();
   const [open, setOpen] = useState(false);
   const [sourceWalletId, setSourceWalletId] = useState("");
@@ -42,7 +44,7 @@ export function RepayDialog({
               : "h-8 rounded-full bg-emerald-100 px-3 text-xs font-bold text-emerald-700 shadow-none hover:bg-emerald-200 hover:text-emerald-800"
           }
         >
-          {isPayment ? "Оплатить" : "Принять"}
+          {isPayment ? t("debts.pay") : t("debts.accept")}
         </Button>
       }
       footer={
@@ -51,7 +53,7 @@ export function RepayDialog({
           form={formId}
           disabled={!sourceWalletId || !amount || repay.isPending}
         >
-          Сохранить
+          {t("common.save")}
         </Button>
       }
     >
@@ -70,7 +72,7 @@ export function RepayDialog({
               {
                 onSuccess: () => {
                   setOpen(false);
-                  toast.success(isPayment ? "Оплата проведена" : "Платёж принят");
+                  toast.success(isPayment ? t("debts.paymentDone") : t("debts.receivedPayment"));
                 },
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               },
@@ -78,12 +80,12 @@ export function RepayDialog({
           }}
         >
           <WalletSelect
-            label="Кошелек"
+            label={t("debts.wallet")}
             value={sourceWalletId}
             onChange={setSourceWalletId}
             wallets={myWallets}
           />
-          <FormField label="Сумма">
+          <FormField label={t("debts.amount")}>
             <Input
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
