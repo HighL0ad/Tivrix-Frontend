@@ -15,10 +15,12 @@ export function RepayDialog({
   wallet,
   myWallets,
   operationType,
+  tone,
 }: {
   wallet: Wallet;
   myWallets: Wallet[];
   operationType: "pay_supplier" | "receive_client";
+  tone?: "bad" | "blue" | "good";
 }) {
   const { t } = useTranslation();
   const repay = useRepayDebt();
@@ -27,22 +29,30 @@ export function RepayDialog({
   const [amount, setAmount] = useState("");
   const formId = `repay-${wallet.id}-${operationType}`;
   const isPayment = operationType === "pay_supplier";
+  const buttonTone = tone ?? (isPayment ? "bad" : "good");
+  const triggerClass = {
+    bad: "h-8 rounded-full bg-rose-100 px-3 text-xs font-bold text-rose-700 shadow-none hover:bg-rose-200 hover:text-rose-800",
+    blue: "h-8 rounded-full bg-blue-100 px-3 text-xs font-bold text-blue-700 shadow-none hover:bg-blue-200 hover:text-blue-800",
+    good: "h-8 rounded-full bg-emerald-100 px-3 text-xs font-bold text-emerald-700 shadow-none hover:bg-emerald-200 hover:text-emerald-800",
+  }[buttonTone];
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      setAmount(defaultDebtAmount(wallet.balance));
+    }
+  };
 
   return (
     <ResponsiveModal
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       title={wallet.name}
       trigger={
         <Button
           type="button"
           size="sm"
           variant="ghost"
-          className={
-            isPayment
-              ? "h-8 rounded-full bg-rose-100 px-3 text-xs font-bold text-rose-700 shadow-none hover:bg-rose-200 hover:text-rose-800"
-              : "h-8 rounded-full bg-emerald-100 px-3 text-xs font-bold text-emerald-700 shadow-none hover:bg-emerald-200 hover:text-emerald-800"
-          }
+          className={triggerClass}
         >
           {isPayment ? t("debts.pay") : t("debts.accept")}
         </Button>
@@ -86,12 +96,18 @@ export function RepayDialog({
             wallets={myWallets}
           />
           <FormField label={t("debts.amount")}>
-            <Input
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              inputMode="decimal"
-              required
-            />
+            <div className="relative">
+              <Input
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                inputMode="decimal"
+                className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
+                required
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
+                ₼
+              </span>
+            </div>
           </FormField>
           {repay.isError ? (
             <FormError message={getApiErrorMessage(repay.error)} />
@@ -99,4 +115,10 @@ export function RepayDialog({
         </form>
     </ResponsiveModal>
   );
+}
+
+function defaultDebtAmount(value: string | number) {
+  const amount = Math.abs(Number(value));
+  if (!Number.isFinite(amount)) return "";
+  return amount.toFixed(2);
 }

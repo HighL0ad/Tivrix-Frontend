@@ -13,28 +13,30 @@ export function InlineCreate({
   onChange,
   onCreate,
   placeholder,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   onCreate: () => void;
   placeholder: string;
+  disabled?: boolean;
 }) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-start gap-2">
+    <div className="mt-2 flex items-start gap-2">
       <Input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
+        className="h-11 bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
       />
       <Button
         type="button"
         variant="outline"
-        className="h-10 px-4 !text-base font-medium"
+        className="h-11 px-4 !text-base font-medium"
         onClick={onCreate}
-        disabled={!value.trim()}
+        disabled={disabled || !value.trim()}
       >
         <span className="text-base font-medium leading-5">{t("common.create")}</span>
       </Button>
@@ -74,22 +76,29 @@ export function SplitPaymentFields({
       </label>
       {enabled ? (
         <div className="grid gap-3 sm:grid-cols-2">
-            <AppFormField label={t("sell.secondWalletAmount")}>
+          <AppFormField label={t("sell.secondWalletAmount")}>
+            <div className="relative">
               <Input
                 type="number"
                 step="1"
                 min="1"
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
+                className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
                 required
               />
-            </AppFormField>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
+                ₼
+              </span>
+            </div>
+          </AppFormField>
           <SelectField
             label={t("sell.secondWallet")}
             value={walletId}
             onValueChange={setWalletId}
             options={walletOptions}
             placeholder={t("sell.selectWallet")}
+            className="h-11"
           />
         </div>
       ) : null}
@@ -103,12 +112,14 @@ export function SelectField({
   onValueChange,
   options,
   placeholder,
+  className,
 }: {
   label: string;
   value: string;
   onValueChange: (value: string) => void;
   options: ProductOption[];
   placeholder: string;
+  className?: string;
 }) {
   return (
     <AppFormField label={label}>
@@ -117,6 +128,7 @@ export function SelectField({
         onValueChange={onValueChange}
         options={options}
         placeholder={placeholder}
+        className={className}
       />
     </AppFormField>
   );

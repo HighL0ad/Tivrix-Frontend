@@ -44,12 +44,12 @@ export function InlineCreate({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
+        className="h-11 bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
       />
       <Button
         type="button"
         variant="outline"
-        className="h-10 px-4 !text-base font-medium"
+        className="h-11 px-4 !text-base font-medium"
         onClick={onCreate}
         disabled={disabled || !value.trim()}
       >

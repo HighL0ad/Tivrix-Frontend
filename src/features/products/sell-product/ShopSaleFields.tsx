@@ -34,6 +34,7 @@ export function ShopBuyerFields({
         onValueChange={setShopWalletId}
         options={shopOptions}
         placeholder={t("sell.selectPartner")}
+        className="h-11"
       />
       <InlineCreate
         value={newShopName}
@@ -91,15 +92,21 @@ export function ShopPaymentFields({
       {shopPrepaymentEnabled ? (
         <>
           <AppFormField label={t("sell.paymentNowAmount")}>
-            <Input
-              id="shop-prepayment"
-              type="number"
-              step="1"
-              min="1"
-              value={shopPrepaymentAmount}
-              onChange={(event) => setShopPrepaymentAmount(event.target.value)}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="shop-prepayment"
+                type="number"
+                step="1"
+                min="1"
+                value={shopPrepaymentAmount}
+                onChange={(event) => setShopPrepaymentAmount(event.target.value)}
+                className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
+                required
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
+                ₼
+              </span>
+            </div>
           </AppFormField>
           <SelectField
             label={t("sell.creditPaymentTo")}
@@ -107,6 +114,7 @@ export function ShopPaymentFields({
             onValueChange={setShopPrepaymentWalletId}
             options={walletOptions}
             placeholder={t("sell.selectWallet")}
+            className="h-11"
           />
           <SplitPaymentFields
             enabled={shopSplitPaymentEnabled}

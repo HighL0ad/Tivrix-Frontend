@@ -86,12 +86,18 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
           </FormField>
           {mode === "set_balance" ? (
             <FormField label={t("finance.newBalance")}>
-              <Input
-                value={newBalance}
-                onChange={(event) => setNewBalance(event.target.value)}
-                inputMode="decimal"
-                required
-              />
+              <div className="relative">
+                <Input
+                  value={newBalance}
+                  onChange={(event) => setNewBalance(event.target.value)}
+                  inputMode="decimal"
+                  className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
+                  required
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
+                  ₼
+                </span>
+              </div>
             </FormField>
           ) : (
             <>
@@ -108,12 +114,18 @@ export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
                 />
               </FormField>
               <FormField label={t("finance.amount")}>
-                <Input
-                  value={deltaAmount}
-                  onChange={(event) => setDeltaAmount(event.target.value)}
-                  inputMode="decimal"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    value={deltaAmount}
+                    onChange={(event) => setDeltaAmount(event.target.value)}
+                    inputMode="decimal"
+                    className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
+                    required
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
+                    ₼
+                  </span>
+                </div>
               </FormField>
             </>
           )}

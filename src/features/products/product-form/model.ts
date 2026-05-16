@@ -1,6 +1,9 @@
 import { i18n } from "@/shared/i18n";
 
-export type PurchaseScenario = "supplier_debt" | "cash_now" | "transfer_now";
+export type PurchaseScenario =
+  | "supplier_debt"
+  | "cash_now"
+  | "transfer_now";
 
 export const registrationOptions = [
   { value: "registered", labelKey: "products.registrationStatus.registered" },

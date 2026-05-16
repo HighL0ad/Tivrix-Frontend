@@ -56,6 +56,7 @@ export function ClientPaymentFields({
             onValueChange={setPaymentWalletId}
             options={walletOptions}
             placeholder={t("sell.selectWallet")}
+            className="h-11"
           />
           <SplitPaymentFields
             enabled={splitPaymentEnabled}
@@ -116,15 +117,21 @@ export function ClientDebtFields({
     <div className="space-y-4">
       {saleMode === "partial_debt" ? (
         <AppFormField label={t("sell.paidNow")}>
-          <Input
-            id="paid-now"
-            type="number"
-            step="1"
-            min="1"
-            value={paidNowAmount}
-            onChange={(event) => setPaidNowAmount(event.target.value)}
-            required
-          />
+          <div className="relative">
+            <Input
+              id="paid-now"
+              type="number"
+              step="1"
+              min="1"
+              value={paidNowAmount}
+              onChange={(event) => setPaidNowAmount(event.target.value)}
+              className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
+              required
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
+              ₼
+            </span>
+          </div>
         </AppFormField>
       ) : null}
 
@@ -136,6 +143,7 @@ export function ClientDebtFields({
             onValueChange={setClientDebtWalletId}
             options={debtOptions}
             placeholder={t("sell.selectClient")}
+            className="h-11"
           />
           <InlineCreate
             value={newDebtName}
@@ -159,14 +167,20 @@ export function ClientDebtFields({
           </label>
           {registrationFeeEnabled ? (
             <AppFormField label={t("sell.registrationAmount")}>
-              <Input
-                type="number"
-                step="1"
-                min="1"
-                value={registrationFeeAmount}
-                onChange={(event) => setRegistrationFeeAmount(event.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="1"
+                  min="1"
+                  value={registrationFeeAmount}
+                  onChange={(event) => setRegistrationFeeAmount(event.target.value)}
+                  className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
+                  required
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
+                  ₼
+                </span>
+              </div>
             </AppFormField>
           ) : null}
         </div>

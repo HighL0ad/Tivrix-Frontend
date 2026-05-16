@@ -1,4 +1,4 @@
-import { Copy } from "lucide-react";
+import { Copy, ChevronDown, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -10,10 +10,17 @@ import type { Wallet } from "@/entities/finance/api/use-finance";
 import { MoneyFlowDialog } from "@/features/debts/MoneyFlowDialog";
 import { PayableDialog } from "@/features/debts/PayableDialog";
 import { RepayDialog } from "@/features/debts/RepayDialog";
-import { money, shortDate } from "@/shared/lib/format";
+import { money, relativeDate, shortDate } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
@@ -98,7 +105,13 @@ export function DebtsPage() {
             myWallets={data.my_wallets}
             debtCreatedAt={data.debt_created_at}
             operationType={section.operationType}
-            tone={section.operationType === "pay_supplier" ? "bad" : "good"}
+            tone={
+              section.key === "shops"
+                ? "blue"
+                : section.operationType === "pay_supplier"
+                  ? "bad"
+                  : "good"
+            }
           />
         ))}
       </div>
@@ -136,14 +149,14 @@ function PayablesBlock({
 }
 
 function PayableRows({
-  payables,
+  payables: initialPayables,
   myWallets,
 }: {
   payables: Payable[];
   myWallets: Wallet[];
 }) {
   const { t } = useTranslation();
-  if (!payables.length) {
+  if (!initialPayables.length) {
     return (
       <div className="px-4 py-8 text-center text-sm text-muted-foreground">
         {t("debts.noUnpaidPayables")}
@@ -151,45 +164,152 @@ function PayableRows({
     );
   }
 
+  // Sort payables: overdue first, then soon, then later, nulls last
+  const payables = [...initialPayables].sort((a, b) => {
+    if (!a.due_at && !b.due_at) return 0;
+    if (!a.due_at) return 1;
+    if (!b.due_at) return -1;
+    return new Date(a.due_at).getTime() - new Date(b.due_at).getTime();
+  });
+
   return (
-    <div>
+    <div className="divide-y">
       {payables.map((payable) => {
-        const imeis = [payable.product_imei, payable.product_imei2].filter(Boolean);
+        const imeis = [payable.product_imei, payable.product_imei2].filter(
+          (imei): imei is string => Boolean(imei),
+        );
+        const dueTime = payable.due_at ? new Date(payable.due_at).getTime() : 0;
+        const isOverdue = dueTime && dueTime < Date.now();
+        const isDueSoon =
+          dueTime && !isOverdue && dueTime < Date.now() + 3 * 24 * 60 * 60 * 1000;
 
         return (
           <div
             key={payable.id}
-            className="grid grid-cols-[1fr_auto] items-center gap-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
+            className="flex flex-col gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
           >
-            <div className="flex min-w-0 items-center gap-3">
+            <div className="flex min-w-0 items-start gap-3">
               <div
-                className="size-2.5 shrink-0 rounded-full bg-amber-500"
+                className={`mt-1.5 size-2.5 shrink-0 rounded-full ${
+                  isOverdue
+                    ? "bg-rose-500 animate-pulse"
+                    : isDueSoon
+                      ? "bg-amber-500"
+                      : "bg-muted-foreground/30"
+                }`}
                 aria-hidden="true"
               />
-              <div className="min-w-0">
-                <div className="break-words font-semibold">{payable.category}</div>
-                <div className="mt-0.5 break-words text-xs text-muted-foreground">
-                  {payable.product_name ?? t("products.noProduct")}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-semibold">{payable.category}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {payable.product_name ?? t("products.noProduct")}
+                  </span>
                 </div>
-                {imeis.length ? (
-                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="break-all font-mono">IMEI: {imeis.join(" / ")}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-7 shrink-0"
-                      aria-label={t("products.copyImei")}
-                      onClick={() => copyImei(imeis.join("\n"), t)}
-                    >
-                      <Copy className="size-3.5" aria-hidden="true" />
-                    </Button>
+
+                {payable.due_at ? (
+                  <div
+                    className={`mt-1 flex items-center gap-1.5 text-xs font-medium ${
+                      isOverdue
+                        ? "text-rose-600"
+                        : isDueSoon
+                          ? "text-amber-600"
+                          : "text-muted-foreground"
+                    }`}
+                  >
+                    <CalendarDays className="size-3.5" />
+                    <span>
+                      {isOverdue ? t("debts.overdue") : t("debts.dueDate")}:{" "}
+                      {relativeDate(payable.due_at, t)}
+                    </span>
                   </div>
+                ) : null}
+
+                {imeis.length ? (
+                  <>
+                    <div className="mt-2 hidden min-w-0 flex-row flex-wrap items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+                      {imeis.map((imei, index) => (
+                        <div
+                          key={`${payable.id}-${imei}`}
+                          className="flex max-w-full min-w-0 items-center justify-between gap-1 rounded-md bg-muted px-1.5 py-1"
+                        >
+                          <span className="min-w-0 break-all font-mono">
+                            IMEI {index + 1}: {imei}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-6 shrink-0"
+                            aria-label={t("products.copyImei")}
+                            onClick={() => copyImei(imei, t)}
+                          >
+                            <Copy className="size-3" aria-hidden="true" />
+                          </Button>
+                        </div>
+                      ))}
+                      {imeis.length > 1 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 shrink-0 gap-1 px-2 text-xs"
+                          aria-label={t("debts.copyAllImeis")}
+                          onClick={() => copyImei(imeis.join("\n"), t)}
+                        >
+                          <Copy className="size-3" aria-hidden="true" />
+                          {t("debts.copyAllImeis")}
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-2 flex sm:hidden">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1 bg-muted/50 px-2 text-xs hover:bg-muted"
+                          >
+                            <span className="font-mono text-muted-foreground">
+                              IMEI{imeis.length > 1 ? ` (${imeis.length})` : ""}
+                            </span>
+                            <ChevronDown className="size-3 text-muted-foreground/70" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {imeis.map((imei, index) => (
+                            <DropdownMenuItem
+                              key={`${payable.id}-dropdown-${imei}`}
+                              onSelect={() => copyImei(imei, t)}
+                            >
+                              <Copy className="mr-2 size-3" />
+                              <span className="font-mono">
+                                IMEI {index + 1}: {imei}
+                              </span>
+                            </DropdownMenuItem>
+                          ))}
+                          {imeis.length > 1 ? (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onSelect={() => copyImei(imeis.join("\n"), t)}
+                              >
+                                <Copy className="mr-2 size-3" />
+                                {t("debts.copyAllImeis")}
+                              </DropdownMenuItem>
+                            </>
+                          ) : null}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </>
                 ) : null}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="whitespace-nowrap font-bold text-amber-700">
+
+            <div className="flex items-center justify-between gap-3 border-t pt-2 sm:border-0 sm:pt-0">
+              <span className="whitespace-nowrap font-bold text-amber-700 sm:text-base">
                 {money(payable.amount)}
               </span>
               <PayableDialog payable={payable} wallets={myWallets} />
@@ -214,16 +334,22 @@ function DebtGroupBlock({
   myWallets: Wallet[];
   debtCreatedAt: Record<string, string>;
   operationType: "pay_supplier" | "receive_client";
-  tone: "good" | "bad";
+  tone: DebtTone;
 }) {
   const total = sumWallets(wallets);
-  const totalClass = tone === "bad"
-    ? "border-rose-200 bg-rose-50 text-rose-700"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700";
+  const totalClass = {
+    bad: "border-rose-200 bg-rose-50 text-rose-700",
+    blue: "border-blue-200 bg-blue-50 text-blue-700",
+    good: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  }[tone];
+  const cardClass = tone === "blue" ? "gap-0 border-blue-200 py-0" : "gap-0 py-0";
+  const headerClass = tone === "blue"
+    ? "flex flex-row items-center justify-between gap-3 border-b border-blue-200 bg-blue-50/50 px-4 py-3"
+    : "flex flex-row items-center justify-between gap-3 border-b px-4 py-3";
 
   return (
-    <Card className="gap-0 py-0">
-      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b px-4 py-3">
+    <Card className={cardClass}>
+      <CardHeader className={headerClass}>
         <CardTitle className="min-w-0 text-sm">
           {title}
         </CardTitle>
@@ -257,18 +383,26 @@ function WalletRows({
   myWallets: Wallet[];
   debtCreatedAt: Record<string, string>;
   operationType: "pay_supplier" | "receive_client";
-  tone: "good" | "bad";
+  tone: DebtTone;
 }) {
   const { t } = useTranslation();
-  const dotClass = tone === "bad" ? "bg-rose-500" : "bg-emerald-500";
-  const amountClass = tone === "bad" ? "text-rose-700" : "text-emerald-700";
+  const dotClass = {
+    bad: "bg-rose-500",
+    blue: "bg-blue-500",
+    good: "bg-emerald-500",
+  }[tone];
+  const amountClass = {
+    bad: "text-rose-700",
+    blue: "text-blue-700",
+    good: "text-emerald-700",
+  }[tone];
 
   return (
     <div>
       {wallets.length ? wallets.map((wallet) => (
           <div
             key={wallet.id}
-            className="grid grid-cols-[1fr_auto] items-center gap-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
           >
             <div className="flex min-w-0 items-center gap-3">
               <div
@@ -286,7 +420,12 @@ function WalletRows({
               <span className={`whitespace-nowrap font-bold ${amountClass}`}>
                 {money(wallet.balance)}
               </span>
-              <RepayDialog wallet={wallet} myWallets={myWallets} operationType={operationType} />
+              <RepayDialog
+                wallet={wallet}
+                myWallets={myWallets}
+                operationType={operationType}
+                tone={tone}
+              />
             </div>
           </div>
         )) : (
@@ -307,6 +446,8 @@ function sumWallets(wallets: Wallet[]) {
 function sumPayables(payables: Payable[]) {
   return payables.reduce((total, payable) => total + Number(payable.amount), 0);
 }
+
+type DebtTone = "good" | "bad" | "blue";
 
 async function copyImei(value: string, t: (key: string) => string) {
   await navigator.clipboard.writeText(value);

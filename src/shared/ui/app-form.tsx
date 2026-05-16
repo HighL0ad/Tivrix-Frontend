@@ -77,12 +77,14 @@ export function AppSelect({
   options,
   placeholder,
   disabled,
+  className,
 }: {
   value: string;
   onValueChange: (value: string) => void;
   options: AppOption[];
   placeholder?: string;
   disabled?: boolean;
+  className?: string;
 }) {
   const { t } = useTranslation();
   const selectPlaceholder = placeholder ?? t("common.select");
@@ -99,6 +101,7 @@ export function AppSelect({
           className={cn(
             "h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-left text-sm font-medium leading-5 text-foreground outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedOption && "text-muted-foreground",
+            className,
           )}
         >
           {!selectedOption ? (
@@ -119,7 +122,7 @@ export function AppSelect({
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className="h-10">
+      <SelectTrigger className={cn("h-10", className)}>
         <span
           className={cn(
             selectedControlTextClassName,
@@ -149,6 +152,7 @@ export function AppCombobox({
   emptyMessage,
   disabled,
   loading,
+  className,
 }: {
   value: string;
   onValueChange: (value: string) => void;
@@ -158,6 +162,7 @@ export function AppCombobox({
   emptyMessage?: string;
   disabled?: boolean;
   loading?: boolean;
+  className?: string;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -177,6 +182,7 @@ export function AppCombobox({
           className={cn(
             "h-10 w-full justify-between bg-card px-3 text-left text-sm font-medium shadow-none hover:bg-card",
             !selectedOption && "text-muted-foreground",
+            className,
           )}
         >
           <span className={selectedControlTextClassName}>

@@ -27,17 +27,16 @@ function SearchableSelect({
   className,
 }: SearchableSelectProps) {
   return (
-    <div className={className}>
-      <AppCombobox
-        value={value}
-        onValueChange={onValueChange}
-        options={options}
-        placeholder={placeholder}
-        searchPlaceholder={searchPlaceholder}
-        emptyMessage={emptyMessage}
-        disabled={disabled}
-      />
-    </div>
+    <AppCombobox
+      value={value}
+      onValueChange={onValueChange}
+      options={options}
+      placeholder={placeholder}
+      searchPlaceholder={searchPlaceholder}
+      emptyMessage={emptyMessage}
+      disabled={disabled}
+      className={className}
+    />
   )
 }
 

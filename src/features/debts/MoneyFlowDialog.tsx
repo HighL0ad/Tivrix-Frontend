@@ -159,12 +159,18 @@ export function MoneyFlowDialog({
             />
           ) : null}
           <FormField label={t("debts.amount")}>
-            <Input
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              inputMode="decimal"
-              required
-            />
+            <div className="relative">
+              <Input
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                inputMode="decimal"
+                className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
+                required
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
+                ₼
+              </span>
+            </div>
           </FormField>
           <FormField label={t("finance.comment")}>
             <Input

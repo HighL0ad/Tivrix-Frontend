@@ -13,6 +13,7 @@ export type Payable = {
   product_imei: string | null;
   product_imei2: string | null;
   created_at: string;
+  due_at: string | null;
 };
 
 export type DebtsData = {

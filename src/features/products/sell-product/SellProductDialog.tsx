@@ -283,6 +283,7 @@ export function SellProductDialog({
             onValueChange={setSource}
             options={optionsQuery.data?.sale_source_options ?? []}
             placeholder={t("products.notSpecified")}
+            className="h-11"
           />
           </AppSection>
 
@@ -294,15 +295,21 @@ export function SellProductDialog({
                 profit: netProfit.toFixed(2),
               })}
             >
-              <Input
-                id="total-price"
-                type="number"
-                min="0"
-                step="1"
-                value={totalPrice}
-                onChange={(event) => setTotalPrice(event.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="total-price"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={totalPrice}
+                  onChange={(event) => setTotalPrice(event.target.value)}
+                  className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
+                  required
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
+                  ₼
+                </span>
+              </div>
             </AppFormField>
             {saleType === "client" ? (
               <ClientPaymentFields

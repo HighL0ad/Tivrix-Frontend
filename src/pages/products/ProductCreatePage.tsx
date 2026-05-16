@@ -62,6 +62,7 @@ export function ProductCreatePage() {
   const [newSupplierName, setNewSupplierName] = useState("");
   const [paymentWalletId, setPaymentWalletId] = useState("");
   const [newPaymentWalletName, setNewPaymentWalletName] = useState("");
+  const [paidNowEnabled, setPaidNowEnabled] = useState(false);
   const [splitEnabled, setSplitEnabled] = useState(false);
   const [primarySplitAmount, setPrimarySplitAmount] = useState("");
   const [splitWalletId, setSplitWalletId] = useState("");
@@ -75,13 +76,22 @@ export function ProductCreatePage() {
 
   const options = optionsQuery.data;
   const buyPriceNumber = Number(buyPrice || 0);
+  const paidNowNumber = Number(primarySplitAmount || 0);
   const primarySplitNumber = Number(primarySplitAmount || 0);
   const secondarySplitAmount = splitEnabled
     ? Math.max(buyPriceNumber - primarySplitNumber, 0)
     : 0;
+  const partialDebtAmount =
+    scenario === "supplier_debt" && paidNowEnabled
+      ? Math.max(buyPriceNumber - paidNowNumber, 0)
+      : buyPriceNumber;
   const splitAmountInvalid =
     splitEnabled &&
     (primarySplitNumber <= 0 || primarySplitNumber >= buyPriceNumber);
+  const paidNowAmountInvalid =
+    scenario === "supplier_debt" &&
+    paidNowEnabled &&
+    (paidNowNumber <= 0 || paidNowNumber >= buyPriceNumber);
 
   const visibleSplitWalletOptions = useMemo(() => {
     const allOptions = options?.split_wallet_options ?? [];
@@ -98,10 +108,15 @@ export function ProductCreatePage() {
   function handleScenarioChange(value: string) {
     const next = value as PurchaseScenario;
     setScenario(next);
-    if (next !== "transfer_now") setPaymentWalletId("");
+    if (next !== "transfer_now" && next !== "supplier_debt") {
+      setPaymentWalletId("");
+    }
     if (next === "supplier_debt") {
       setSplitEnabled(false);
       setSplitWalletId("");
+    }
+    if (next !== "supplier_debt") {
+      setPaidNowEnabled(false);
       setPrimarySplitAmount("");
     }
   }
@@ -123,8 +138,10 @@ export function ProductCreatePage() {
     return (
       !imeiError &&
       !splitAmountInvalid &&
+      !paidNowAmountInvalid &&
       !!supplierId &&
       (scenario !== "transfer_now" || !!paymentWalletId) &&
+      (scenario !== "supplier_debt" || !paidNowEnabled || !!paymentWalletId) &&
       (!splitEnabled || !!splitWalletId)
     );
   }
@@ -140,12 +157,19 @@ export function ProductCreatePage() {
     formData.append("imei", imei.trim());
     formData.append("buy_price", buyPrice);
     formData.append("supplier_id", supplierId);
-    formData.append("payment_method", getPaymentMethod(scenario));
+    formData.append(
+      "payment_method",
+      scenario === "supplier_debt" && paidNowEnabled
+        ? "partial_debt"
+        : getPaymentMethod(scenario),
+    );
 
     if (imei2.trim()) formData.append("imei2", imei2.trim());
     if (phoneNumber.trim()) formData.append("phone_number", phoneNumber.trim());
-    if (scenario === "transfer_now")
+    if (scenario === "transfer_now" || (scenario === "supplier_debt" && paidNowEnabled))
       formData.append("wallet_id", paymentWalletId);
+    if (scenario === "supplier_debt" && paidNowEnabled)
+      formData.append("paid_now_amount", primarySplitAmount);
 
     if (splitEnabled) {
       formData.append("split_payment_enabled", "on");
@@ -409,9 +433,99 @@ export function ProductCreatePage() {
               </Field>
 
               {scenario === "supplier_debt" ? (
-                <InfoBox color="red" title={t("products.supplierDebtInfoTitle")}>
-                  {t("products.supplierDebtInfo")}
-                </InfoBox>
+                <div className="space-y-4">
+                  <InfoBox color="red" title={t("products.supplierDebtInfoTitle")}>
+                    {paidNowEnabled
+                      ? t("products.partialSupplierDebtInfo")
+                      : t("products.supplierDebtInfo")}
+                  </InfoBox>
+
+                  <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <Checkbox
+                        checked={paidNowEnabled}
+                        onCheckedChange={(checked) => {
+                          const next = Boolean(checked);
+                          setPaidNowEnabled(next);
+                          if (!next) {
+                            setPaymentWalletId("");
+                            setPrimarySplitAmount("");
+                          }
+                        }}
+                        className="mt-1 size-5"
+                      />
+                      <span>
+                        <span className="block text-[13px] font-bold leading-5 text-foreground">
+                          {t("products.paidNowEnabled")}
+                        </span>
+                        <span className="mt-1 block text-[13px] leading-5 text-gray-500">
+                          {t("products.paidNowEnabledDescription")}
+                        </span>
+                      </span>
+                    </label>
+
+                    {paidNowEnabled ? (
+                      <>
+                        <Field label={t("products.paidNowWallet")} strong>
+                          <SearchableSelect
+                            value={paymentWalletId}
+                            onValueChange={setPaymentWalletId}
+                            options={options?.split_wallet_options ?? []}
+                            placeholder={t("products.selectPaymentWallet")}
+                            searchPlaceholder={t("products.walletSearch")}
+                            className="h-11"
+                          />
+                          <InlineCreate
+                            value={newPaymentWalletName}
+                            onChange={setNewPaymentWalletName}
+                            onCreate={() =>
+                              createInlineWallet(newPaymentWalletName, "card", (id) => {
+                                setPaymentWalletId(id);
+                                setNewPaymentWalletName("");
+                              })
+                            }
+                            placeholder={t("products.newWallet")}
+                          />
+                        </Field>
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <Field label={t("products.paidNowAmount")} strong>
+                            <div className="relative">
+                              <Input
+                                required
+                                type="number"
+                                step="1"
+                                min="1"
+                                placeholder="0"
+                                className={`h-11 pr-10 font-bold text-amber-700 ${
+                                  paidNowAmountInvalid
+                                    ? "border-red-300 bg-red-50 focus-visible:ring-red-500/20"
+                                    : "border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
+                                }`}
+                                value={primarySplitAmount}
+                                onChange={(e) => setPrimarySplitAmount(e.target.value)}
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
+                                ₼
+                              </span>
+                            </div>
+                            {paidNowAmountInvalid ? (
+                              <p className="mt-1 text-xs font-semibold text-red-600">
+                                {t("products.paidNowAmountError")}
+                              </p>
+                            ) : null}
+                          </Field>
+
+                          <Field label={t("products.remainingSupplierDebt")} strong>
+                            <div className="flex h-11 items-center rounded-lg border border-amber-200 bg-amber-50 px-3 font-bold text-amber-700">
+                              {partialDebtAmount.toFixed(2)} ₼
+                            </div>
+                          </Field>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
               ) : null}
 
               {scenario === "cash_now" ? (
@@ -477,25 +591,25 @@ export function ProductCreatePage() {
                           strong
                         >
                           <div className="relative">
-                            <span className="absolute left-3 top-3 text-muted-foreground">
-                              ₼
-                            </span>
                             <Input
                               required
                               type="number"
                               step="1"
                               min="1"
                               placeholder="0"
-                              className={`pl-7 font-bold ${
+                              className={`h-11 pr-10 font-bold text-sky-700 ${
                                 splitAmountInvalid
                                   ? "border-red-300 bg-red-50 focus-visible:ring-red-500/20"
-                                  : "border-sky-200 bg-background"
+                                  : "border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
                               }`}
                               value={primarySplitAmount}
                               onChange={(e) =>
                                 setPrimarySplitAmount(e.target.value)
                               }
                             />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
+                              ₼
+                            </span>
                           </div>
                           {splitAmountInvalid ? (
                             <p className="mt-1 text-xs font-semibold text-red-600">
@@ -505,12 +619,11 @@ export function ProductCreatePage() {
                         </Field>
 
                         <Field label={t("products.amountFromSecondWallet")} strong>
-                          <div className="rounded-lg border border-sky-200 bg-sky-50 p-3 font-bold text-sky-700">
+                          <div className="flex h-11 items-center rounded-lg border border-sky-200 bg-sky-50 px-3 font-bold text-sky-700">
                             {secondarySplitAmount.toFixed(2)} ₼
                           </div>
                         </Field>
                       </div>
-
                       <Field label={t("products.secondSplitWallet")} strong>
                         <SearchableSelect
                           value={splitWalletId}
@@ -518,6 +631,7 @@ export function ProductCreatePage() {
                           options={visibleSplitWalletOptions}
                           placeholder={t("products.selectSecondWallet")}
                           searchPlaceholder={t("products.walletSearch")}
+                          className="h-11"
                         />
                         <InlineCreate
                           value={newSplitWalletName}
@@ -561,6 +675,20 @@ export function ProductCreatePage() {
                   splitEnabled ? `${secondarySplitAmount.toFixed(2)} ₼` : t("common.no")
                 }
               />
+              {scenario === "supplier_debt" && paidNowEnabled ? (
+                <>
+                  <SummaryRow
+                    label={t("products.paidNowAmount")}
+                    value={
+                      primarySplitAmount ? `${Number(primarySplitAmount).toFixed(2)} ₼` : "-"
+                    }
+                  />
+                  <SummaryRow
+                    label={t("products.remainingSupplierDebt")}
+                    value={`${partialDebtAmount.toFixed(2)} ₼`}
+                  />
+                </>
+              ) : null}
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !isFormValid()}
