@@ -16,8 +16,10 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { MetricCard } from "@/shared/ui/metric-card";
+import { Money } from "@/shared/ui/money-display";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { PageError } from "@/shared/ui/page-state";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export function DashboardPage() {
   const { t } = useTranslation();
@@ -26,7 +28,7 @@ export function DashboardPage() {
   const data = dashboardQuery.data;
 
   if (dashboardQuery.isLoading) {
-    return <PageLoading />;
+    return <DashboardSkeleton />;
   }
 
   if (!data) {
@@ -54,30 +56,52 @@ export function DashboardPage() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title={t("dashboard.liveBalance")} value={money(data.total_money)} hint={t("dashboard.afterDebts", { amount: money(data.projected_balance) })} tone="violet" icon={<Banknote className="size-4" />} />
-        <MetricCard title={t("dashboard.stockValue")} value={money(data.stock_value)} hint={t("dashboard.stockHint", { count: data.stock_count, total: money(data.projected_balance_with_stock) })} tone="info" icon={<Boxes className="size-4" />} />
+        <MetricCard
+          title={t("dashboard.liveBalance")}
+          value={<Money value={data.total_money} />}
+          hint={t("dashboard.afterDebts", { amount: money(data.projected_balance) })}
+          tone="violet"
+          icon={<Banknote className="size-4" />}
+        />
+        <MetricCard
+          title={t("dashboard.stockValue")}
+          value={<Money value={data.stock_value} />}
+          hint={t("dashboard.stockHint", { count: data.stock_count, total: money(data.projected_balance_with_stock) })}
+          tone="info"
+          icon={<Boxes className="size-4" />}
+        />
         <MetricCard
           title={t("dashboard.profitToday")}
-          value={money(data.profit_today)}
+          value={<Money value={data.profit_today} />}
           hint={t("dashboard.soldCount", { count: data.sales_today.count })}
           tone={Number(data.profit_today) >= 0 ? "good" : "bad"}
           icon={<TrendingUp className="size-4" />}
         />
         <Card
           size="sm"
-          className="relative border-amber-200 bg-white shadow-none before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-amber-400 before:to-orange-500"
+          className="relative border-gray-200 bg-white shadow-none before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-amber-400 before:to-orange-500"
         >
           <CardContent className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="text-xs font-bold uppercase tracking-wide text-gray-500">
                 {t("dashboard.debtLoad")}
               </div>
-              <div className="mt-2 space-y-1 text-xs font-bold">
-                <div className="text-emerald-600">{t("dashboard.toUs", { amount: money(data.they_owe) })}</div>
-                <div className="text-rose-500">{t("dashboard.fromUs", { amount: money(data.we_owe) })}</div>
+              <div className="mt-2 space-y-0.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[10px] font-black uppercase text-gray-400 w-12 shrink-0">{t("dashboard.toUs", { amount: "" })}</span>
+                  <span className="text-base font-black text-emerald-700 leading-tight">
+                    <Money value={data.they_owe} />
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[10px] font-black uppercase text-gray-400 w-12 shrink-0">{t("dashboard.fromUs", { amount: "" })}</span>
+                  <span className="text-base font-black text-rose-700 leading-tight">
+                    <Money value={data.we_owe} />
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="rounded-lg border border-white/80 bg-amber-100 p-2 text-amber-700 shadow-sm">
+            <div className="rounded-lg border border-white/80 bg-amber-50 p-2 text-amber-600 shadow-xs">
               <HandCoins className="size-4" />
             </div>
           </CardContent>
@@ -137,21 +161,21 @@ export function DashboardPage() {
             <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <ColorMetric
                 title={t("dashboard.netProfitFor", { period: periodLabel(profitPeriod, t) })}
-                value={money(selectedProfitPeriod.profit_total)}
+                value={<Money value={selectedProfitPeriod.profit_total} />}
                 hint={t("dashboard.saleMinusPurchase")}
                 className="border-emerald-200 bg-emerald-50 text-emerald-800"
                 icon={<ChartNoAxesColumnIncreasing className="size-4" />}
               />
               <ColorMetric
                 title={t("dashboard.revenueFor", { period: periodLabel(profitPeriod, t) })}
-                value={money(selectedProfitPeriod.revenue_total)}
+                value={<Money value={selectedProfitPeriod.revenue_total} />}
                 hint={t("dashboard.salesAmount")}
                 className="border-sky-200 bg-sky-50 text-sky-800"
                 icon={<Landmark className="size-4" />}
               />
               <ColorMetric
                 title={t("dashboard.soldInDebt")}
-                value={money(selectedProfitPeriod.debt_sales_total)}
+                value={<Money value={selectedProfitPeriod.debt_sales_total} />}
                 hint={t("dashboard.clientsAndPartners")}
                 className="border-amber-200 bg-amber-50 text-amber-800"
                 icon={<HandCoins className="size-4" />}
@@ -191,7 +215,7 @@ export function DashboardPage() {
                     ) : null}
                   </div>
                   <div className="shrink-0 whitespace-nowrap text-right text-sm font-bold">
-                    {money(tx.amount)}
+                    <Money value={tx.amount} />
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-400">{shortDate(tx.created_at)}</div>
@@ -319,7 +343,7 @@ function ProfitTooltip({ active, payload, label }: ProfitTooltipPayload) {
         {payload[0]?.payload?.tooltipLabel ?? label}
       </div>
       <div className="mt-1 font-black text-sky-700">
-        {money(Number(payload[0]?.value ?? 0))}
+        <Money value={Number(payload[0]?.value ?? 0)} />
       </div>
     </div>
   );
@@ -370,19 +394,92 @@ function ColorMetric({
   icon,
 }: {
   title: string;
-  value: string;
+  value: ReactNode;
   hint: string;
   className: string;
   icon: ReactNode;
 }) {
   return (
-    <div className={`rounded-lg border p-3 ${className}`}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-[11px] font-bold uppercase tracking-wide">{title}</div>
-        {icon}
+    <div className={`rounded-lg border p-3 flex flex-col ${className}`}>
+      <div className="flex items-start justify-between gap-3 min-h-[34px]">
+        <div className="text-[11px] font-bold uppercase tracking-wide flex-1">{title}</div>
+        <div className="shrink-0 pt-0.5 opacity-60">{icon}</div>
       </div>
-      <div className="mt-2 text-lg font-black">{value}</div>
-      <div className="mt-1 text-xs opacity-80">{hint}</div>
+      <div className="mt-2 text-lg font-black leading-none">{value}</div>
+      <div className="mt-1.5 text-[11px] opacity-80 font-medium truncate">{hint}</div>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} size="sm">
+            <CardContent className="flex items-start justify-between gap-3 p-4">
+              <div className="flex-1 space-y-3">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-10 w-10 rounded-lg" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardContent className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+
+      <div className="grid items-start gap-4 lg:grid-cols-[1fr_360px]">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-8 w-32 rounded-lg" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+            <Skeleton className="h-[280px] w-full" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="rounded-lg border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="mt-3 h-3 w-24" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

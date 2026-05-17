@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useUpdateWallet } from "@/entities/catalogs/api/use-catalogs";
-import type { Wallet } from "@/entities/finance/api/use-finance";
+import type { Wallet, WalletType } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { walletTypeLabel } from "@/shared/lib/wallet-labels";
 import { AppSelect, ResponsiveModal } from "@/shared/ui/app-form";
@@ -17,7 +17,7 @@ export function WalletEditDialog({
   walletTypes,
 }: {
   wallet: Wallet;
-  walletTypes: Array<{ value: string; label: string }>;
+  walletTypes: Array<{ value: WalletType; label: string }>;
 }) {
   const { t } = useTranslation();
   const updateWallet = useUpdateWallet();
@@ -80,7 +80,7 @@ export function WalletEditDialog({
           <FormField label={t("common.type")}>
             <AppSelect
               value={walletType}
-              onValueChange={setWalletType}
+              onValueChange={(value) => setWalletType(value as WalletType)}
               options={walletTypes.map((type) => ({
                 id: type.value,
                 name: type.label === type.value ? walletTypeLabel(type.value) : type.label,

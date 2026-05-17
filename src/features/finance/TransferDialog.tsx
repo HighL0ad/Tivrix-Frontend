@@ -10,10 +10,20 @@ import { Button } from "@/shared/ui/button";
 import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
-export function TransferDialog({ wallets }: { wallets: Wallet[] }) {
+export function TransferDialog({
+  wallets,
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  wallets: Wallet[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
   const transfer = useTransferWallets();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [sourceId, setSourceId] = useState("");
   const [targetId, setTargetId] = useState("");
   const [amount, setAmount] = useState("");

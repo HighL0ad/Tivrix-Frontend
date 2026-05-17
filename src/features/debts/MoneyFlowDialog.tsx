@@ -21,18 +21,24 @@ export function MoneyFlowDialog({
   sourceWallets,
   targetWallets,
   mode,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   title: string;
   trigger: string;
   sourceWallets: Wallet[];
   targetWallets: Wallet[];
   mode: "lend" | "borrow";
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
   const lend = useLendMoney();
   const borrow = useBorrowMoney();
   const createWallet = useCreateDebtWallet();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [sourceId, setSourceId] = useState("");
   const [targetId, setTargetId] = useState("");
   const [amount, setAmount] = useState("");
@@ -211,12 +217,12 @@ function InlineCreate({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
+        className="h-11 bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
       />
       <Button
         type="button"
         variant="outline"
-        className="h-10 px-4 !text-base font-medium"
+        className="h-11 px-4 !text-base font-medium"
         onClick={onCreate}
         disabled={disabled || !value.trim()}
       >

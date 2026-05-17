@@ -32,6 +32,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/ui/sheet";
+import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { cn } from "@/shared/lib/utils";
 
 const navItems = [
@@ -50,6 +51,7 @@ export function AppLayout() {
   const currentUserQuery = useCurrentUser();
   const currentUser = currentUserQuery.data;
   const uploadAvatar = useUploadAvatar();
+  const [commandOpen, setCommandOpen] = useState(false);
   const visibleNavItems = navItems.filter((item) => {
     return item.adminOnly ? currentUser?.is_admin : true;
   });
@@ -70,6 +72,13 @@ export function AppLayout() {
         </NavLink>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-3">
+          <div className="mb-2">
+            <CommandMenuTrigger 
+              onClick={() => setCommandOpen(true)} 
+              className="flex h-10 w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-slate-400 hover:bg-white/10 hover:text-white" 
+              kbdClassName="border border-white/20 bg-white/10" 
+            />
+          </div>
           {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
@@ -143,11 +152,17 @@ export function AppLayout() {
 
       <main className="w-full transition-all duration-300 md:pl-64">
         <div className="mx-auto max-w-md p-4 pb-24 md:max-w-7xl md:p-6 lg:p-8 md:pb-8">
-          <header className="sticky top-2 z-30 mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm md:hidden">
-            <NavLink to="/" className="text-lg font-bold text-indigo-700">
+          <header className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white px-4 py-2.5 shadow-sm md:hidden">
+            <NavLink to="/" className="shrink-0 text-lg font-bold text-indigo-700">
               {t("app.brand")}
             </NavLink>
             <div className="flex items-center gap-2">
+              <CommandMenuTrigger 
+                onClick={() => setCommandOpen(true)} 
+                className="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" 
+                kbdClassName="hidden" 
+                showLabel={false}
+              />
               {currentUser ? (
                 <UserAvatar
                   user={currentUser}
@@ -216,6 +231,7 @@ export function AppLayout() {
           />
         </div>
       </nav>
+      <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export function MetricCard({
   compact = false,
 }: {
   title: string;
-  value: string;
+  value: ReactNode;
   hint?: string;
   tone?: "neutral" | "good" | "bad" | "info" | "warning" | "violet";
   icon?: ReactNode;
@@ -49,7 +49,7 @@ export function MetricCard({
     <Card
       size="sm"
       className={cn(
-        "relative bg-white shadow-none before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r",
+        "relative bg-white shadow-none animate-in fade-in zoom-in-95 duration-500 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r",
         toneStyle.card,
       )}
     >

@@ -155,15 +155,20 @@ export function ClientDebtFields({
       ) : null}
 
       {registrationFeeAvailable ? (
-        <div className="space-y-3 rounded-lg border p-3">
-          <label className="flex items-center gap-2 text-[13px] font-medium leading-5 text-foreground">
+        <div className="mt-4 space-y-4 border-t border-border pt-4">
+          <label className="flex cursor-pointer items-start gap-3">
             <Checkbox
               checked={registrationFeeEnabled}
               onCheckedChange={(checked) =>
                 setRegistrationFeeEnabled(Boolean(checked))
               }
+              className="mt-1 size-5"
             />
-            {t("sell.registrationSeparateDebt")}
+            <span>
+              <span className="block text-[13px] font-bold leading-5 text-foreground">
+                {t("sell.registrationSeparateDebt")}
+              </span>
+            </span>
           </label>
           {registrationFeeEnabled ? (
             <AppFormField label={t("sell.registrationAmount")}>

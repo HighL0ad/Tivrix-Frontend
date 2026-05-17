@@ -244,7 +244,7 @@ export function SellProductDialog({
                   const name = newShopName.trim();
                   if (!name) return;
                   createWalletMutation.mutate(
-                    { name, wallet_type: "partner_shop" },
+                    { name, wallet_type: "shop" },
                     {
                       onSuccess: (wallet) => {
                         setShopWalletId(String(wallet.id));

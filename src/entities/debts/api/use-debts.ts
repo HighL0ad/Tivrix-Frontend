@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiRequest } from "@/shared/api/http";
-import type { Wallet } from "@/entities/finance/api/use-finance";
+import type { Wallet, WalletType } from "@/entities/finance/api/use-finance";
 
 export type Payable = {
   id: number;
@@ -37,7 +37,7 @@ export function useDebts() {
 export function useCreateDebtWallet() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name: string; wallet_type: string }) =>
+    mutationFn: (payload: { name: string; wallet_type: WalletType }) =>
       apiRequest<Wallet>("/api/debts/wallets", {
         method: "POST",
         json: payload,

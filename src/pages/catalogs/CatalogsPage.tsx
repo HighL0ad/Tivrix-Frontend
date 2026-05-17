@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import { useCatalogs, useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
+import type { WalletType } from "@/entities/finance/api/use-finance";
 import { DeleteWalletButton } from "@/features/catalogs/DeleteWalletButton";
 import { WalletEditDialog } from "@/features/catalogs/WalletEditDialog";
 import { AdjustWalletDialog } from "@/features/finance/AdjustWalletDialog";
@@ -34,7 +35,7 @@ export function CatalogsPage() {
   const createWallet = useCreateWallet();
   const currentUser = useCurrentUser().data;
   const [name, setName] = useState("");
-  const [walletType, setWalletType] = useState("card");
+  const [walletType, setWalletType] = useState<WalletType>("card");
   const [search, setSearch] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,7 +97,7 @@ export function CatalogsPage() {
             <Input ref={nameInputRef} value={name} onChange={(event) => setName(event.target.value)} placeholder={t("common.name")} />
             <AppSelect
               value={walletType}
-              onValueChange={setWalletType}
+              onValueChange={(value) => setWalletType(value as WalletType)}
               options={catalogsQuery.data.wallet_types.map((type) => ({
                 id: type.value,
                 name: walletTypeLabel(type.value),
@@ -193,7 +194,7 @@ function WalletTable({
 }: {
   tableLabel: string;
   wallets: NonNullable<ReturnType<typeof useCatalogs>["data"]>["wallets"];
-  walletTypes: Array<{ value: string; label: string }>;
+  walletTypes: Array<{ value: WalletType; label: string }>;
   emptyTitle: string;
   emptyDescription: string;
   onCreateClick: () => void;

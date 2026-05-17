@@ -6,9 +6,19 @@ import type { Transaction } from "@/entities/dashboard/api/use-dashboard";
 export type Wallet = {
   id: number;
   name: string;
-  type: string;
+  type: WalletType;
   balance: string;
 };
+
+export type WalletType =
+  | "cash"
+  | "card"
+  | "bank_account"
+  | "employee"
+  | "debt"
+  | "client_debt"
+  | "shop"
+  | "market";
 
 export type FinanceData = {
   total_profit: string;

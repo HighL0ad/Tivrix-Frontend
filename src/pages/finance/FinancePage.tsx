@@ -62,13 +62,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 const financeTabValues = ["overview", "history", "profit", "expenses"] as const;
+const financeActionValues = ["transfer", "adjust"] as const;
 
 export function FinancePage() {
   const { t } = useTranslation();
-  const [{ q, page, tab, profitFrom, profitTo, expensesFrom, expensesTo }, setFinanceParams] = useQueryStates({
+  const [{ q, page, tab, action, walletId, profitFrom, profitTo, expensesFrom, expensesTo }, setFinanceParams] = useQueryStates({
     q: parseAsString.withDefault(""),
     page: parseAsInteger.withDefault(1),
     tab: parseAsStringLiteral(financeTabValues).withDefault("overview"),
+    action: parseAsStringLiteral(financeActionValues),
+    walletId: parseAsInteger,
     profitFrom: parseAsString.withDefault(""),
     profitTo: parseAsString.withDefault(""),
     expensesFrom: parseAsString.withDefault(""),
@@ -97,6 +100,9 @@ export function FinancePage() {
   const undoTransaction = useUndoTransaction();
   const undoSaleTransaction = useUndoSaleTransaction();
   const data = financeQuery.data;
+
+  const activeAdjustWallet =
+    data?.my_wallets.find((w) => w.id === walletId) || data?.my_wallets[0];
 
   useEffect(() => {
     setSearch(q);
@@ -133,7 +139,11 @@ export function FinancePage() {
         description={t("finance.description")}
         actions={
           canTransferWallets ? (
-            <TransferDialog wallets={data.my_wallets} />
+            <TransferDialog
+              wallets={data.my_wallets}
+              open={action === "transfer"}
+              onOpenChange={(open) => setFinanceParams({ action: open ? "transfer" : null })}
+            />
           ) : null
         }
       />
@@ -169,7 +179,17 @@ export function FinancePage() {
           <TabsTrigger value="expenses">{t("finance.expenses")}</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-          <OverviewCard data={data} canAdjustWallets={canAdjustWallets} />
+          <OverviewCard
+            data={data}
+            canAdjustWallets={canAdjustWallets}
+            adjustWalletId={action === "adjust" ? activeAdjustWallet?.id : undefined}
+            onAdjustOpenChange={(open, id) =>
+              setFinanceParams({
+                action: open ? "adjust" : null,
+                walletId: open ? id : null,
+              })
+            }
+          />
         </TabsContent>
         <TabsContent value="history">
           {canViewHistory ? (
@@ -495,9 +515,13 @@ function HistoryCard({
 function OverviewCard({
   data,
   canAdjustWallets,
+  adjustWalletId,
+  onAdjustOpenChange,
 }: {
   data: NonNullable<ReturnType<typeof useFinance>["data"]>;
   canAdjustWallets: boolean;
+  adjustWalletId?: number;
+  onAdjustOpenChange: (open: boolean, walletId: number) => void;
 }) {
   const { t } = useTranslation();
   const nonZeroWallets = data.my_wallets.filter((wallet) => Number(wallet.balance) !== 0);
@@ -529,7 +553,13 @@ function OverviewCard({
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <div className="font-bold">{money(wallet.balance)}</div>
-                {canAdjustWallets ? <AdjustWalletDialog wallet={wallet} /> : null}
+                {canAdjustWallets ? (
+                  <AdjustWalletDialog
+                    wallet={wallet}
+                    open={adjustWalletId === wallet.id}
+                    onOpenChange={(open) => onAdjustOpenChange(open, wallet.id)}
+                  />
+                ) : null}
               </div>
             </div>
           )) : (

@@ -46,7 +46,6 @@ import { SellProductDialog } from "@/features/products/sell-product/SellProductD
 import { getApiErrorMessage } from "@/shared/api/error";
 import { queryClient } from "@/shared/api/query-client";
 import { eventStartedInInteractiveElement } from "@/shared/lib/events";
-import { money } from "@/shared/lib/format";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import {
   AlertDialog,
@@ -59,6 +58,7 @@ import {
   AlertDialogTitle,
 } from "@/shared/ui/alert-dialog";
 import { ResponsiveModal } from "@/shared/ui/app-form";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import {
@@ -69,6 +69,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Input } from "@/shared/ui/input";
+import { Money } from "@/shared/ui/money-display";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
 import {
@@ -258,16 +259,69 @@ export function ProductsPage() {
               searchPlaceholder={t("products.supplierSearch")}
               emptyMessage={t("products.supplierNotFound")}
             />
-            {(supplierId || sortBy) ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => updateParams({ supplierId: "", sortBy: null, sortDir: null })}
-              >
-                {t("common.resetFilters")}
-              </Button>
-            ) : null}
           </div>
+
+          {(activeStatus || supplierId || q) ? (
+            <div className="flex flex-wrap items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
+                {t("common.filters")}:
+              </span>
+              {activeStatus ? (
+                <Badge variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md">
+                  {t(statusFilters.find(f => f.value === activeStatus)?.labelKey ?? "")}
+                  <button
+                    onClick={() => updateParams({ status: "all" })}
+                    className="rounded-sm p-0.5 hover:bg-muted-foreground/20 transition-colors"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </Badge>
+              ) : null}
+              {supplierId ? (
+                <Badge variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md">
+                  {supplierOptions.find(s => s.id === supplierId)?.name}
+                  <button
+                    onClick={() => updateParams({ supplierId: "" })}
+                    className="rounded-sm p-0.5 hover:bg-muted-foreground/20 transition-colors"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </Badge>
+              ) : null}
+              {q ? (
+                <Badge variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md font-mono">
+                  "{q}"
+                  <button
+                    onClick={() => {
+                      setSearchValue("");
+                      updateParams({ q: "" });
+                    }}
+                    className="rounded-sm p-0.5 hover:bg-muted-foreground/20 transition-colors"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </Badge>
+              ) : null}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-[11px] font-bold uppercase tracking-wider text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                onClick={() => {
+                  setSearchValue("");
+                  setProductParams({
+                    status: null,
+                    supplierId: "",
+                    q: "",
+                    sortBy: null,
+                    sortDir: null,
+                    page: 1,
+                  });
+                }}
+              >
+                {t("common.reset")}
+              </Button>
+            </div>
+          ) : null}
         </CardHeader>
 
         <CardContent>
@@ -424,7 +478,9 @@ function ProductsCardList({
                     <div className="text-xs font-bold uppercase text-muted-foreground">
                       {t("sell.purchase")}
                     </div>
-                    <div className="mt-1 font-black">{product.buy_price} ₼</div>
+                    <div className="mt-1 font-black">
+                      <Money value={product.buy_price} />
+                    </div>
                   </div>
                 </div>
 
@@ -433,11 +489,14 @@ function ProductsCardList({
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-muted-foreground">{t("products.deal")}</span>
-                        <span className="font-black">
-                          {product.current_sale.total_price} ₼
-                          <span className={`ml-2 ${profitTextClass(product.current_sale.profit)}`}>
-                            {signedMoney(product.current_sale.profit)}
-                          </span>
+                        <span className="font-black text-foreground">
+                          <Money value={product.current_sale.total_price} />
+                          <Money
+                            value={product.current_sale.profit}
+                            signed
+                            colored
+                            className="ml-2"
+                          />
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-3 text-xs">
@@ -568,7 +627,9 @@ function ProductsTable({
         accessorKey: "buy_price",
         header: () => <div className="text-right">{t("sell.purchase")}</div>,
         cell: ({ row }) => (
-          <div className="text-right font-medium">{row.original.buy_price} ₼</div>
+          <div className="text-right font-medium">
+            <Money value={row.original.buy_price} />
+          </div>
         ),
       },
       {
@@ -578,14 +639,21 @@ function ProductsTable({
           <div className="relative text-right">
             {row.original.current_sale ? (
               <div>
-                <div className="font-medium">
-                  {row.original.current_sale.total_price} ₼
+                <div className="font-medium text-foreground">
+                  <Money value={row.original.current_sale.total_price} />
                 </div>
-                <div className={`text-xs ${profitTextClass(row.original.current_sale.profit)}`}>
-                  {signedMoney(row.original.current_sale.profit)}
+                <div>
+                  <Money
+                    value={row.original.current_sale.profit}
+                    signed
+                    colored
+                    className="text-xs"
+                  />
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  {t("products.soldWithColon", { date: formatProductDate(row.original.current_sale.sold_at) })}
+                  {t("products.soldWithColon", {
+                    date: formatProductDate(row.original.current_sale.sold_at),
+                  })}
                 </div>
               </div>
             ) : (
@@ -896,7 +964,16 @@ function ProductsTableSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 8 }).map((_, index) => (
-        <Skeleton key={index} className="h-14 w-full" />
+        <div key={index} className="flex h-14 w-full items-center gap-4 border-b px-4">
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-3 w-1/4" />
+          </div>
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-16" />
+        </div>
       ))}
     </div>
   );
@@ -904,19 +981,35 @@ function ProductsTableSkeleton() {
 
 function ProductsCardListSkeleton() {
   return (
-    <div className="space-y-3 md:hidden">
+    <div className="space-y-4 md:hidden">
       {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className="rounded-lg border bg-card p-4 shadow-sm">
-          <Skeleton className="h-5 w-2/3" />
-          <Skeleton className="mt-2 h-4 w-1/2" />
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
+        <div key={index} className="overflow-hidden rounded-lg border bg-card shadow-sm">
+          <div className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-2/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <div className="mt-3 flex gap-1">
+              <Skeleton className="h-4 w-12 rounded-full" />
+              <Skeleton className="h-4 w-12 rounded-full" />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+            <Skeleton className="mt-3 h-10 w-full rounded-lg" />
           </div>
-          <Skeleton className="mt-3 h-12 w-full" />
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+          <div className="border-t bg-background/70 p-3">
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         </div>
       ))}
@@ -936,13 +1029,4 @@ function SortIcon({ state }: { state: "asc" | "desc" | false }) {
     return <ArrowDown className="size-4 text-primary" aria-hidden="true" />;
   }
   return <ChevronsUpDown className="size-4 text-muted-foreground" aria-hidden="true" />;
-}
-
-function signedMoney(value: string | number) {
-  const amount = Number(value);
-  return `${amount > 0 ? "+" : ""}${money(amount)}`;
-}
-
-function profitTextClass(value: string | number) {
-  return Number(value) >= 0 ? "text-emerald-700" : "text-rose-600";
 }

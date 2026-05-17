@@ -10,10 +10,20 @@ import { Button } from "@/shared/ui/button";
 import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 
-export function AdjustWalletDialog({ wallet }: { wallet: Wallet }) {
+export function AdjustWalletDialog({
+  wallet,
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  wallet: Wallet;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
   const adjust = useAdjustWallet();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [mode, setMode] = useState<"set_balance" | "delta">("delta");
   const [newBalance, setNewBalance] = useState(wallet.balance);
   const [deltaAmount, setDeltaAmount] = useState("");

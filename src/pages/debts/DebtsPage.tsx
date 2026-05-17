@@ -1,6 +1,7 @@
 import { Copy, ChevronDown, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { parseAsStringLiteral, useQueryStates } from "nuqs";
 
 import {
   type Payable,
@@ -26,8 +27,13 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 
+const debtsActionValues = ["lend", "borrow"] as const;
+
 export function DebtsPage() {
   const { t } = useTranslation();
+  const [{ action }, setDebtsParams] = useQueryStates({
+    action: parseAsStringLiteral(debtsActionValues),
+  });
   const debtsQuery = useDebts();
 
   if (debtsQuery.isLoading) {
@@ -77,6 +83,8 @@ export function DebtsPage() {
           sourceWallets={data.my_wallets}
           targetWallets={data.lend_counterparties}
           mode="lend"
+          open={action === "lend"}
+          onOpenChange={(open) => setDebtsParams({ action: open ? "lend" : null })}
         />
         <MoneyFlowDialog
           title={t("debts.borrow")}
@@ -84,6 +92,8 @@ export function DebtsPage() {
           sourceWallets={data.all_partners}
           targetWallets={data.my_wallets}
           mode="borrow"
+          open={action === "borrow"}
+          onOpenChange={(open) => setDebtsParams({ action: open ? "borrow" : null })}
         />
           </>
         }
@@ -93,6 +103,28 @@ export function DebtsPage() {
         <EmptyState
           title={t("debts.emptyTitle")}
           description={t("debts.emptyDescription")}
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <MoneyFlowDialog
+                title={t("debts.lend")}
+                trigger={t("debts.lendToClientPartner")}
+                sourceWallets={data.my_wallets}
+                targetWallets={data.lend_counterparties}
+                mode="lend"
+                open={action === "lend"}
+                onOpenChange={(open) => setDebtsParams({ action: open ? "lend" : null })}
+              />
+              <MoneyFlowDialog
+                title={t("debts.borrow")}
+                trigger={t("debts.borrow")}
+                sourceWallets={data.all_partners}
+                targetWallets={data.my_wallets}
+                mode="borrow"
+                open={action === "borrow"}
+                onOpenChange={(open) => setDebtsParams({ action: open ? "borrow" : null })}
+              />
+            </div>
+          }
         />
       ) : null}
 

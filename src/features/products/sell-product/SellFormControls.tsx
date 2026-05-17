@@ -66,13 +66,18 @@ export function SplitPaymentFields({
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-3 border p-3">
-      <label className="flex items-center gap-2 text-[13px] font-medium leading-5 text-foreground">
+    <div className="mt-4 space-y-4 border-t border-border pt-4">
+      <label className="flex cursor-pointer items-start gap-3">
         <Checkbox
           checked={enabled}
           onCheckedChange={(checked) => setEnabled(Boolean(checked))}
+          className="mt-1 size-5"
         />
-        {title}
+        <span>
+          <span className="block text-[13px] font-bold leading-5 text-foreground">
+            {title}
+          </span>
+        </span>
       </label>
       {enabled ? (
         <div className="grid gap-3 sm:grid-cols-2">

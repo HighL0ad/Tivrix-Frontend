@@ -234,7 +234,7 @@ export function ProductEditPage() {
                     const name = newSupplierName.trim();
                     if (!name) return;
                     createWallet.mutate(
-                      { name, wallet_type: "debt_supplier" },
+                      { name, wallet_type: "debt" },
                       {
                       onSuccess: (wallet) => {
                         setSupplierId(String(wallet.id));
@@ -254,7 +254,7 @@ export function ProductEditPage() {
 
             {product.current_sale ? (
               <AppFormField label={t("products.sale")}>
-                <div className="grid gap-4 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={t("products.salePrice")}>
                     <Input
                       value={salePrice}
@@ -264,14 +264,15 @@ export function ProductEditPage() {
                       type="number"
                       min="0"
                       step="1"
+                      className="h-11 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
                     />
                   </Field>
-                  <div className="rounded-lg border bg-background p-3 text-sm">
+                  <div className="flex flex-col justify-center rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm">
                     <div className="flex justify-between gap-3">
                       <span className="text-muted-foreground">{t("sell.purchase")}</span>
-                      <span className="font-bold">{buyPrice || "0"} ₼</span>
+                      <span className="font-bold">{product.buy_price} ₼</span>
                     </div>
-                    <div className="mt-2 flex justify-between gap-3">
+                    <div className="mt-2 flex justify-between gap-3 border-t border-border/50 pt-2">
                       <span className="text-muted-foreground">{t("products.profit")}</span>
                       <span
                         className={
