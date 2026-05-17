@@ -34,6 +34,7 @@ export type RegistrationAlert = {
   product_name: string;
   imei: string;
   status: "in_stock" | "sold";
+  sold_at: string;
   days_passed: number;
   days_remaining: number;
   deadline_date: string;

@@ -139,10 +139,15 @@ export function DashboardPage() {
                   <div className="space-y-0">
                     {data.registration_alerts.map((alert) => (
                       <div key={alert.product_id} className="flex flex-col gap-2 border-b border-current/10 py-3 first:pt-0 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                        <span className="min-w-0">
-                          <NavLink to={`/products/${alert.product_id}`} className="font-bold underline underline-offset-2 hover:bg-transparent hover:text-amber-950 hover:no-underline">
-                            {alert.product_name}
-                          </NavLink> (IMEI: {alert.imei})
+                        <span className="min-w-0 space-y-1">
+                          <span className="block">
+                            <NavLink to={`/products/${alert.product_id}`} className="font-bold underline underline-offset-2 hover:bg-transparent hover:text-amber-950 hover:no-underline">
+                              {alert.product_name}
+                            </NavLink> (IMEI: {alert.imei})
+                          </span>
+                          <span className="block text-[11px] font-semibold opacity-75">
+                            {t("products.soldWithColon", { date: shortDate(alert.sold_at) })}
+                          </span>
                         </span>
                         <span className="shrink-0 text-[10px] font-bold uppercase opacity-80">
                           {alert.days_remaining <= 0 
