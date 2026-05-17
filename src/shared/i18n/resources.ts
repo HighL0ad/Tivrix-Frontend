@@ -311,6 +311,7 @@ export const resources = {
       "products.supplierDebtInfo": "Система создаст закупку и запишет сумму в долг поставщику.",
 
       "products.supplierDebtInfoTitle": "Оплата сейчас не списывается.",
+      "products.suppliersSelected": "Поставщики: {{count}}",
       "products.summary": "Итог",
       "products.undoSale": "Отменить сделку",
       "products.undoSaleDescription": "Товар вернется на склад, а связанные движения денег будут откатаны.",
@@ -816,6 +817,7 @@ export const resources = {
       "products.secondSplitWallet": "İkinci hesab",
       "products.supplierDebtInfo": "Sistem alış yaradacaq və məbləği təchizatçı borcuna yazacaq.",
       "products.supplierDebtInfoTitle": "İndi ödəniş silinmir.",
+      "products.suppliersSelected": "Təchizatçılar: {{count}}",
       "products.summary": "Yekun",
       "products.undoSale": "Satışı ləğv et",
       "products.undoSaleDescription": "Məhsul anbara qayıdacaq, bağlı pul hərəkətləri geri alınacaq.",

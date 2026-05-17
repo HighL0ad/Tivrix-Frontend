@@ -19,6 +19,7 @@ import {
   Search,
   Trash2,
   X,
+  ChevronDown,
 } from "lucide-react";
 import {
   parseAsInteger,
@@ -63,6 +64,7 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -80,7 +82,6 @@ import {
   PaginationPrevious,
 } from "@/shared/ui/pagination";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { SearchableSelect } from "@/shared/ui/searchable-select";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import {
@@ -106,20 +107,25 @@ export function ProductsPage() {
   const { t } = useTranslation();
   const location = useLocation();
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [{ status, supplierId, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
+  const [{ status, supplierIds, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
     status: parseAsStringLiteral(productStatusValues),
-    supplierId: parseAsString.withDefault(""),
+    supplierIds: parseAsString.withDefault(""),
     q: parseAsString.withDefault(""),
     sortBy: parseAsStringLiteral(productSortFields),
     sortDir: parseAsStringLiteral(sortDirections),
     page: parseAsInteger.withDefault(1),
   });
   const activeStatus = status ?? undefined;
+  const activeSupplierIds = useMemo(
+    () => supplierIds.split(",").filter(Boolean),
+    [supplierIds],
+  );
   const [searchValue, setSearchValue] = useState(q);
+  const [supplierSearch, setSupplierSearch] = useState("");
   const createOptionsQuery = useProductCreateOptions();
   const productsQuery = useProducts({
     status: activeStatus,
-    supplierId: supplierId || undefined,
+    supplierIds: activeSupplierIds.length ? activeSupplierIds : undefined,
     q,
     sortBy: sortBy ?? undefined,
     sortDir: sortDir ?? undefined,
@@ -127,17 +133,23 @@ export function ProductsPage() {
   });
   const products = productsQuery.data;
   const supplierOptions = useMemo(
-    () => [
-      { id: "all", name: t("products.allSuppliers") },
-      ...(
-        createOptionsQuery.data?.supplier_wallet_options.map((supplier) => ({
-          id: supplier.id,
-          name: supplier.name,
-        })) ?? []
-      ),
-    ],
+    () => createOptionsQuery.data?.supplier_wallet_options.map((supplier) => ({
+      id: supplier.id,
+      name: supplier.name,
+    })) ?? [],
     [createOptionsQuery.data?.supplier_wallet_options, t],
   );
+  const selectedSuppliers = useMemo(
+    () => supplierOptions.filter((supplier) => activeSupplierIds.includes(supplier.id)),
+    [activeSupplierIds, supplierOptions],
+  );
+  const visibleSupplierOptions = useMemo(() => {
+    const normalizedSearch = supplierSearch.trim().toLowerCase();
+    if (!normalizedSearch) return supplierOptions;
+    return supplierOptions.filter((supplier) =>
+      supplier.name.toLowerCase().includes(normalizedSearch),
+    );
+  }, [supplierOptions, supplierSearch]);
 
   useEffect(() => {
     setSearchValue(q);
@@ -145,7 +157,7 @@ export function ProductsPage() {
 
   function updateParams(next: {
     status?: ProductStatus | "all";
-    supplierId?: string;
+    supplierIds?: string[];
     q?: string;
     sortBy?: (typeof productSortFields)[number] | null;
     sortDir?: (typeof sortDirections)[number] | null;
@@ -158,13 +170,16 @@ export function ProductsPage() {
           : next.status === "all"
             ? null
             : next.status,
-      supplierId: next.supplierId === undefined ? supplierId : next.supplierId,
+      supplierIds:
+        next.supplierIds === undefined
+          ? supplierIds
+          : next.supplierIds.join(","),
       q: next.q === undefined ? q : next.q.trim(),
       sortBy: next.sortBy === undefined ? sortBy : next.sortBy,
       sortDir: next.sortDir === undefined ? sortDir : next.sortDir,
       page:
         next.status !== undefined ||
-        next.supplierId !== undefined ||
+        next.supplierIds !== undefined ||
         next.q !== undefined ||
         next.sortBy !== undefined ||
         next.sortDir !== undefined
@@ -249,19 +264,66 @@ export function ProductsPage() {
           </form>
 
           <div className="grid gap-2 sm:grid-cols-[minmax(0,260px)_auto]">
-            <SearchableSelect
-              value={supplierId || "all"}
-              onValueChange={(value) =>
-                updateParams({ supplierId: value === "all" ? "" : value })
-              }
-              options={supplierOptions}
-              placeholder={t("products.allSuppliers")}
-              searchPlaceholder={t("products.supplierSearch")}
-              emptyMessage={t("products.supplierNotFound")}
-            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 justify-between rounded-lg border-border bg-background px-3 font-medium shadow-none"
+                >
+                  <span className="truncate">
+                    {selectedSuppliers.length
+                      ? t("products.suppliersSelected", { count: selectedSuppliers.length })
+                      : t("products.allSuppliers")}
+                  </span>
+                  <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72">
+                <div className="p-1">
+                  <div className="relative">
+                    <Search
+                      className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <Input
+                      value={supplierSearch}
+                      onChange={(event) => setSupplierSearch(event.target.value)}
+                      placeholder={t("products.supplierSearch")}
+                      className="h-9 pl-8"
+                    />
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <div className="max-h-64 overflow-y-auto">
+                {visibleSupplierOptions.length ? visibleSupplierOptions.map((supplier) => {
+                  const checked = activeSupplierIds.includes(supplier.id);
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={supplier.id}
+                      checked={checked}
+                      onCheckedChange={(nextChecked) => {
+                        const nextIds = nextChecked
+                          ? [...activeSupplierIds, supplier.id]
+                          : activeSupplierIds.filter((id) => id !== supplier.id);
+                        updateParams({ supplierIds: nextIds });
+                      }}
+                      onSelect={(event) => event.preventDefault()}
+                    >
+                      <span className="truncate">{supplier.name}</span>
+                    </DropdownMenuCheckboxItem>
+                  );
+                }) : (
+                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                    {t("products.supplierNotFound")}
+                  </div>
+                )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {(activeStatus || supplierId || q) ? (
+          {(activeStatus || activeSupplierIds.length || q) ? (
             <div className="flex flex-wrap items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
                 {t("common.filters")}:
@@ -277,17 +339,21 @@ export function ProductsPage() {
                   </button>
                 </Badge>
               ) : null}
-              {supplierId ? (
-                <Badge variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md">
-                  {supplierOptions.find(s => s.id === supplierId)?.name}
+              {selectedSuppliers.map((supplier) => (
+                <Badge key={supplier.id} variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md">
+                  {supplier.name}
                   <button
-                    onClick={() => updateParams({ supplierId: "" })}
+                    onClick={() =>
+                      updateParams({
+                        supplierIds: activeSupplierIds.filter((id) => id !== supplier.id),
+                      })
+                    }
                     className="rounded-sm p-0.5 hover:bg-muted-foreground/20 transition-colors"
                   >
                     <X className="size-3" />
                   </button>
                 </Badge>
-              ) : null}
+              ))}
               {q ? (
                 <Badge variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md font-mono">
                   "{q}"
@@ -303,14 +369,14 @@ export function ProductsPage() {
                 </Badge>
               ) : null}
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-7 px-2 text-[11px] font-bold uppercase tracking-wider text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                className="h-7 rounded-md border-rose-200 bg-background px-3 text-[12px] font-semibold text-rose-700 shadow-none hover:bg-rose-50 hover:text-rose-800"
                 onClick={() => {
                   setSearchValue("");
                   setProductParams({
                     status: null,
-                    supplierId: "",
+                    supplierIds: "",
                     q: "",
                     sortBy: null,
                     sortDir: null,
@@ -348,12 +414,12 @@ export function ProductsPage() {
             <EmptyState
               title={t("products.emptyTitle")}
               description={
-                q || supplierId || activeStatus
+                q || activeSupplierIds.length || activeStatus
                   ? t("products.emptyFilteredDescription")
                   : t("products.emptyDescription")
               }
               action={
-                q || supplierId || activeStatus ? (
+                q || activeSupplierIds.length || activeStatus ? (
                   <Button
                     type="button"
                     variant="outline"
@@ -361,7 +427,7 @@ export function ProductsPage() {
                       setSearchValue("");
                       setProductParams({
                         status: null,
-                        supplierId: "",
+                        supplierIds: "",
                         q: "",
                         sortBy: null,
                         sortDir: null,

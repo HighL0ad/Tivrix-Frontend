@@ -5,7 +5,7 @@ import type { ProductListResponse, ProductStatus } from "@/entities/products/mod
 
 type UseProductsParams = {
   status?: ProductStatus;
-  supplierId?: string;
+  supplierIds?: string[];
   q?: string;
   sortBy?: "name" | "supplier" | "buy_price" | "deal_price";
   sortDir?: "asc" | "desc";
@@ -15,7 +15,7 @@ type UseProductsParams = {
 
 export function useProducts({
   status,
-  supplierId,
+  supplierIds,
   q,
   sortBy,
   sortDir,
@@ -34,8 +34,8 @@ export function useProducts({
     searchParams.set("q", q);
   }
 
-  if (supplierId) {
-    searchParams.set("supplier_id", supplierId);
+  if (supplierIds?.length) {
+    searchParams.set("supplier_ids", supplierIds.join(","));
   }
 
   if (sortBy) {
@@ -44,7 +44,7 @@ export function useProducts({
   }
 
   return useQuery({
-    queryKey: ["products", { status, supplierId, q, sortBy, sortDir, page, limit }],
+    queryKey: ["products", { status, supplierIds, q, sortBy, sortDir, page, limit }],
     queryFn: () =>
       apiRequest<ProductListResponse>(`/api/products?${searchParams.toString()}`),
     placeholderData: keepPreviousData,
