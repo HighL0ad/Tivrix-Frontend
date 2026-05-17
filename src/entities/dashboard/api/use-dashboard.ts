@@ -29,6 +29,16 @@ export type DashboardPeriod = {
   margin_percent: string;
 };
 
+export type RegistrationAlert = {
+  product_id: number;
+  product_name: string;
+  imei: string;
+  status: "in_stock" | "sold";
+  days_passed: number;
+  days_remaining: number;
+  deadline_date: string;
+};
+
 export type DashboardData = {
   total_money: string;
   stock_value: string;
@@ -84,8 +94,10 @@ export type DashboardData = {
     balance: string;
     active_count: number;
   };
+  registration_alerts: RegistrationAlert[];
   my_wallets: Array<{ id: number; name: string; type: string; balance: string }>;
 };
+
 
 export function useDashboard() {
   return useQuery({

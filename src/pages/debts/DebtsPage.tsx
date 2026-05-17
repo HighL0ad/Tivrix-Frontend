@@ -222,12 +222,8 @@ function PayableRows({
           >
             <div className="flex min-w-0 items-start gap-3">
               <div
-                className={`mt-1.5 size-2.5 shrink-0 rounded-full ${
-                  isOverdue
-                    ? "bg-rose-500 animate-pulse"
-                    : isDueSoon
-                      ? "bg-amber-500"
-                      : "bg-muted-foreground/30"
+                className={`mt-1.5 size-2.5 shrink-0 rounded-full animate-pulse ${
+                  isOverdue ? "bg-rose-500" : "bg-amber-500"
                 }`}
                 aria-hidden="true"
               />
@@ -438,7 +434,7 @@ function WalletRows({
           >
             <div className="flex min-w-0 items-center gap-3">
               <div
-                className={`size-2.5 shrink-0 rounded-full ${dotClass}`}
+                className={`size-2.5 shrink-0 rounded-full animate-pulse ${dotClass}`}
                 aria-hidden="true"
               />
               <div className="min-w-0">

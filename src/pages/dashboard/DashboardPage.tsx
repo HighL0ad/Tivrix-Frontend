@@ -6,7 +6,7 @@ import {
   YAxis,
 } from "recharts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Banknote, Boxes, ChartNoAxesColumnIncreasing, HandCoins, Landmark, Plus, ReceiptText, ShoppingCart, TrendingUp } from "lucide-react";
+import { AlertCircle, Banknote, Boxes, ChartNoAxesColumnIncreasing, ChevronDown, ChevronUp, HandCoins, Landmark, Plus, ReceiptText, ShoppingCart, TrendingUp } from "lucide-react";
 import { NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -20,10 +20,12 @@ import { Money } from "@/shared/ui/money-display";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError } from "@/shared/ui/page-state";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 
 export function DashboardPage() {
   const { t } = useTranslation();
   const [profitPeriod, setProfitPeriod] = useState<"7d" | "30d" | "90d">("7d");
+  const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
   const dashboardQuery = useDashboard();
   const data = dashboardQuery.data;
 
@@ -47,6 +49,8 @@ export function DashboardPage() {
     ),
     profit: selectedProfitPeriod.profit_data[index] ?? 0,
   }));
+
+  const hasExpiredAlerts = data.registration_alerts.some(a => a.days_remaining <= 0);
 
   return (
     <section className="space-y-5">
@@ -107,6 +111,52 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {data.registration_alerts.length > 0 && (
+        <div className="space-y-3">
+          <Alert variant={hasExpiredAlerts ? "destructive" : "warning"} className="block px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <AlertTitle className="mb-0 flex min-w-0 items-center gap-2 font-bold">
+                <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+                <span className="min-w-0">
+                  {data.registration_alerts.length === 1
+                    ? (data.registration_alerts[0].days_remaining <= 0 ? t("dashboard.imeiExpired") : t("dashboard.imeiExpiringSoon", { days: data.registration_alerts[0].days_remaining }))
+                    : t("dashboard.imeiAlertCount", { count: data.registration_alerts.length })}
+                </span>
+              </AlertTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 px-2 text-xs font-bold text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                  onClick={() => setIsAlertsExpanded(!isAlertsExpanded)}
+                >
+                  {isAlertsExpanded ? t("common.hide") : t("common.show")}
+                  {isAlertsExpanded ? <ChevronUp className="ml-1 size-3" /> : <ChevronDown className="ml-1 size-3" />}
+                </Button>
+            </div>
+              {isAlertsExpanded && (
+                <AlertDescription className="mt-3 border-t border-current/10 pt-3">
+                  <div className="space-y-0">
+                    {data.registration_alerts.map((alert) => (
+                      <div key={alert.product_id} className="flex flex-col gap-2 border-b border-current/10 py-3 first:pt-0 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="min-w-0">
+                          <NavLink to={`/products/${alert.product_id}`} className="font-bold underline underline-offset-2 hover:bg-transparent hover:text-amber-950 hover:no-underline">
+                            {alert.product_name}
+                          </NavLink> (IMEI: {alert.imei})
+                        </span>
+                        <span className="shrink-0 text-[10px] font-bold uppercase opacity-80">
+                          {alert.days_remaining <= 0 
+                            ? t("dashboard.expired") 
+                            : t("common.inNDays", { n: alert.days_remaining })} · {shortDate(alert.deadline_date)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </AlertDescription>
+              )}
+          </Alert>
+        </div>
+      )}
 
       <Card>
         <CardContent className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
