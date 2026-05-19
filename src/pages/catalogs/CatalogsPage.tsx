@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Banknote, Building2, CreditCard, Handshake, Landmark, Search, UserRound } from "lucide-react";
+import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -31,13 +32,20 @@ const walletGroups = {
 
 export function CatalogsPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const catalogsQuery = useCatalogs();
   const createWallet = useCreateWallet();
   const currentUser = useCurrentUser().data;
   const [name, setName] = useState("");
   const [walletType, setWalletType] = useState<WalletType>("card");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const [activeTab, setActiveTab] = useState(getCatalogTab(searchParams.get("tab")));
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setSearch(searchParams.get("search") ?? "");
+    setActiveTab(getCatalogTab(searchParams.get("tab")));
+  }, [searchParams]);
 
   if (catalogsQuery.isLoading) {
     return <PageLoading />;
@@ -125,7 +133,7 @@ export function CatalogsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="wallets">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(getCatalogTab(value))}>
             <TabsList className="mb-4">
               <TabsTrigger value="wallets">{t("catalogs.wallets")}</TabsTrigger>
               <TabsTrigger value="clients">{t("catalogs.clients")}</TabsTrigger>
@@ -181,6 +189,13 @@ export function CatalogsPage() {
       </Card>
     </section>
   );
+}
+
+function getCatalogTab(value: string | null) {
+  if (value === "clients" || value === "suppliers" || value === "advanced") {
+    return value;
+  }
+  return "wallets";
 }
 
 function WalletTable({

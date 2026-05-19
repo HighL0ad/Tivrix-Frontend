@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, useRef, useState } from "react";
 import { NavLink, Outlet } from "react-router";
 import {
   Banknote,
@@ -45,6 +45,14 @@ const navItems = [
 ];
 
 const mobileNavLabelClass = "text-[10px] font-medium leading-none";
+const SIDEBAR_WIDTH_STORAGE_KEY = "ferdi.sidebarWidth";
+const DEFAULT_SIDEBAR_WIDTH = 256;
+const MIN_SIDEBAR_WIDTH = 220;
+const MAX_SIDEBAR_WIDTH = 380;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
 
 export function AppLayout() {
   const { t } = useTranslation();
@@ -52,9 +60,45 @@ export function AppLayout() {
   const currentUser = currentUserQuery.data;
   const uploadAvatar = useUploadAvatar();
   const [commandOpen, setCommandOpen] = useState(false);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const storedWidth = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
+    return Number.isFinite(storedWidth)
+      ? clamp(storedWidth, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
+      : DEFAULT_SIDEBAR_WIDTH;
+  });
   const visibleNavItems = navItems.filter((item) => {
     return item.adminOnly ? currentUser?.is_admin : true;
   });
+
+  function updateSidebarWidth(width: number) {
+    const nextWidth = clamp(width, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH);
+    setSidebarWidth(nextWidth);
+    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(nextWidth));
+  }
+
+  function startSidebarResize(event: ReactPointerEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    setIsResizingSidebar(true);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      updateSidebarWidth(moveEvent.clientX);
+    };
+    const stopResize = () => {
+      setIsResizingSidebar(false);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopResize);
+      window.removeEventListener("pointercancel", stopResize);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopResize);
+    window.addEventListener("pointercancel", stopResize);
+  }
 
   async function handleLogout() {
     await logout();
@@ -63,8 +107,11 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed z-40 hidden h-full w-64 flex-col border-r border-white/10 bg-[#0f172a] text-white md:flex">
+    <div
+      className="min-h-screen bg-background text-foreground"
+      style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}
+    >
+      <aside className="fixed z-40 hidden h-full w-[var(--sidebar-width)] flex-col border-r border-white/10 bg-[#0f172a] text-white md:flex">
         <NavLink to="/" className="block border-b border-white/10 px-5 py-5">
           <h1 className="text-xl font-black tracking-tight text-white">
             Ferdi <span className="text-xs font-bold text-slate-300">Telefon</span>
@@ -148,9 +195,27 @@ export function AppLayout() {
             )}
           </div>
         </nav>
+        <button
+          type="button"
+          aria-label={t("app.resizeSidebar")}
+          title={t("app.resizeSidebar")}
+          aria-orientation="vertical"
+          aria-valuemin={MIN_SIDEBAR_WIDTH}
+          aria-valuemax={MAX_SIDEBAR_WIDTH}
+          aria-valuenow={sidebarWidth}
+          className={cn(
+            "absolute right-0 top-0 h-full w-2 translate-x-1/2 cursor-col-resize touch-none rounded-none bg-transparent outline-none transition-colors hover:bg-indigo-400/35 focus-visible:bg-indigo-400/45",
+            isResizingSidebar ? "bg-indigo-400/45" : "",
+          )}
+          onPointerDown={startSidebarResize}
+          onDoubleClick={() => updateSidebarWidth(DEFAULT_SIDEBAR_WIDTH)}
+        />
       </aside>
 
-      <main className="w-full transition-all duration-300 md:pl-64">
+      <main className={cn(
+        "w-full transition-all md:pl-[var(--sidebar-width)]",
+        isResizingSidebar ? "duration-0" : "duration-300",
+      )}>
         <div className="mx-auto max-w-md p-4 pb-24 md:max-w-7xl md:p-6 lg:p-8 md:pb-8">
           <header className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white px-4 py-2.5 shadow-sm md:hidden">
             <NavLink to="/" className="shrink-0 text-lg font-bold text-indigo-700">

@@ -40,6 +40,7 @@ import type {
   ProductListItem,
   ProductStatus,
 } from "@/entities/products/model/types";
+import { registrationOptions } from "@/features/products/product-form/model";
 import { formatProductDate } from "@/features/products/product-display/format";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
 import { RegistrationBadges } from "@/features/products/product-display/RegistrationBadges";
@@ -100,6 +101,14 @@ const statusFilters: Array<{ value: ProductStatus | "all"; labelKey: string }> =
   { value: "reserved", labelKey: "products.status.reserved" },
 ];
 const productStatusValues = ["new", "in_stock", "sold", "reserved", "returned"] as const;
+const registrationStatusValues = [
+  "registered",
+  "unregistered",
+  "no_declaration",
+  "own_property",
+  "credit",
+  "mismatch",
+] as const;
 const productSortFields = ["name", "supplier", "buy_price", "deal_price"] as const;
 const sortDirections = ["asc", "desc"] as const;
 
@@ -107,9 +116,10 @@ export function ProductsPage() {
   const { t } = useTranslation();
   const location = useLocation();
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [{ status, supplierIds, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
+  const [{ status, supplierIds, registrationStatuses, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
     status: parseAsStringLiteral(productStatusValues),
     supplierIds: parseAsString.withDefault(""),
+    registrationStatuses: parseAsString.withDefault(""),
     q: parseAsString.withDefault(""),
     sortBy: parseAsStringLiteral(productSortFields),
     sortDir: parseAsStringLiteral(sortDirections),
@@ -120,12 +130,24 @@ export function ProductsPage() {
     () => supplierIds.split(",").filter(Boolean),
     [supplierIds],
   );
+  const activeRegistrationStatuses = useMemo(
+    () =>
+      registrationStatuses
+        .split(",")
+        .filter((value): value is (typeof registrationStatusValues)[number] =>
+          registrationStatusValues.includes(value as (typeof registrationStatusValues)[number]),
+        ),
+    [registrationStatuses],
+  );
   const [searchValue, setSearchValue] = useState(q);
   const [supplierSearch, setSupplierSearch] = useState("");
   const createOptionsQuery = useProductCreateOptions();
   const productsQuery = useProducts({
     status: activeStatus,
     supplierIds: activeSupplierIds.length ? activeSupplierIds : undefined,
+    registrationStatuses: activeRegistrationStatuses.length
+      ? activeRegistrationStatuses
+      : undefined,
     q,
     sortBy: sortBy ?? undefined,
     sortDir: sortDir ?? undefined,
@@ -158,6 +180,7 @@ export function ProductsPage() {
   function updateParams(next: {
     status?: ProductStatus | "all";
     supplierIds?: string[];
+    registrationStatuses?: string[];
     q?: string;
     sortBy?: (typeof productSortFields)[number] | null;
     sortDir?: (typeof sortDirections)[number] | null;
@@ -174,12 +197,17 @@ export function ProductsPage() {
         next.supplierIds === undefined
           ? supplierIds
           : next.supplierIds.join(","),
+      registrationStatuses:
+        next.registrationStatuses === undefined
+          ? registrationStatuses
+          : next.registrationStatuses.join(","),
       q: next.q === undefined ? q : next.q.trim(),
       sortBy: next.sortBy === undefined ? sortBy : next.sortBy,
       sortDir: next.sortDir === undefined ? sortDir : next.sortDir,
       page:
         next.status !== undefined ||
         next.supplierIds !== undefined ||
+        next.registrationStatuses !== undefined ||
         next.q !== undefined ||
         next.sortBy !== undefined ||
         next.sortDir !== undefined
@@ -263,7 +291,7 @@ export function ProductsPage() {
             ) : null}
           </form>
 
-          <div className="grid gap-2 sm:grid-cols-[minmax(0,260px)_auto]">
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,260px)_minmax(0,260px)_auto]">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -321,9 +349,54 @@ export function ProductsPage() {
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 justify-between rounded-lg border-border bg-background px-3 font-medium shadow-none"
+                >
+                  <span className="truncate">
+                    {activeRegistrationStatuses.length
+                      ? t("products.registrationSelected", {
+                          count: activeRegistrationStatuses.length,
+                        })
+                      : t("products.allRegistrationStatuses")}
+                  </span>
+                  <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72">
+                <div className="max-h-64 overflow-y-auto">
+                  {registrationOptions.map((option) => {
+                    const checked = activeRegistrationStatuses.includes(
+                      option.value as (typeof registrationStatusValues)[number],
+                    );
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={option.value}
+                        checked={checked}
+                        onCheckedChange={(nextChecked) => {
+                          const nextStatuses = nextChecked
+                            ? [...activeRegistrationStatuses, option.value]
+                            : activeRegistrationStatuses.filter(
+                                (statusValue) => statusValue !== option.value,
+                              );
+                          updateParams({ registrationStatuses: nextStatuses });
+                        }}
+                        onSelect={(event) => event.preventDefault()}
+                      >
+                        <span className="truncate">{t(option.labelKey)}</span>
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {(activeStatus || activeSupplierIds.length || q) ? (
+          {(activeStatus || activeSupplierIds.length || activeRegistrationStatuses.length || q) ? (
             <div className="flex flex-wrap items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
                 {t("common.filters")}:
@@ -354,6 +427,28 @@ export function ProductsPage() {
                   </button>
                 </Badge>
               ))}
+              {activeRegistrationStatuses.map((registrationStatus) => {
+                const option = registrationOptions.find(
+                  (item) => item.value === registrationStatus,
+                );
+                return (
+                  <Badge key={registrationStatus} variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md">
+                    {t(option?.labelKey ?? `products.registrationStatus.${registrationStatus}`)}
+                    <button
+                      onClick={() =>
+                        updateParams({
+                          registrationStatuses: activeRegistrationStatuses.filter(
+                            (statusValue) => statusValue !== registrationStatus,
+                          ),
+                        })
+                      }
+                      className="rounded-sm p-0.5 hover:bg-muted-foreground/20 transition-colors"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
               {q ? (
                 <Badge variant="secondary" className="gap-1 pl-2 pr-1 h-7 rounded-md font-mono">
                   "{q}"
@@ -377,6 +472,7 @@ export function ProductsPage() {
                   setProductParams({
                     status: null,
                     supplierIds: "",
+                    registrationStatuses: "",
                     q: "",
                     sortBy: null,
                     sortDir: null,
