@@ -3,6 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/shared/api/http";
 import type { Wallet, WalletType } from "@/entities/finance/api/use-finance";
 
+export type RepaymentOperationType =
+  | "pay_supplier"
+  | "receive_partner"
+  | "receive_client";
+
 export type Payable = {
   id: number;
   category: string;
@@ -58,7 +63,7 @@ export function useRepayDebt() {
       target_wallet_id: number;
       source_wallet_id: number;
       amount: string;
-      operation_type: "pay_supplier" | "receive_client";
+      operation_type: RepaymentOperationType;
       installment_id?: number;
     }) =>
       apiRequest<{ ok: boolean }>("/api/debts/repay", {

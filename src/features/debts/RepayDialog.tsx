@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { useRepayDebt } from "@/entities/debts/api/use-debts";
+import { type RepaymentOperationType, useRepayDebt } from "@/entities/debts/api/use-debts";
 import type { Wallet } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { ResponsiveModal } from "@/shared/ui/app-form";
@@ -19,7 +19,7 @@ export function RepayDialog({
 }: {
   wallet: Wallet;
   myWallets: Wallet[];
-  operationType: "pay_supplier" | "receive_client";
+  operationType: RepaymentOperationType;
   tone?: "bad" | "blue" | "good";
 }) {
   const { t } = useTranslation();

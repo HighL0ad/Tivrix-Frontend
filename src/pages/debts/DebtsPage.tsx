@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 
 import {
+  type RepaymentOperationType,
   type Payable,
   useDebts,
 } from "@/entities/debts/api/use-debts";
@@ -56,7 +57,7 @@ export function DebtsPage() {
       key: "shops" as const,
       title: t("debts.shopsOweUs"),
       wallets: data.shops_owe_us,
-      operationType: "receive_client" as const,
+      operationType: "receive_partner" as const,
     },
     {
       key: "clients" as const,
@@ -361,7 +362,7 @@ function DebtGroupBlock({
   wallets: Wallet[];
   myWallets: Wallet[];
   debtCreatedAt: Record<string, string>;
-  operationType: "pay_supplier" | "receive_client";
+  operationType: RepaymentOperationType;
   tone: DebtTone;
 }) {
   const total = sumWallets(wallets);
@@ -410,7 +411,7 @@ function WalletRows({
   wallets: Wallet[];
   myWallets: Wallet[];
   debtCreatedAt: Record<string, string>;
-  operationType: "pay_supplier" | "receive_client";
+  operationType: RepaymentOperationType;
   tone: DebtTone;
 }) {
   const { t } = useTranslation();
@@ -460,7 +461,9 @@ function WalletRows({
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             {operationType === "pay_supplier"
               ? t("catalogs.suppliersEmptyTitle")
-              : t("catalogs.clientsEmptyTitle")}
+              : operationType === "receive_partner"
+                ? t("catalogs.shopsEmptyTitle")
+                : t("catalogs.clientsEmptyTitle")}
           </div>
         )}
     </div>
