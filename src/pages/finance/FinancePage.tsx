@@ -113,10 +113,14 @@ export function FinancePage() {
   }, [q]);
 
   useEffect(() => {
-    if (debouncedSearch.trim() !== q) {
-      setFinanceParams({ q: debouncedSearch.trim(), page: 1 });
+    const nextQuery = debouncedSearch.trim();
+    if (nextQuery !== search.trim()) {
+      return;
     }
-  }, [debouncedSearch, q, setFinanceParams]);
+    if (nextQuery !== q) {
+      setFinanceParams({ q: nextQuery, page: 1 });
+    }
+  }, [debouncedSearch, q, search, setFinanceParams]);
 
   function setPage(nextPage: number) {
     setFinanceParams({ page: nextPage <= 1 ? 1 : nextPage });

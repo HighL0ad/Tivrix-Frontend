@@ -361,14 +361,18 @@ function useDebouncedValue(value: string, delay: number) {
 }
 
 function getWalletTab(type: string) {
-  const normalizedType = type.toLowerCase().split(".").pop() ?? type.toLowerCase();
+  const rawType = type.toLowerCase().split(".").pop() ?? type.toLowerCase();
+  const normalizedType = {
+    bank_card: "card",
+    partner_shop: "shop",
+  }[rawType] ?? rawType;
   if (["cash", "card", "bank_account"].includes(normalizedType)) {
     return "wallets";
   }
   if (normalizedType === "client_debt") {
     return "clients";
   }
-  if (["debt", "debt_supplier", "shop", "partner", "supplier"].includes(normalizedType)) {
+  if (["debt", "debt_supplier", "shop", "partner_shop", "partner", "supplier"].includes(normalizedType)) {
     return "suppliers";
   }
   return "advanced";

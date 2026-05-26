@@ -221,10 +221,14 @@ export function ProductsPage() {
   }
 
   useEffect(() => {
-    if (debouncedSearchValue.trim() !== q) {
-      setProductParams({ q: debouncedSearchValue.trim(), page: 1 });
+    const nextQuery = debouncedSearchValue.trim();
+    if (nextQuery !== searchValue.trim()) {
+      return;
     }
-  }, [debouncedSearchValue, q, setProductParams]);
+    if (nextQuery !== q) {
+      setProductParams({ q: nextQuery, page: 1 });
+    }
+  }, [debouncedSearchValue, q, searchValue, setProductParams]);
 
   const returnTo = `${location.pathname}${location.search}`;
 
@@ -464,6 +468,7 @@ export function ProductsPage() {
                 className="h-7 rounded-md border-rose-200 bg-background px-3 text-[12px] font-semibold text-rose-700 shadow-none hover:bg-rose-50 hover:text-rose-800"
                 onClick={() => {
                   setSearchValue("");
+                  setSupplierSearch("");
                   setProductParams({
                     status: null,
                     supplierIds: "",
@@ -507,20 +512,22 @@ export function ProductsPage() {
                 <EmptyState
                   title={t("products.emptyTitle")}
                   description={
-                    q || activeSupplierIds.length || activeStatus
+                    q || activeSupplierIds.length || activeRegistrationStatuses.length || activeStatus
                       ? t("products.emptyFilteredDescription")
                       : t("products.emptyDescription")
                   }
                   action={
-                    q || activeSupplierIds.length || activeStatus ? (
+                    q || activeSupplierIds.length || activeRegistrationStatuses.length || activeStatus ? (
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => {
                           setSearchValue("");
+                          setSupplierSearch("");
                           setProductParams({
                             status: null,
                             supplierIds: "",
+                            registrationStatuses: "",
                             q: "",
                             sortBy: null,
                             sortDir: null,
