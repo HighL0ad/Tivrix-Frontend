@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -41,9 +41,17 @@ import type {
   ProductStatus,
 } from "@/entities/products/model/types";
 import { registrationOptions } from "@/features/products/product-form/model";
-import { formatProductDate } from "@/features/products/product-display/format";
+import {
+  formatProductDate,
+  formatProductImei,
+  formatProductSupplier,
+  isLegacyInstallmentProduct,
+} from "@/features/products/product-display/format";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
-import { RegistrationBadges } from "@/features/products/product-display/RegistrationBadges";
+import {
+  LegacyInstallmentBadge,
+  RegistrationBadges,
+} from "@/features/products/product-display/RegistrationBadges";
 import { SellProductDialog } from "@/features/products/sell-product/SellProductDialog";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { queryClient } from "@/shared/api/query-client";
@@ -80,7 +88,6 @@ import {
 } from "@/shared/ui/pagination";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -136,6 +143,7 @@ export function ProductsPage() {
     [registrationStatuses],
   );
   const [searchValue, setSearchValue] = useState(q);
+  const debouncedSearchValue = useDebouncedValue(searchValue, 300);
   const [supplierSearch, setSupplierSearch] = useState("");
   const createOptionsQuery = useProductCreateOptions();
   const productsQuery = useProducts({
@@ -212,12 +220,12 @@ export function ProductsPage() {
     });
   }
 
-  const handleSearch: NonNullable<ComponentProps<"form">["onSubmit"]> = (
-    event,
-  ) => {
-    event.preventDefault();
-    updateParams({ q: searchValue });
-  };
+  useEffect(() => {
+    if (debouncedSearchValue.trim() !== q) {
+      setProductParams({ q: debouncedSearchValue.trim(), page: 1 });
+    }
+  }, [debouncedSearchValue, q, setProductParams]);
+
   const returnTo = `${location.pathname}${location.search}`;
 
   return (
@@ -252,7 +260,7 @@ export function ProductsPage() {
             </TabsList>
           </Tabs>
 
-          <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <div className="relative min-w-0 flex-1">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -265,27 +273,18 @@ export function ProductsPage() {
                 placeholder={t("products.searchPlaceholder")}
               />
             </div>
-            <Button type="submit" className="sm:w-28">{t("common.searchButton")}</Button>
             {q ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={t("common.clearSearch")}
-                    onClick={() => {
-                      setSearchValue("");
-                      updateParams({ q: "" });
-                    }}
-                  >
-                    <X aria-hidden="true" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t("common.clearSearch")}</TooltipContent>
-              </Tooltip>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setSearchValue("");
+                }}
+              >
+                {t("common.reset")}
+              </Button>
             ) : null}
-          </form>
+          </div>
 
           <div className="grid gap-2 sm:grid-cols-[minmax(0,260px)_minmax(0,260px)_auto]">
             <DropdownMenu>
@@ -582,6 +581,7 @@ function ProductsCardList({
     >
       {virtualItems.map((virtualItem) => {
         const product = products[virtualItem.index];
+        const isLegacyInstallment = isLegacyInstallmentProduct(product);
 
         return (
           <div
@@ -603,14 +603,19 @@ function ProductsCardList({
                   <div className="min-w-0">
                     <div className="break-words font-bold text-foreground">{product.name}</div>
                     <div className="mt-1 font-mono text-xs text-muted-foreground">
-                      IMEI: {product.imei}
-                      {product.imei2 ? ` / ${product.imei2}` : ""}
+                      {formatProductImei(product)}
                     </div>
                   </div>
                   <ProductStatusBadge status={product.status} />
                 </div>
 
-                <RegistrationBadges statuses={product.registration_statuses} />
+                {isLegacyInstallment ? (
+                  <div className="mt-2">
+                    <LegacyInstallmentBadge />
+                  </div>
+                ) : (
+                  <RegistrationBadges statuses={product.registration_statuses} />
+                )}
 
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div>
@@ -618,7 +623,7 @@ function ProductsCardList({
                       {t("catalogs.suppliers")}
                     </div>
                     <div className="mt-1 break-words font-semibold">
-                      {product.supplier_name ?? "-"}
+                      {formatProductSupplier(product)}
                     </div>
                   </div>
                   <div className="text-right">
@@ -682,7 +687,13 @@ function ProductsCardList({
                     />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div
+                    className={
+                      isLegacyInstallment
+                        ? "grid gap-2"
+                        : "grid grid-cols-2 gap-2"
+                    }
+                  >
                     <Button
                       type="button"
                       variant="outline"
@@ -694,14 +705,16 @@ function ProductsCardList({
                     >
                       {t("common.details")}
                     </Button>
-                    <Button asChild type="button" variant="outline">
-                      <NavLink
-                        to={`/products/${product.id}/edit`}
-                        state={{ from: returnTo }}
-                      >
-                        {t("common.edit")}
-                      </NavLink>
-                    </Button>
+                    {!isLegacyInstallment ? (
+                      <Button asChild type="button" variant="outline">
+                        <NavLink
+                          to={`/products/${product.id}/edit`}
+                          state={{ from: returnTo }}
+                        >
+                          {t("common.edit")}
+                        </NavLink>
+                      </Button>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -745,10 +758,15 @@ function ProductsTable({
           <TableCellContent>
             <div className="font-medium text-foreground">{row.original.name}</div>
             <div className="mt-1 font-mono text-xs text-muted-foreground">
-              IMEI: {row.original.imei}
-              {row.original.imei2 ? ` / ${row.original.imei2}` : ""}
+              {formatProductImei(row.original)}
             </div>
-            <RegistrationBadges statuses={row.original.registration_statuses} />
+            {isLegacyInstallmentProduct(row.original) ? (
+              <div className="mt-2">
+                <LegacyInstallmentBadge />
+              </div>
+            ) : (
+              <RegistrationBadges statuses={row.original.registration_statuses} />
+            )}
           </TableCellContent>
         ),
       },
@@ -765,7 +783,7 @@ function ProductsTable({
         header: () => t("catalogs.suppliers"),
         cell: ({ row }) => (
           <div className="min-w-48 whitespace-normal text-muted-foreground">
-            {row.original.supplier_name ?? "-"}
+            {formatProductSupplier(row.original)}
           </div>
         ),
       },
@@ -843,11 +861,13 @@ function ProductsTable({
                 {t("common.details")}
               </Button>
             )}
-            <ProductActionsMenu
-              product={row.original}
-              returnTo={returnTo}
-              compact
-            />
+            {!isLegacyInstallmentProduct(row.original) ? (
+              <ProductActionsMenu
+                product={row.original}
+                returnTo={returnTo}
+                compact
+              />
+            ) : null}
           </div>
         ),
       },
@@ -953,6 +973,7 @@ function ProductsTable({
       <div className="grid gap-3 md:hidden">
         {table.getRowModel().rows.map((row) => {
           const prod = row.original;
+          const isLegacyInstallment = isLegacyInstallmentProduct(prod);
           return (
             <div
               key={prod.id}
@@ -972,8 +993,7 @@ function ProductsTable({
                     {prod.name}
                   </div>
                   <div className="text-[11px] font-mono text-muted-foreground mt-1">
-                    IMEI: {prod.imei}
-                    {prod.imei2 ? ` / ${prod.imei2}` : ""}
+                    {formatProductImei(prod)}
                   </div>
                 </div>
                 <div className="shrink-0">
@@ -981,7 +1001,9 @@ function ProductsTable({
                 </div>
               </div>
 
-              {prod.registration_statuses?.length ? (
+              {isLegacyInstallment ? (
+                <LegacyInstallmentBadge />
+              ) : prod.registration_statuses?.length ? (
                 <RegistrationBadges statuses={prod.registration_statuses} />
               ) : null}
 
@@ -1031,7 +1053,7 @@ function ProductsTable({
                     {t("catalogs.suppliers")}
                   </span>
                   <span className="text-muted-foreground font-medium truncate block">
-                    {prod.supplier_name ?? "-"}
+                    {formatProductSupplier(prod)}
                   </span>
                 </div>
               </div>
@@ -1063,11 +1085,13 @@ function ProductsTable({
                     {t("common.details")}
                   </Button>
                 )}
-                <ProductActionsMenu
-                  product={prod}
-                  returnTo={returnTo}
-                  compact
-                />
+                {!isLegacyInstallment ? (
+                  <ProductActionsMenu
+                    product={prod}
+                    returnTo={returnTo}
+                    compact
+                  />
+                ) : null}
               </div>
             </div>
           );
@@ -1215,8 +1239,7 @@ function ProductActionsMenu({
             <AlertDialogDescription>
               {t("products.deleteDescription", { name: product.name })}
               <span className="mt-2 block text-foreground">
-                IMEI: {product.imei}
-                {product.imei2 ? ` / ${product.imei2}` : ""}
+                {formatProductImei(product)}
               </span>
               {product.supplier_name ? (
                 <span className="mt-1 block text-foreground">
@@ -1312,6 +1335,17 @@ function ProductsCardListSkeleton() {
 
 function TableCellContent({ children }: { children: ReactNode }) {
   return <div className="min-w-72">{children}</div>;
+}
+
+function useDebouncedValue(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedValue(value), delay);
+    return () => window.clearTimeout(timeout);
+  }, [delay, value]);
+
+  return debouncedValue;
 }
 
 function SortIcon({ state }: { state: "asc" | "desc" | false }) {

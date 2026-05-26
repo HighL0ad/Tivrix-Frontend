@@ -9,6 +9,7 @@ import {
   Plus,
   Receipt,
   Search,
+  UserRound,
   Users,
   Wallet,
 } from "lucide-react";
@@ -77,8 +78,14 @@ export function CommandMenuDialog({
   const products = globalSearch.data?.products ?? [];
   const transactions = globalSearch.data?.transactions ?? [];
   const wallets = globalSearch.data?.wallets ?? [];
+  const clients = globalSearch.data?.clients ?? [];
+  const users = globalSearch.data?.users ?? [];
   const hasGlobalResults =
-    products.length > 0 || transactions.length > 0 || wallets.length > 0;
+    products.length > 0 ||
+    transactions.length > 0 ||
+    wallets.length > 0 ||
+    clients.length > 0 ||
+    users.length > 0;
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -212,6 +219,67 @@ export function CommandMenuDialog({
                   <div className="truncate font-medium">{wallet.name}</div>
                   <div className="truncate text-xs text-muted-foreground">
                     {[walletTypeLabel(wallet.type), money(wallet.balance)].join(" · ")}
+                  </div>
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        ) : null}
+        {clients.length ? (
+          <CommandGroup heading={t("search.clients")}>
+            {clients.map((client) => (
+              <CommandItem
+                key={client.id}
+                value={[
+                  client.name,
+                  client.phone,
+                  client.backup_phone,
+                  client.total_debt,
+                ].filter(Boolean).join(" ")}
+                onSelect={() =>
+                  runCommand(() =>
+                    navigate(`/clients/${client.id}`, { state: { from: returnTo } })
+                  )
+                }
+              >
+                <UserRound className="mr-2 h-4 w-4" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{client.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {[
+                      client.phone,
+                      client.backup_phone,
+                      Number(client.total_debt) > 0 ? money(client.total_debt) : null,
+                    ].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        ) : null}
+        {users.length ? (
+          <CommandGroup heading={t("search.users")}>
+            {users.map((user) => (
+              <CommandItem
+                key={user.id}
+                value={[
+                  user.username,
+                  user.role,
+                  user.is_active ? "active" : "disabled",
+                ].join(" ")}
+                onSelect={() => runCommand(() => navigate("/users"))}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{user.username}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {[
+                      t(`roles.${user.role}`, { defaultValue: user.role }),
+                      user.is_active ? t("common.active") : t("common.disabled"),
+                      user.last_login_at
+                        ? `${t("users.lastLogin")}: ${shortDate(user.last_login_at)}`
+                        : null,
+                    ].filter(Boolean).join(" · ")}
                   </div>
                 </div>
               </CommandItem>

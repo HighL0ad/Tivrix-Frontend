@@ -22,10 +22,14 @@ import type { ProductDetail } from "@/entities/products/model/types";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { DetailItem } from "@/features/products/product-display/DetailItem";
 import {
+  formatProductImei,
   formatProductDate,
+  formatProductSupplier,
   getRegistrationLabel,
+  isLegacyInstallmentProduct,
 } from "@/features/products/product-display/format";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
+import { LegacyInstallmentBadge } from "@/features/products/product-display/RegistrationBadges";
 import { SaleCard } from "@/features/products/product-display/SaleCard";
 import { SellProductDialog } from "@/features/products/sell-product/SellProductDialog";
 import {
@@ -84,6 +88,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
   const [activeImage, setActiveImage] = useState(product.images[0]?.image_path ?? null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const sale = currentProduct.current_sale;
+  const isLegacyInstallment = isLegacyInstallmentProduct(currentProduct);
   const undoSaleMutation = useUndoProductSale(currentProduct.id);
   const deleteProductMutation = useDeleteProduct(currentProduct.id);
   const registrationLabel = useMemo(
@@ -168,9 +173,9 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                   status={currentProduct.status}
                   soldAt={sale?.sold_at}
                 />
+                {isLegacyInstallment ? <LegacyInstallmentBadge /> : null}
                 <span className="font-mono text-sm text-muted-foreground">
-                  IMEI: {currentProduct.imei}
-                  {currentProduct.imei2 ? ` / ${currentProduct.imei2}` : ""}
+                  {formatProductImei(currentProduct)}
                 </span>
               </div>
             </div>
@@ -179,7 +184,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
               <DetailItem
                 icon={<Store aria-hidden="true" />}
                 label={t("catalogs.suppliers")}
-                value={currentProduct.supplier_name ?? "-"}
+                value={formatProductSupplier(currentProduct)}
               />
               <DetailItem
                 icon={<BadgeDollarSign aria-hidden="true" />}
@@ -217,7 +222,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                   onSold={setCurrentProduct}
                 />
               ) : null}
-              {currentProduct.status === "sold" ? (
+              {currentProduct.status === "sold" && !isLegacyInstallment ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button type="button" variant="outline">
@@ -254,50 +259,54 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                   </AlertDialogContent>
                 </AlertDialog>
               ) : null}
-              <Button asChild variant="outline">
-                <NavLink
-                  to={`/products/${currentProduct.id}/edit`}
-                  state={{ from: currentPath, productReturnTo: productsHref }}
-                >
-                  <Edit aria-hidden="true" />
-                  {t("common.edit")}
-                </NavLink>
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="ghost" className="text-destructive">
-                    <Trash2 aria-hidden="true" />
-                    {t("products.deleteAction")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("products.deleteTitle")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t("products.deleteWarning")}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive/10 text-destructive hover:bg-destructive/20"
-                      onClick={() =>
-                        deleteProductMutation.mutate(undefined, {
-                          onSuccess: () => {
-                            toast.warning(t("products.deleted"));
-                            navigate(productsHref, { replace: true });
-                          },
-                          onError: (error) => {
-                            toast.error(getApiErrorMessage(error));
-                          },
-                        })
-                      }
+              {!isLegacyInstallment ? (
+                <>
+                  <Button asChild variant="outline">
+                    <NavLink
+                      to={`/products/${currentProduct.id}/edit`}
+                      state={{ from: currentPath, productReturnTo: productsHref }}
                     >
-                      {t("common.delete")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      <Edit aria-hidden="true" />
+                      {t("common.edit")}
+                    </NavLink>
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button type="button" variant="ghost" className="text-destructive">
+                        <Trash2 aria-hidden="true" />
+                        {t("products.deleteAction")}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t("products.deleteTitle")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t("products.deleteWarning")}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive/10 text-destructive hover:bg-destructive/20"
+                          onClick={() =>
+                            deleteProductMutation.mutate(undefined, {
+                              onSuccess: () => {
+                                toast.warning(t("products.deleted"));
+                                navigate(productsHref, { replace: true });
+                              },
+                              onError: (error) => {
+                                toast.error(getApiErrorMessage(error));
+                              },
+                            })
+                          }
+                        >
+                          {t("common.delete")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              ) : null}
             </div>
           </div>
         </div>

@@ -78,3 +78,17 @@ export function RegistrationBadges({ statuses }: { statuses: string[] }) {
     </div>
   );
 }
+
+export function LegacyInstallmentBadge() {
+  const { t } = useTranslation();
+
+  return (
+    <Badge
+      variant="outline"
+      className="gap-1.5 border-sky-200 bg-sky-50 text-sky-700"
+    >
+      <CreditCard className="size-3.5" aria-hidden="true" />
+      {t("products.legacyInstallmentBadge")}
+    </Badge>
+  );
+}

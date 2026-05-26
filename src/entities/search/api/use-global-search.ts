@@ -31,10 +31,28 @@ export type GlobalSearchWallet = {
   balance: string;
 };
 
+export type GlobalSearchClient = {
+  id: number;
+  name: string;
+  phone: string | null;
+  backup_phone: string | null;
+  total_debt: string;
+};
+
+export type GlobalSearchUser = {
+  id: number;
+  username: string;
+  role: string;
+  is_active: boolean;
+  last_login_at: string | null;
+};
+
 export type GlobalSearchResponse = {
   products: GlobalSearchProduct[];
   transactions: GlobalSearchTransaction[];
   wallets: GlobalSearchWallet[];
+  clients: GlobalSearchClient[];
+  users: GlobalSearchUser[];
 };
 
 export function useGlobalSearch(query: string) {

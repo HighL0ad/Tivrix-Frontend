@@ -78,6 +78,7 @@ export function FinancePage() {
     expensesPage: parseAsInteger.withDefault(1),
   }, { scroll: false });
   const [search, setSearch] = useState(q);
+  const debouncedSearch = useDebouncedValue(search, 300);
   const currentUser = useCurrentUser().data;
   const operationPermissions = currentUser?.operation_permissions;
   const canViewHistory = Boolean(operationPermissions?.can_view_finance_history);
@@ -110,6 +111,12 @@ export function FinancePage() {
   useEffect(() => {
     setSearch(q);
   }, [q]);
+
+  useEffect(() => {
+    if (debouncedSearch.trim() !== q) {
+      setFinanceParams({ q: debouncedSearch.trim(), page: 1 });
+    }
+  }, [debouncedSearch, q, setFinanceParams]);
 
   function setPage(nextPage: number) {
     setFinanceParams({ page: nextPage <= 1 ? 1 : nextPage });
@@ -200,9 +207,7 @@ export function FinancePage() {
             search={search}
             setSearch={setSearch}
             currentQuery={q}
-            updateFinanceParams={updateFinanceParams}
             data={data}
-            page={page}
             setPage={setPage}
             isFetching={financeQuery.isFetching}
             onUndo={(transactionId) =>
@@ -275,9 +280,7 @@ function HistoryCard({
   search,
   setSearch,
   currentQuery,
-  updateFinanceParams,
   data,
-  page,
   setPage,
   isFetching,
   onUndo,
@@ -289,13 +292,7 @@ function HistoryCard({
   search: string;
   setSearch: (value: string) => void;
   currentQuery: string;
-  updateFinanceParams: (next: {
-    q?: string;
-    page?: number;
-    tab?: (typeof financeTabValues)[number];
-  }) => void;
   data: NonNullable<ReturnType<typeof useFinance>["data"]>;
-  page: number;
   setPage: (page: number) => void;
   isFetching: boolean;
   onUndo: (transactionId: number) => void;
@@ -439,13 +436,7 @@ function HistoryCard({
     <Card>
       <CardHeader className="gap-3">
         <CardTitle>{t("finance.historyShort")}</CardTitle>
-        <form
-          className="flex flex-col gap-2 sm:flex-row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            updateFinanceParams({ q: search });
-          }}
-        >
+        <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
             <Input
@@ -455,20 +446,18 @@ function HistoryCard({
               placeholder={t("finance.searchTransactions")}
             />
           </div>
-          <Button type="submit">{t("common.searchButton")}</Button>
           {currentQuery ? (
             <Button
               type="button"
               variant="outline"
               onClick={() => {
                 setSearch("");
-                updateFinanceParams({ q: "" });
               }}
             >
               {t("common.reset")}
             </Button>
           ) : null}
-        </form>
+        </div>
       </CardHeader>
       <CardContent>
         <div className={isFetching ? "opacity-60 transition-opacity duration-200" : "transition-opacity duration-200"}>
@@ -1231,6 +1220,17 @@ function formatForecastMonth(value: string) {
   const [year, month] = value.split("-");
   if (!year || !month) return value;
   return `${month}.${year.slice(-2)}`;
+}
+
+function useDebouncedValue(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedValue(value), delay);
+    return () => window.clearTimeout(timeout);
+  }, [delay, value]);
+
+  return debouncedValue;
 }
 
 function InlineMetric({ title, value }: { title: string; value: string }) {
