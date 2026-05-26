@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AlertCircle, Banknote, Boxes, ChartNoAxesColumnIncreasing, ChevronDown, ChevronUp, HandCoins, Landmark, Plus, ReceiptText, ShoppingCart, TrendingUp } from "lucide-react";
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { useDashboard } from "@/entities/dashboard/api/use-dashboard";
@@ -24,10 +24,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 
 export function DashboardPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [profitPeriod, setProfitPeriod] = useState<"7d" | "30d" | "90d">("7d");
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
+  const [isInstallmentAlertsExpanded, setIsInstallmentAlertsExpanded] = useState(false);
+  const [isCreditSystemExpanded, setIsCreditSystemExpanded] = useState(false);
   const dashboardQuery = useDashboard();
   const data = dashboardQuery.data;
+  const returnTo = `${location.pathname}${location.search}`;
 
   if (dashboardQuery.isLoading) {
     return <DashboardSkeleton />;
@@ -51,6 +55,13 @@ export function DashboardPage() {
   }));
 
   const hasExpiredAlerts = data.registration_alerts.some(a => a.days_remaining <= 0);
+  const hasOverdueInstallments = data.installment_alerts.some(
+    (alert) => alert.alert_type === "overdue",
+  );
+  const installmentAlertTotal = data.installment_alerts.reduce(
+    (total, alert) => total + Number(alert.remaining_amount),
+    0,
+  );
 
   return (
     <section className="space-y-5">
@@ -92,13 +103,13 @@ export function DashboardPage() {
               </div>
               <div className="mt-2 space-y-0.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-[10px] font-black uppercase text-gray-400 w-12 shrink-0">{t("dashboard.toUs", { amount: "" })}</span>
+                  <span className="text-xs font-black uppercase text-gray-500 w-14 shrink-0">{t("dashboard.toUs", { amount: "" })}</span>
                   <span className="text-base font-black text-emerald-700 leading-tight">
                     <Money value={data.they_owe} />
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-[10px] font-black uppercase text-gray-400 w-12 shrink-0">{t("dashboard.fromUs", { amount: "" })}</span>
+                  <span className="text-xs font-black uppercase text-gray-500 w-14 shrink-0">{t("dashboard.fromUs", { amount: "" })}</span>
                   <span className="text-base font-black text-rose-700 leading-tight">
                     <Money value={data.we_owe} />
                   </span>
@@ -111,6 +122,70 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2 text-base font-bold">
+            <Landmark className="size-4 text-sky-700" aria-hidden="true" />
+            {t("dashboard.creditSystem")}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs font-bold"
+            onClick={() => setIsCreditSystemExpanded(!isCreditSystemExpanded)}
+          >
+            {isCreditSystemExpanded ? t("common.hide") : t("common.show")}
+            {isCreditSystemExpanded ? (
+              <ChevronUp className="ml-1 size-3" />
+            ) : (
+              <ChevronDown className="ml-1 size-3" />
+            )}
+          </Button>
+        </div>
+        {isCreditSystemExpanded ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <MetricCard
+              title={t("dashboard.mainCash")}
+              value={<Money value={data.main_cash_balance ?? data.total_money} />}
+              hint={t("dashboard.mainCashHint")}
+              tone="info"
+              icon={<Banknote className="size-4" />}
+            />
+            <MetricCard
+              title={t("dashboard.creditCash")}
+              value={<Money value={data.credit_cash_balance ?? 0} />}
+              hint={t("dashboard.creditCashHint")}
+              tone="good"
+              icon={<HandCoins className="size-4" />}
+            />
+            <MetricCard
+              title={t("dashboard.internalDebt")}
+              value={<Money value={data.internal_credit_debt ?? 0} />}
+              hint={t("dashboard.internalDebtHint")}
+              tone="warning"
+              icon={<Landmark className="size-4" />}
+            />
+            <MetricCard
+              title={t("dashboard.netCreditProfit")}
+              value={<Money value={data.net_credit_profit ?? 0} />}
+              hint={t("dashboard.netCreditProfitHint")}
+              tone="violet"
+              icon={<TrendingUp className="size-4" />}
+            />
+            <MetricCard
+              title={t("dashboard.activeCreditsTotal")}
+              value={<Money value={data.active_credits_total ?? 0} />}
+              hint={t("dashboard.activeCreditsTotalHint")}
+              tone="info"
+              icon={<ShoppingCart className="size-4" />}
+            />
+          </div>
+        ) : null}
+      </section>
+
+
 
       {data.registration_alerts.length > 0 && (
         <div className="space-y-3">
@@ -141,7 +216,11 @@ export function DashboardPage() {
                       <div key={alert.product_id} className="flex flex-col gap-2 border-b border-current/10 py-3 first:pt-0 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                         <span className="min-w-0 space-y-1">
                           <span className="block">
-                            <NavLink to={`/products/${alert.product_id}`} className="font-bold underline underline-offset-2 hover:bg-transparent hover:text-amber-950 hover:no-underline">
+                            <NavLink
+                              to={`/products/${alert.product_id}`}
+                              state={{ from: returnTo }}
+                              className="font-bold underline underline-offset-2 hover:bg-transparent hover:text-amber-950 hover:no-underline"
+                            >
                               {alert.product_name}
                             </NavLink> (IMEI: {alert.imei})
                           </span>
@@ -159,6 +238,78 @@ export function DashboardPage() {
                   </div>
                 </AlertDescription>
               )}
+          </Alert>
+        </div>
+      )}
+
+      {data.installment_alerts.length > 0 && (
+        <div className="space-y-3">
+          <Alert variant={hasOverdueInstallments ? "destructive" : "warning"} className="block px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <AlertTitle className="mb-0 flex min-w-0 items-center gap-2 font-bold">
+                <HandCoins className="size-4 shrink-0" aria-hidden="true" />
+                <span className="min-w-0">
+                  {hasOverdueInstallments
+                    ? t("dashboard.installmentOverdueAlert", {
+                        count: data.installment_alerts.length,
+                        amount: money(installmentAlertTotal),
+                      })
+                    : t("dashboard.installmentDueTodayAlert", {
+                        count: data.installment_alerts.length,
+                        amount: money(installmentAlertTotal),
+                      })}
+                </span>
+              </AlertTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs font-bold text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                onClick={() =>
+                  setIsInstallmentAlertsExpanded(!isInstallmentAlertsExpanded)
+                }
+              >
+                {isInstallmentAlertsExpanded ? t("common.hide") : t("common.show")}
+                {isInstallmentAlertsExpanded ? <ChevronUp className="ml-1 size-3" /> : <ChevronDown className="ml-1 size-3" />}
+              </Button>
+            </div>
+            {isInstallmentAlertsExpanded && (
+              <AlertDescription className="mt-3 border-t border-current/10 pt-3">
+                <div className="space-y-0">
+                  {data.installment_alerts.map((alert) => (
+                    <div key={alert.id} className="flex flex-col gap-2 border-b border-current/10 py-3 first:pt-0 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="min-w-0 space-y-1">
+                        <span className="block">
+                          <NavLink
+                            to={`/clients/${alert.client_id}`}
+                            state={{ from: returnTo }}
+                            className="font-bold underline underline-offset-2 hover:bg-transparent hover:no-underline"
+                          >
+                            {alert.client_name}
+                          </NavLink>
+                          {alert.client_phone ? ` · ${alert.client_phone}` : ""}
+                        </span>
+                        {alert.product_id && alert.product_name ? (
+                          <NavLink
+                            to={`/products/${alert.product_id}`}
+                            state={{ from: returnTo }}
+                            className="block text-[11px] font-semibold underline underline-offset-2 opacity-75 hover:no-underline"
+                          >
+                            {alert.product_name}
+                          </NavLink>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 text-[10px] font-bold uppercase opacity-80">
+                        {alert.alert_type === "overdue"
+                          ? t("dashboard.installmentOverdueDays", {
+                              days: alert.days_overdue,
+                            })
+                          : t("dashboard.installmentDueToday")} · {money(alert.remaining_amount)} · {shortDate(alert.due_date)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </AlertDescription>
+            )}
           </Alert>
         </div>
       )}
@@ -457,11 +608,11 @@ function ColorMetric({
   return (
     <div className={`rounded-lg border p-3 flex flex-col ${className}`}>
       <div className="flex items-start justify-between gap-3 min-h-[34px]">
-        <div className="text-[11px] font-bold uppercase tracking-wide flex-1">{title}</div>
+        <div className="text-xs font-bold uppercase tracking-wide flex-1">{title}</div>
         <div className="shrink-0 pt-0.5 opacity-60">{icon}</div>
       </div>
       <div className="mt-2 text-lg font-black leading-none">{value}</div>
-      <div className="mt-1.5 text-[11px] opacity-80 font-medium truncate">{hint}</div>
+      <div className="mt-1.5 text-xs opacity-80 font-medium truncate">{hint}</div>
     </div>
   );
 }

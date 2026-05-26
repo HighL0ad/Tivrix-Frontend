@@ -76,11 +76,7 @@ import { Money } from "@/shared/ui/money-display";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
+  PaginationBar,
 } from "@/shared/ui/pagination";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -124,7 +120,7 @@ export function ProductsPage() {
     sortBy: parseAsStringLiteral(productSortFields),
     sortDir: parseAsStringLiteral(sortDirections),
     page: parseAsInteger.withDefault(1),
-  });
+  }, { scroll: false });
   const activeStatus = status ?? undefined;
   const activeSupplierIds = useMemo(
     () => supplierIds.split(",").filter(Boolean),
@@ -159,7 +155,7 @@ export function ProductsPage() {
       id: supplier.id,
       name: supplier.name,
     })) ?? [],
-    [createOptionsQuery.data?.supplier_wallet_options, t],
+    [createOptionsQuery.data?.supplier_wallet_options],
   );
   const selectedSuppliers = useMemo(
     () => supplierOptions.filter((supplier) => activeSupplierIds.includes(supplier.id)),
@@ -487,87 +483,76 @@ export function ProductsPage() {
         </CardHeader>
 
         <CardContent>
-          {productsQuery.isLoading ? (
+          {productsQuery.isPending && !productsQuery.data ? (
             isDesktop ? <ProductsTableSkeleton /> : <ProductsCardListSkeleton />
-          ) : products && products.items.length > 0 ? (
-            isDesktop ? (
-              <ProductsTable
-                products={products.items}
-                returnTo={returnTo}
-                sortBy={sortBy ?? null}
-                sortDir={sortDir ?? null}
-                onSortChange={(nextSortBy, nextSortDir) =>
-                  updateParams({ sortBy: nextSortBy, sortDir: nextSortDir })
-                }
-              />
-            ) : (
-              <ProductsCardList
-                products={products.items}
-                returnTo={returnTo}
-              />
-            )
           ) : (
-            <EmptyState
-              title={t("products.emptyTitle")}
-              description={
-                q || activeSupplierIds.length || activeStatus
-                  ? t("products.emptyFilteredDescription")
-                  : t("products.emptyDescription")
-              }
-              action={
-                q || activeSupplierIds.length || activeStatus ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setSearchValue("");
-                      setProductParams({
-                        status: null,
-                        supplierIds: "",
-                        q: "",
-                        sortBy: null,
-                        sortDir: null,
-                        page: 1,
-                      });
-                    }}
-                  >
-                    {t("common.resetFilters")}
-                  </Button>
+            <div className={productsQuery.isFetching ? "opacity-60 transition-opacity duration-200" : "transition-opacity duration-200"}>
+              {products && products.items.length > 0 ? (
+                isDesktop ? (
+                  <ProductsTable
+                    products={products.items}
+                    returnTo={returnTo}
+                    sortBy={sortBy ?? null}
+                    sortDir={sortDir ?? null}
+                    onSortChange={(nextSortBy, nextSortDir) =>
+                      updateParams({ sortBy: nextSortBy, sortDir: nextSortDir })
+                    }
+                  />
                 ) : (
-                  <Button asChild>
-                    <NavLink to="/products/new">
-                      <Plus aria-hidden="true" />
-                      {t("products.addFirst")}
-                    </NavLink>
-                  </Button>
+                  <ProductsCardList
+                    products={products.items}
+                    returnTo={returnTo}
+                  />
                 )
-              }
-            />
-          )}
+              ) : (
+                <EmptyState
+                  title={t("products.emptyTitle")}
+                  description={
+                    q || activeSupplierIds.length || activeStatus
+                      ? t("products.emptyFilteredDescription")
+                      : t("products.emptyDescription")
+                  }
+                  action={
+                    q || activeSupplierIds.length || activeStatus ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setSearchValue("");
+                          setProductParams({
+                            status: null,
+                            supplierIds: "",
+                            q: "",
+                            sortBy: null,
+                            sortDir: null,
+                            page: 1,
+                          });
+                        }}
+                      >
+                        {t("common.resetFilters")}
+                      </Button>
+                    ) : (
+                      <Button asChild>
+                        <NavLink to="/products/new">
+                          <Plus aria-hidden="true" />
+                          {t("products.addFirst")}
+                        </NavLink>
+                      </Button>
+                    )
+                  }
+                />
+              )}
 
-          {products ? (
-            <div className="mt-4 flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <span className="shrink-0 whitespace-nowrap">
-                {t("common.pageOf", { page: products.page, total: products.total_pages })}
-              </span>
-              <Pagination className="shrink-0">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      disabled={products.page <= 1}
-                      onClick={() => updateParams({ page: products.page - 1 })}
-                    />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext
-                      disabled={products.page >= products.total_pages}
-                      onClick={() => updateParams({ page: products.page + 1 })}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              {products ? (
+                <PaginationBar
+                  page={products.page}
+                  totalPages={products.total_pages}
+                  total={products.total}
+                  onPageChange={(nextPage) => updateParams({ page: nextPage })}
+                />
+              ) : null}
             </div>
-          ) : null}
+          )}
         </CardContent>
       </Card>
     </section>
@@ -890,78 +875,205 @@ function ProductsTable({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder ? null : header.column.id === "actions" ? (
-                  flexRender(header.column.columnDef.header, header.getContext())
-                ) : !header.column.getCanSort() ? (
-                  flexRender(header.column.columnDef.header, header.getContext())
-                ) : (
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 font-bold"
-                    disabled={!header.column.getCanSort()}
-                    onClick={() =>
-                      header.column.getCanSort()
-                        ? handleSort(header.column.id as (typeof productSortFields)[number])
-                        : undefined
-                    }
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    <SortIcon
-                      state={
-                        sortBy === header.column.id
-                          ? sortDir ?? false
-                          : false
+    <>
+      <Table className="hidden md:table">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder ? null : header.column.id === "actions" ? (
+                    flexRender(header.column.columnDef.header, header.getContext())
+                  ) : !header.column.getCanSort() ? (
+                    flexRender(header.column.columnDef.header, header.getContext())
+                  ) : (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 font-bold"
+                      disabled={!header.column.getCanSort()}
+                      onClick={() =>
+                        header.column.getCanSort()
+                          ? handleSort(header.column.id as (typeof productSortFields)[number])
+                          : undefined
                       }
-                    />
-                  </button>
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow
-            key={row.original.id}
-            role="link"
-            tabIndex={0}
-            className="cursor-pointer"
-            onClick={(event) => {
-              if (eventStartedInInteractiveElement(event.nativeEvent)) {
-                return;
-              }
-              navigate(`/products/${row.original.id}`, {
-                state: { from: returnTo },
-              });
-            }}
-            onKeyDown={(event) => {
-              if (eventStartedInInteractiveElement(event.nativeEvent)) {
-                return;
-              }
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      <SortIcon
+                        state={
+                          sortBy === header.column.id
+                            ? sortDir ?? false
+                            : false
+                        }
+                      />
+                    </button>
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.original.id}
+              role="link"
+              tabIndex={0}
+              className="cursor-pointer"
+              onClick={(event) => {
+                if (eventStartedInInteractiveElement(event.nativeEvent)) {
+                  return;
+                }
                 navigate(`/products/${row.original.id}`, {
                   state: { from: returnTo },
                 });
-              }
-            }}
-          >
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              }}
+              onKeyDown={(event) => {
+                if (eventStartedInInteractiveElement(event.nativeEvent)) {
+                  return;
+                }
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  navigate(`/products/${row.original.id}`, {
+                    state: { from: returnTo },
+                  });
+                }
+              }}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* Mobile Product Card List */}
+      <div className="grid gap-3 md:hidden">
+        {table.getRowModel().rows.map((row) => {
+          const prod = row.original;
+          return (
+            <div
+              key={prod.id}
+              className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3 cursor-pointer"
+              onClick={(event) => {
+                if (eventStartedInInteractiveElement(event.nativeEvent)) {
+                  return;
+                }
+                navigate(`/products/${prod.id}`, {
+                  state: { from: returnTo },
+                });
+              }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-semibold text-foreground text-sm leading-snug">
+                    {prod.name}
+                  </div>
+                  <div className="text-[11px] font-mono text-muted-foreground mt-1">
+                    IMEI: {prod.imei}
+                    {prod.imei2 ? ` / ${prod.imei2}` : ""}
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <ProductStatusBadge status={prod.status} />
+                </div>
+              </div>
+
+              {prod.registration_statuses?.length ? (
+                <RegistrationBadges statuses={prod.registration_statuses} />
+              ) : null}
+
+              <div className="grid grid-cols-2 gap-2 border-y border-border/50 py-2.5 text-xs">
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                    {t("sell.purchase")}
+                  </span>
+                  <span className="font-medium text-foreground">
+                    <Money value={prod.buy_price} />
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                    {prod.current_sale ? t("products.deal") : t("finance.date")}
+                  </span>
+                  {prod.current_sale ? (
+                    <div>
+                      <div className="font-medium text-foreground">
+                        <Money value={prod.current_sale.total_price} />
+                      </div>
+                      <div>
+                        <Money
+                          value={prod.current_sale.profit}
+                          signed
+                          colored
+                          className="text-[11px]"
+                        />
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        {t("products.soldWithColon", {
+                          date: formatProductDate(prod.current_sale.sold_at),
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="font-medium text-foreground">
+                      {formatProductDate(prod.created_at)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 text-xs">
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                    {t("catalogs.suppliers")}
+                  </span>
+                  <span className="text-muted-foreground font-medium truncate block">
+                    {prod.supplier_name ?? "-"}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="flex items-center justify-end gap-2 border-t border-border/50 pt-3"
+                onClick={(event) => event.stopPropagation()}
+              >
+                {prod.status === "in_stock" ? (
+                  <SellProductByIdDialog
+                    productId={prod.id}
+                    trigger={
+                      <Button type="button" size="sm">
+                        {t("sell.sell")}
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      navigate(`/products/${prod.id}`, {
+                        state: { from: returnTo },
+                      })
+                    }
+                  >
+                    {t("common.details")}
+                  </Button>
+                )}
+                <ProductActionsMenu
+                  product={prod}
+                  returnTo={returnTo}
+                  compact
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -1021,9 +1133,9 @@ function ProductActionsMenu({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const deleteProduct = useDeleteProduct(product.id);
 
-  async function copyImei() {
-    await navigator.clipboard.writeText(product.imei);
-    toast.success(t("products.imeiCopied"));
+  async function copyImei(value: string) {
+    await navigator.clipboard.writeText(value);
+    toast.info(t("products.imeiCopied"));
   }
 
   return (
@@ -1062,10 +1174,29 @@ function ProductActionsMenu({
             <Edit aria-hidden="true" />
             {t("common.edit")}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={copyImei}>
-            <Copy aria-hidden="true" />
-            {t("products.copyImei")}
-          </DropdownMenuItem>
+          {product.imei2 ? (
+            <>
+              <DropdownMenuItem onSelect={() => copyImei(product.imei)}>
+                <Copy aria-hidden="true" />
+                {t("products.copyImeiNumber", { number: 1 })}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => copyImei(product.imei2 || "")}>
+                <Copy aria-hidden="true" />
+                {t("products.copyImeiNumber", { number: 2 })}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => copyImei([product.imei, product.imei2].join("\n"))}
+              >
+                <Copy aria-hidden="true" />
+                {t("debts.copyAllImeis")}
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem onSelect={() => copyImei(product.imei)}>
+              <Copy aria-hidden="true" />
+              {t("products.copyImei")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
@@ -1107,7 +1238,7 @@ function ProductActionsMenu({
                     queryClient.invalidateQueries({ queryKey: ["products"] });
                     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
                     queryClient.invalidateQueries({ queryKey: ["finance"] });
-                    toast.success(t("products.deleted"));
+                    toast.warning(t("products.deleted"));
                   },
                   onError: (error) => toast.error(getApiErrorMessage(error)),
                 })

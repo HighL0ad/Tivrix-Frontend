@@ -52,7 +52,7 @@ export function SellProductDialog({
   const createWalletMutation = useCreateDebtWallet();
   const [saleType, setSaleType] = useState<"client" | "shop">("client");
   const [saleMode, setSaleMode] = useState<
-    "full_payment" | "partial_debt" | "full_debt"
+    "full_payment" | "partial_debt" | "installment"
   >("full_payment");
   const [totalPrice, setTotalPrice] = useState("");
   const [paymentWalletId, setPaymentWalletId] = useState("");
@@ -60,7 +60,9 @@ export function SellProductDialog({
   const [splitPaymentAmount, setSplitPaymentAmount] = useState("");
   const [splitPaymentWalletId, setSplitPaymentWalletId] = useState("");
   const [paidNowAmount, setPaidNowAmount] = useState("");
-  const [clientDebtWalletId, setClientDebtWalletId] = useState("");
+  const [installmentMonths, setInstallmentMonths] = useState("");
+  const [installmentPaymentDay, setInstallmentPaymentDay] = useState("");
+  const [clientDebtWalletId] = useState("");
   const [registrationFeeEnabled, setRegistrationFeeEnabled] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("");
   const [shopWalletId, setShopWalletId] = useState("");
@@ -70,17 +72,22 @@ export function SellProductDialog({
   const [shopSplitPaymentEnabled, setShopSplitPaymentEnabled] = useState(false);
   const [shopSplitPaymentAmount, setShopSplitPaymentAmount] = useState("");
   const [shopSplitPaymentWalletId, setShopSplitPaymentWalletId] = useState("");
+  const [shopDebtDueDate, setShopDebtDueDate] = useState("");
+  const [clientId, setClientId] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [source, setSource] = useState("none");
   const [proofPhoto, setProofPhoto] = useState<File | null>(null);
-  const [newDebtName, setNewDebtName] = useState("");
-  const [newShopName, setNewShopName] = useState("");
+  const [installmentTotalPrice, setInstallmentTotalPrice] = useState("");
 
   const error =
     sellMutation.error instanceof ApiError
       ? getErrorMessage(sellMutation.error.payload)
       : null;
+  const finalContractPrice =
+    saleType === "client" && saleMode === "installment"
+      ? (installmentTotalPrice || totalPrice)
+      : totalPrice;
   const paidNowTotal = saleMode === "full_payment" ? totalPrice : paidNowAmount;
   const registrationFee = registrationFeeEnabled
     ? toNumber(registrationFeeAmount)
@@ -90,36 +97,59 @@ export function SellProductDialog({
       (shopPrepaymentEnabled ? toNumber(shopPrepaymentAmount) : 0),
     0,
   );
+  const hasNewClientDraft = Boolean(clientName.trim() || clientPhone.trim());
   const netProfit = toNumber(totalPrice) - toNumber(product.buy_price) - registrationFee;
-  const isSubmitDisabled = sellMutation.isPending || optionsQuery.isLoading;
+  const isSubmitDisabled =
+    sellMutation.isPending ||
+    optionsQuery.isLoading ||
+    (saleType === "shop" && shopDebt > 0 && !shopDebtDueDate);
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (
     event,
   ) => {
     event.preventDefault();
 
+    // When "С задатком" is selected with 0 upfront → treat as full_debt for backend
+    const effectiveSaleMode: ProductSellPayload["sale_mode"] =
+      saleMode === "partial_debt" && !paidNowAmount
+        ? "full_debt"
+        : saleMode;
+
+    const finalTotalPrice =
+      saleType === "client" && effectiveSaleMode === "installment"
+        ? (installmentTotalPrice || totalPrice)
+        : totalPrice;
+
     const payload: ProductSellPayload = {
       sale_type: saleType,
-      sale_mode: saleType === "shop" ? "full_payment" : saleMode,
-      total_price: totalPrice,
-      client_name: clientName || undefined,
-      client_phone: clientPhone || undefined,
+      sale_mode: saleType === "shop" ? "full_payment" : effectiveSaleMode,
+      total_price: finalTotalPrice,
       source,
     };
 
     if (saleType === "client") {
-      if (saleMode !== "full_debt") {
+      payload.client_id = toOptionalNumber(clientId);
+      if (!clientId) {
+        payload.client_name = clientName || undefined;
+        payload.client_phone = clientPhone || undefined;
+      }
+      if (effectiveSaleMode !== "full_debt") {
         payload.payment_wallet_id = toOptionalNumber(paymentWalletId);
       }
-      if (saleMode !== "full_debt" && splitPaymentEnabled) {
+      if (effectiveSaleMode !== "full_debt" && splitPaymentEnabled) {
         payload.split_payment_enabled = true;
         payload.split_payment_amount = splitPaymentAmount;
         payload.split_payment_wallet_id = toOptionalNumber(splitPaymentWalletId);
       }
-      if (saleMode === "partial_debt") {
+      if ((saleMode === "partial_debt" || saleMode === "installment") && paidNowAmount) {
         payload.paid_now_amount = paidNowAmount;
       }
-      if (saleMode !== "full_payment") {
+      if (effectiveSaleMode === "installment") {
+        payload.installment_months = toOptionalNumber(installmentMonths);
+        payload.installment_payment_day = toOptionalNumber(installmentPaymentDay);
+        payload.cash_price = totalPrice || undefined;
+      }
+      if (effectiveSaleMode !== "full_payment") {
         payload.client_debt_wallet_id = toOptionalNumber(clientDebtWalletId);
       }
       if (registrationFeeEnabled) {
@@ -141,6 +171,9 @@ export function SellProductDialog({
             shopSplitPaymentWalletId,
           );
         }
+      }
+      if (shopDebt > 0) {
+        payload.shop_debt_due_date = shopDebtDueDate;
       }
     }
 
@@ -175,7 +208,7 @@ export function SellProductDialog({
         <div className="grid w-full gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
           <DealSummary
             saleType={saleType}
-            totalPrice={totalPrice}
+            totalPrice={finalContractPrice}
             paidNowTotal={paidNowTotal}
             shopDebt={shopDebt}
             registrationFee={registrationFee}
@@ -238,17 +271,14 @@ export function SellProductDialog({
                 shopWalletId={shopWalletId}
                 setShopWalletId={setShopWalletId}
                 shopOptions={optionsQuery.data?.sale_shop_partner_options ?? []}
-                newShopName={newShopName}
-                setNewShopName={setNewShopName}
-                onCreateShop={() => {
-                  const name = newShopName.trim();
+                onCreateShop={(query) => {
+                  const name = query.trim();
                   if (!name) return;
                   createWalletMutation.mutate(
                     { name, wallet_type: "shop" },
                     {
                       onSuccess: (wallet) => {
                         setShopWalletId(String(wallet.id));
-                        setNewShopName("");
                         optionsQuery.refetch();
                         toast.success(t("sell.shopCreated"));
                       },
@@ -259,35 +289,69 @@ export function SellProductDialog({
               />
             ) : null}
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <AppFormField label={t("sell.buyerContact")}>
-              <Input
-                id="client-name"
-                value={clientName}
-                onChange={(event) => setClientName(event.target.value)}
-                placeholder={t("sell.customerOrShopName")}
+          {saleType === "client" ? (
+            <>
+              <SelectField
+                label={t("sell.existingBuyer")}
+                value={clientId}
+                onValueChange={(value) => {
+                  setClientId(value);
+                  if (value) {
+                    setClientName("");
+                    setClientPhone("");
+                  }
+                }}
+                options={optionsQuery.data?.sale_client_options ?? []}
+                placeholder={t("sell.selectClient")}
+                className="h-11"
+                disabled={hasNewClientDraft}
+                clearable
               />
-            </AppFormField>
-            <AppFormField label={t("products.phone")}>
-              <Input
-                id="client-phone"
-                value={clientPhone}
-                onChange={(event) => setClientPhone(event.target.value)}
-              />
-            </AppFormField>
-          </div>
 
-          <SelectField
-            label={t("sell.customerSource")}
-            value={source}
-            onValueChange={setSource}
-            options={optionsQuery.data?.sale_source_options ?? []}
-            placeholder={t("products.notSpecified")}
-            className="h-11"
-          />
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  <span>{t("sell.orNewBuyer")}</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <AppFormField label={t("sell.newBuyerName")}>
+                    <Input
+                      id="client-name"
+                      value={clientName}
+                      onChange={(event) => setClientName(event.target.value)}
+                      placeholder={t("sell.newBuyerNamePlaceholder")}
+                      disabled={Boolean(clientId)}
+                    />
+                  </AppFormField>
+                  <AppFormField label={t("sell.newBuyerPhone")}>
+                    <Input
+                      id="client-phone"
+                      value={clientPhone}
+                      onChange={(event) => setClientPhone(event.target.value)}
+                      placeholder={t("sell.newBuyerPhonePlaceholder")}
+                      disabled={Boolean(clientId)}
+                    />
+                  </AppFormField>
+                </div>
+              </div>
+
+              <SelectField
+                label={t("sell.customerSource")}
+                value={source}
+                onValueChange={setSource}
+                options={optionsQuery.data?.sale_source_options ?? []}
+                placeholder={t("products.notSpecified")}
+                className="h-11"
+              />
+            </>
+          ) : null}
           </AppSection>
 
-          <AppSection title={t("sell.payment")} description={t("sell.paymentQuestion")}>
+          <AppSection
+            title={t("sell.payment")}
+            description={saleType === "client" ? t("sell.paymentQuestion") : undefined}
+          >
             <AppFormField
               label={t("sell.totalPrice")}
               helper={t("sell.totalPriceHelper", {
@@ -339,6 +403,9 @@ export function SellProductDialog({
                 setShopSplitPaymentAmount={setShopSplitPaymentAmount}
                 shopSplitPaymentWalletId={shopSplitPaymentWalletId}
                 setShopSplitPaymentWalletId={setShopSplitPaymentWalletId}
+                shopDebtDueDate={shopDebtDueDate}
+                setShopDebtDueDate={setShopDebtDueDate}
+                shopDebt={shopDebt}
                 walletOptions={optionsQuery.data?.sale_wallet_options ?? []}
               />
             )}
@@ -350,27 +417,13 @@ export function SellProductDialog({
                 saleMode={saleMode}
                 paidNowAmount={paidNowAmount}
                 setPaidNowAmount={setPaidNowAmount}
-                clientDebtWalletId={clientDebtWalletId}
-                setClientDebtWalletId={setClientDebtWalletId}
-                debtOptions={optionsQuery.data?.sale_client_debt_options ?? []}
-                newDebtName={newDebtName}
-                setNewDebtName={setNewDebtName}
-                onCreateDebt={() => {
-                  const name = newDebtName.trim();
-                  if (!name) return;
-                  createWalletMutation.mutate(
-                    { name, wallet_type: "client_debt" },
-                    {
-                      onSuccess: (wallet) => {
-                        setClientDebtWalletId(String(wallet.id));
-                        setNewDebtName("");
-                        optionsQuery.refetch();
-                        toast.success(t("sell.clientCreated"));
-                      },
-                      onError: (error) => toast.error(getApiErrorMessage(error)),
-                    },
-                  );
-                }}
+                installmentTotalPrice={installmentTotalPrice}
+                setInstallmentTotalPrice={setInstallmentTotalPrice}
+                installmentMonths={installmentMonths}
+                setInstallmentMonths={setInstallmentMonths}
+                installmentPaymentDay={installmentPaymentDay}
+                setInstallmentPaymentDay={setInstallmentPaymentDay}
+                clientSelected={Boolean(clientId || clientDebtWalletId || clientName.trim())}
                 registrationFeeAvailable={
                   optionsQuery.data?.registration_fee_available ?? false
                 }
@@ -382,6 +435,11 @@ export function SellProductDialog({
             ) : (
               <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
                 {t("sell.shopDebtAuto")}
+                {shopDebt > 0 && shopDebtDueDate ? (
+                  <span className="mt-1 block font-medium text-foreground">
+                    {t("sell.shopDebtDueDate")}: {shopDebtDueDate}
+                  </span>
+                ) : null}
               </div>
             )}
           </AppSection>

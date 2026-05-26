@@ -1,10 +1,10 @@
 import { Checkbox } from "@/shared/ui/checkbox";
 import { AppFormField } from "@/shared/ui/app-form";
+import { DatePicker } from "@/shared/ui/date-picker";
 import { Input } from "@/shared/ui/input";
 import { useTranslation } from "react-i18next";
 import type { ProductOption } from "@/entities/products/model/types";
 import {
-  InlineCreate,
   SelectField,
   SplitPaymentFields,
 } from "@/features/products/sell-product/SellFormControls";
@@ -13,16 +13,12 @@ export function ShopBuyerFields({
   shopWalletId,
   setShopWalletId,
   shopOptions,
-  newShopName,
-  setNewShopName,
   onCreateShop,
 }: {
   shopWalletId: string;
   setShopWalletId: (value: string) => void;
   shopOptions: ProductOption[];
-  newShopName: string;
-  setNewShopName: (value: string) => void;
-  onCreateShop: () => void;
+  onCreateShop: (name: string) => void;
 }) {
   const { t } = useTranslation();
 
@@ -35,12 +31,7 @@ export function ShopBuyerFields({
         options={shopOptions}
         placeholder={t("sell.selectPartner")}
         className="h-11"
-      />
-      <InlineCreate
-        value={newShopName}
-        onChange={setNewShopName}
-        onCreate={onCreateShop}
-        placeholder={t("sell.newPartner")}
+        onCreateNew={onCreateShop}
       />
     </div>
   );
@@ -59,6 +50,9 @@ export function ShopPaymentFields({
   setShopSplitPaymentAmount,
   shopSplitPaymentWalletId,
   setShopSplitPaymentWalletId,
+  shopDebtDueDate,
+  setShopDebtDueDate,
+  shopDebt,
   walletOptions,
 }: {
   shopPrepaymentEnabled: boolean;
@@ -73,6 +67,9 @@ export function ShopPaymentFields({
   setShopSplitPaymentAmount: (value: string) => void;
   shopSplitPaymentWalletId: string;
   setShopSplitPaymentWalletId: (value: string) => void;
+  shopDebtDueDate: string;
+  setShopDebtDueDate: (value: string) => void;
+  shopDebt: number;
   walletOptions: ProductOption[];
 }) {
   const { t } = useTranslation();
@@ -129,6 +126,20 @@ export function ShopPaymentFields({
             title={t("sell.splitPrepayment")}
           />
         </>
+      ) : null}
+
+      {shopDebt > 0 ? (
+        <AppFormField
+          label={t("sell.shopDebtDueDate")}
+          helper={t("sell.shopDebtDueDateHelper")}
+        >
+          <DatePicker
+            value={shopDebtDueDate}
+            onChange={setShopDebtDueDate}
+            placeholder={t("common.selectDate")}
+            className="h-11 w-full"
+          />
+        </AppFormField>
       ) : null}
     </div>
   );

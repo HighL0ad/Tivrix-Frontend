@@ -24,5 +24,25 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("lucide-react")) return "vendor-icons";
+          if (id.includes("react-hook-form") || id.includes("@hookform")) return "vendor-form";
+          if (
+            id.includes("/node_modules/react/") ||
+            id.includes("/node_modules/react-dom/") ||
+            id.includes("/node_modules/scheduler/")
+          ) {
+            return "vendor-react";
+          }
+          if (id.includes("@tanstack") || id.includes("nuqs")) return "vendor-data";
+          if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
+          if (id.includes("i18next") || id.includes("date-fns")) return "vendor-utils";
+          return "vendor";
+        },
+      },
+    },
   },
 });

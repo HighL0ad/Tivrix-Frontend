@@ -24,7 +24,6 @@ import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { SearchableSelect } from "@/shared/ui/searchable-select";
 import {
   Field,
-  InlineCreate,
   RegistrationCheckboxGroup,
 } from "@/features/products/product-form/FormPrimitives";
 import { getProductFormErrorMessage, productStatusOptions } from "@/features/products/product-form/model";
@@ -48,7 +47,6 @@ export function ProductEditPage() {
   const [imei2, setImei2] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
   const [supplierId, setSupplierId] = useState("");
-  const [newSupplierName, setNewSupplierName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [registrationStatuses, setRegistrationStatuses] = useState<string[]>([]);
   const [status, setStatus] = useState("in_stock");
@@ -81,9 +79,12 @@ export function ProductEditPage() {
       : null;
   const error = productError ?? salePriceError;
 
-  const productsHref =
-    (location.state as { from?: string } | null)?.from ?? "/products";
-  const hasReturnState = Boolean((location.state as { from?: string } | null)?.from);
+  const locationState = location.state as {
+    from?: string;
+    productReturnTo?: string;
+  } | null;
+  const backHref = locationState?.from ?? `/products/${productId}`;
+  const productReturnHref = locationState?.productReturnTo ?? locationState?.from ?? "/products";
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (event) => {
     event.preventDefault();
@@ -117,12 +118,17 @@ export function ProductEditPage() {
           toast.success(t("products.updated"));
           navigate(`/products/${updatedProduct.id}`, {
             replace: true,
-            state: { from: productsHref },
+            state: { from: productReturnHref },
           });
           return;
         }
 
-        updateSalePrice.mutate(salePrice.trim(), {
+        updateSalePrice.mutate(
+          {
+            total_price: salePrice.trim(),
+            cash_price: product.current_sale?.cash_price,
+          },
+          {
           onSuccess: (updatedWithSalePrice) => {
             queryClient.invalidateQueries({ queryKey: ["products"] });
             queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -130,11 +136,12 @@ export function ProductEditPage() {
             toast.success(t("products.updatedWithSalePrice"));
             navigate(`/products/${updatedWithSalePrice.id}`, {
               replace: true,
-              state: { from: productsHref },
+              state: { from: productReturnHref },
             });
           },
           onError: (error) => toast.error(getApiErrorMessage(error)),
-        });
+          },
+        );
       },
       onError: (error) =>
         toast.error(getApiErrorMessage(error, t("products.updateError"))),
@@ -149,24 +156,19 @@ export function ProductEditPage() {
     return <PageError message={t("products.notFound")} />;
   }
 
-  const saleProfit = Number(salePrice || 0) - Number(buyPrice || 0);
+  const saleProfit =
+    Number(product.current_sale?.cash_price ?? (salePrice || 0)) -
+    Number(buyPrice || 0);
   const isSaving = updateProduct.isPending || updateSalePrice.isPending;
 
   return (
     <section className="mx-auto max-w-6xl space-y-5">
-      <BackActionButton
-        onClick={() => {
-          if (hasReturnState) {
-            navigate(-1);
-            return;
-          }
-          navigate(`/products/${product.id}`);
-        }}
-      />
-
       <PageHeader
         title={t("products.editTitle")}
         description={`${product.name} · IMEI ${product.imei}`}
+        backButton={
+          <BackActionButton onClick={() => navigate(backHref)} />
+        }
       />
 
       <Card>
@@ -226,28 +228,19 @@ export function ProductEditPage() {
                   options={optionsQuery.data.supplier_wallet_options}
                   placeholder={product.supplier_name ?? t("products.selectSupplier")}
                   searchPlaceholder={t("products.supplierSearch")}
-                />
-                <InlineCreate
-                  value={newSupplierName}
-                  onChange={setNewSupplierName}
-                  onCreate={() => {
-                    const name = newSupplierName.trim();
-                    if (!name) return;
+                  onCreateNew={(name) => {
                     createWallet.mutate(
                       { name, wallet_type: "debt" },
                       {
-                      onSuccess: (wallet) => {
-                        setSupplierId(String(wallet.id));
-                        setNewSupplierName("");
-                        optionsQuery.refetch();
-                        toast.success(t("catalogs.supplierCreated"));
+                        onSuccess: (wallet) => {
+                          setSupplierId(String(wallet.id));
+                          optionsQuery.refetch();
+                          toast.success(t("catalogs.supplierCreated"));
+                        },
+                        onError: (error) => toast.error(getApiErrorMessage(error)),
                       },
-                      onError: (error) => toast.error(getApiErrorMessage(error)),
-                    },
-                  );
+                    );
                   }}
-                  placeholder={t("debts.newSupplier")}
-                  disabled={createWallet.isPending}
                 />
               </Field>
             </div>
@@ -255,7 +248,13 @@ export function ProductEditPage() {
             {product.current_sale ? (
               <AppFormField label={t("products.sale")}>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label={t("products.salePrice")}>
+                  <Field
+                    label={
+                      product.current_sale.sale_mode === "installment"
+                        ? t("sell.installmentTotalPrice")
+                        : t("products.salePrice")
+                    }
+                  >
                     <Input
                       value={salePrice}
                       onChange={(event) => setSalePrice(event.target.value)}

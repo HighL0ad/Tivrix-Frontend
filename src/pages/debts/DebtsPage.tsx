@@ -479,5 +479,5 @@ type DebtTone = "good" | "bad" | "blue";
 
 async function copyImei(value: string, t: (key: string) => string) {
   await navigator.clipboard.writeText(value);
-  toast.success(t("products.imeiCopied"));
+  toast.info(t("products.imeiCopied"));
 }

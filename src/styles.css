@@ -80,6 +80,7 @@ body {
   min-height: 100vh;
   margin: 0;
   text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
 }
 
 button,

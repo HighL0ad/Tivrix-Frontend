@@ -17,6 +17,7 @@ export type Transaction = {
   to_wallet_name: string | null;
   can_undo: boolean;
   can_undo_sale: boolean;
+  can_undo_purchase: boolean;
   hide_undo_action: boolean;
   undo_disabled_reason: string | null;
 };
@@ -38,6 +39,22 @@ export type RegistrationAlert = {
   days_passed: number;
   days_remaining: number;
   deadline_date: string;
+};
+
+export type InstallmentAlert = {
+  id: number;
+  client_id: number;
+  client_name: string;
+  client_phone: string | null;
+  sale_id: number;
+  product_id: number | null;
+  product_name: string | null;
+  due_date: string;
+  amount: string;
+  paid_amount: string;
+  remaining_amount: string;
+  days_overdue: number;
+  alert_type: "due_today" | "overdue";
 };
 
 export type DashboardData = {
@@ -96,7 +113,13 @@ export type DashboardData = {
     active_count: number;
   };
   registration_alerts: RegistrationAlert[];
+  installment_alerts: InstallmentAlert[];
   my_wallets: Array<{ id: number; name: string; type: string; balance: string }>;
+  main_cash_balance?: string;
+  credit_cash_balance?: string;
+  internal_credit_debt?: string;
+  net_credit_profit?: string;
+  active_credits_total?: string;
 };
 
 

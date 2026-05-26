@@ -49,6 +49,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { PageHeader } from "@/shared/ui/page-header";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { toast } from "sonner";
 
@@ -100,18 +101,16 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
 
   const productsHref =
     (location.state as { from?: string } | null)?.from ?? "/products";
-  const hasReturnState = Boolean((location.state as { from?: string } | null)?.from);
+  const currentPath = `${location.pathname}${location.search}`;
 
   return (
-    <section className="space-y-4">
-      <BackActionButton
-        onClick={() => {
-          if (hasReturnState) {
-            navigate(-1);
-            return;
-          }
-          navigate(productsHref);
-        }}
+    <section className="space-y-5">
+      <PageHeader
+        title={currentProduct.name}
+        description={t("products.details")}
+        backButton={
+          <BackActionButton onClick={() => navigate(productsHref)} />
+        }
       />
 
       <Card className="overflow-hidden p-0">
@@ -164,22 +163,15 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
 
           <div className="flex min-h-full flex-col p-6">
             <div className="border-b pb-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    {currentProduct.name}
-                  </h2>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <ProductStatusBadge
-                      status={currentProduct.status}
-                      soldAt={sale?.sold_at}
-                    />
-                    <span className="font-mono text-sm text-muted-foreground">
-                      IMEI: {currentProduct.imei}
-                      {currentProduct.imei2 ? ` / ${currentProduct.imei2}` : ""}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <ProductStatusBadge
+                  status={currentProduct.status}
+                  soldAt={sale?.sold_at}
+                />
+                <span className="font-mono text-sm text-muted-foreground">
+                  IMEI: {currentProduct.imei}
+                  {currentProduct.imei2 ? ` / ${currentProduct.imei2}` : ""}
+                </span>
               </div>
             </div>
 
@@ -248,7 +240,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                           undoSaleMutation.mutate(undefined, {
                             onSuccess: (nextProduct) => {
                               setCurrentProduct(nextProduct);
-                              toast.success(t("products.saleUndone"));
+                              toast.warning(t("products.saleUndone"));
                             },
                             onError: (error) => {
                               toast.error(getApiErrorMessage(error));
@@ -265,7 +257,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
               <Button asChild variant="outline">
                 <NavLink
                   to={`/products/${currentProduct.id}/edit`}
-                  state={{ from: productsHref }}
+                  state={{ from: currentPath, productReturnTo: productsHref }}
                 >
                   <Edit aria-hidden="true" />
                   {t("common.edit")}
@@ -292,7 +284,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                       onClick={() =>
                         deleteProductMutation.mutate(undefined, {
                           onSuccess: () => {
-                            toast.success(t("products.deleted"));
+                            toast.warning(t("products.deleted"));
                             navigate(productsHref, { replace: true });
                           },
                           onError: (error) => {

@@ -3,6 +3,7 @@ export type AppResourceKey =
   | "products"
   | "finance"
   | "debts"
+  | "clients"
   | "catalogs";
 
 export type UserRole = "super_admin" | "admin" | "user";

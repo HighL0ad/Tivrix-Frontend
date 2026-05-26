@@ -12,7 +12,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { useGlobalSearch } from "@/entities/search/api/use-global-search";
@@ -67,6 +67,8 @@ export function CommandMenuDialog({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = `${location.pathname}${location.search}`;
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const normalizedSearch = search.trim();
@@ -129,7 +131,11 @@ export function CommandMenuDialog({
                   product.supplier_name,
                   product.status,
                 ].filter(Boolean).join(" ")}
-                onSelect={() => runCommand(() => navigate(`/products/${product.id}`))}
+                onSelect={() =>
+                  runCommand(() =>
+                    navigate(`/products/${product.id}`, { state: { from: returnTo } })
+                  )
+                }
               >
                 <Boxes className="mr-2 h-4 w-4" />
                 <div className="min-w-0 flex-1">

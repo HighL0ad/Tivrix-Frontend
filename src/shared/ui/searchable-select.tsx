@@ -14,6 +14,8 @@ type SearchableSelectProps = {
   emptyMessage?: string
   disabled?: boolean
   className?: string
+  onCreateNew?: (query: string) => void
+  createNewFormat?: string
 }
 
 function SearchableSelect({
@@ -25,6 +27,8 @@ function SearchableSelect({
   emptyMessage,
   disabled = false,
   className,
+  onCreateNew,
+  createNewFormat,
 }: SearchableSelectProps) {
   return (
     <AppCombobox
@@ -36,6 +40,8 @@ function SearchableSelect({
       emptyMessage={emptyMessage}
       disabled={disabled}
       className={className}
+      onCreateNew={onCreateNew}
+      createNewFormat={createNewFormat}
     />
   )
 }

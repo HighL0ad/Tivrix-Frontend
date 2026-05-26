@@ -43,7 +43,6 @@ export function MoneyFlowDialog({
   const [targetId, setTargetId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [newCounterpartyName, setNewCounterpartyName] = useState("");
   const [createdCounterparty, setCreatedCounterparty] = useState<Wallet | null>(null);
   const pending = mode === "lend" ? lend.isPending : borrow.isPending;
   const formId = `money-flow-${mode}`;
@@ -55,14 +54,9 @@ export function MoneyFlowDialog({
     mode === "lend" && createdCounterparty
       ? mergeWallets(targetWallets, createdCounterparty)
       : targetWallets;
-  const counterpartyLabel = mode === "lend" ? t("debts.newClient") : t("debts.newSupplier");
   const counterpartyWalletType = mode === "lend" ? "client_debt" : "debt";
-  const counterpartyPending = createWallet.isPending;
 
-  function handleCreateCounterparty() {
-    const name = newCounterpartyName.trim();
-    if (!name) return;
-
+  function handleCreateCounterparty(name: string) {
     createWallet.mutate(
       { name, wallet_type: counterpartyWalletType },
       {
@@ -73,7 +67,6 @@ export function MoneyFlowDialog({
           } else {
             setSourceId(String(wallet.id));
           }
-          setNewCounterpartyName("");
           toast.success(mode === "lend" ? t("debts.clientAdded") : t("debts.supplierAdded"));
         },
         onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -139,31 +132,15 @@ export function MoneyFlowDialog({
             value={sourceId}
             onChange={setSourceId}
             wallets={sourceOptions}
+            onCreateNew={mode === "borrow" ? handleCreateCounterparty : undefined}
           />
-          {mode === "borrow" ? (
-            <InlineCreate
-              value={newCounterpartyName}
-              onChange={setNewCounterpartyName}
-              onCreate={handleCreateCounterparty}
-              placeholder={counterpartyLabel}
-              disabled={counterpartyPending}
-            />
-          ) : null}
           <WalletSelect
             label={mode === "lend" ? t("debts.lendTo") : t("debts.target")}
             value={targetId}
             onChange={setTargetId}
             wallets={targetOptions}
+            onCreateNew={mode === "lend" ? handleCreateCounterparty : undefined}
           />
-          {mode === "lend" ? (
-            <InlineCreate
-              value={newCounterpartyName}
-              onChange={setNewCounterpartyName}
-              onCreate={handleCreateCounterparty}
-              placeholder={counterpartyLabel}
-              disabled={counterpartyPending}
-            />
-          ) : null}
           <FormField label={t("debts.amount")}>
             <div className="relative">
               <Input
@@ -196,41 +173,6 @@ export function MoneyFlowDialog({
   );
 }
 
-function InlineCreate({
-  value,
-  onChange,
-  onCreate,
-  placeholder,
-  disabled = false,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  onCreate: () => void;
-  placeholder: string;
-  disabled?: boolean;
-}) {
-  const { t } = useTranslation();
-
-  return (
-    <div className="flex items-start gap-2">
-      <Input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="h-11 bg-card !text-base font-medium leading-5 placeholder:!text-base placeholder:font-medium placeholder:text-muted-foreground"
-      />
-      <Button
-        type="button"
-        variant="outline"
-        className="h-11 px-4 !text-base font-medium"
-        onClick={onCreate}
-        disabled={disabled || !value.trim()}
-      >
-        <span className="text-base font-medium leading-5">{t("common.create")}</span>
-      </Button>
-    </div>
-  );
-}
 
 function mergeWallets(wallets: Wallet[], wallet: Wallet) {
   return wallets.some((current) => current.id === wallet.id)

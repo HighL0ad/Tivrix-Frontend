@@ -59,6 +59,7 @@ export function useRepayDebt() {
       source_wallet_id: number;
       amount: string;
       operation_type: "pay_supplier" | "receive_client";
+      installment_id?: number;
     }) =>
       apiRequest<{ ok: boolean }>("/api/debts/repay", {
         method: "POST",

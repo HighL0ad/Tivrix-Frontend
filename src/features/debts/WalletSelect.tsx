@@ -8,11 +8,15 @@ export function WalletSelect({
   value,
   onChange,
   wallets,
+  onCreateNew,
+  createNewFormat,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   wallets: Wallet[];
+  onCreateNew?: (query: string) => void;
+  createNewFormat?: string;
 }) {
   return (
     <FormField label={label}>
@@ -24,6 +28,8 @@ export function WalletSelect({
           id: String(wallet.id),
           name: `${wallet.name} (${money(wallet.balance)})`,
         }))}
+        onCreateNew={onCreateNew}
+        createNewFormat={createNewFormat}
       />
     </FormField>
   );

@@ -14,11 +14,12 @@ export type WalletType =
   | "cash"
   | "card"
   | "bank_account"
+  | "credit_cash"
   | "employee"
   | "debt"
   | "client_debt"
-  | "shop"
-  | "market";
+  | "internal_credit_debt"
+  | "shop";
 
 export type FinanceData = {
   total_profit: string;
@@ -44,6 +45,7 @@ export type FinanceData = {
   today: FinancePeriodSummary;
   week: FinancePeriodSummary;
   month: FinancePeriodSummary;
+  attention: FinanceAttentionSummary;
 };
 
 export type FinancePeriodSummary = {
@@ -51,6 +53,36 @@ export type FinancePeriodSummary = {
   expenses: string;
   profit: string;
   operations_count: number;
+};
+
+export type FinanceAttentionSummary = {
+  installment_due_today_amount: string;
+  installment_due_today_count: number;
+  installment_overdue_amount: string;
+  installment_overdue_count: number;
+  installment_next_7d_amount: string;
+  installment_next_7d_count: number;
+  installment_next_30d_amount: string;
+  installment_next_30d_count: number;
+  shop_overdue_amount: string;
+  shop_overdue_count: number;
+  registration_alert_count: number;
+  active_installment_clients_count: number;
+  upcoming_installments: Array<{
+    id: number;
+    client_id: number;
+    client_name: string;
+    product_id: number | null;
+    product_name: string | null;
+    due_date: string;
+    remaining_amount: string;
+    days_until_due: number;
+  }>;
+  monthly_forecast: Array<{
+    month: string;
+    amount: string;
+    count: number;
+  }>;
 };
 
 export type ProfitData = {
@@ -78,6 +110,10 @@ export type ProfitData = {
     source: string | null;
     sold_at: string | null;
   }>;
+  recent_sales_page: number;
+  recent_sales_limit: number;
+  recent_sales_total: number;
+  recent_sales_total_pages: number;
   source_stats: Array<{ source: string | null; label: string; count: number; profit: string }>;
   has_custom_period: boolean;
 };
@@ -99,6 +135,10 @@ export type ExpensesData = {
     created_at: string | null;
   }>;
   total: string;
+  page: number;
+  limit: number;
+  total_count: number;
+  total_pages: number;
 };
 
 export function useFinance(params: { q?: string; page: number }) {
@@ -117,34 +157,44 @@ export function useFinance(params: { q?: string; page: number }) {
 export function useProfit(params?: {
   date_from?: string;
   date_to?: string;
+  page?: number;
+  limit?: number;
   enabled?: boolean;
 }) {
   const searchParams = new URLSearchParams();
   if (params?.date_from) searchParams.set("date_from", params.date_from);
   if (params?.date_to) searchParams.set("date_to", params.date_to);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
   const queryString = searchParams.toString();
   return useQuery({
     queryKey: ["finance", "profit", params],
     queryFn: () =>
       apiRequest<ProfitData>(`/api/finance/profit${queryString ? `?${queryString}` : ""}`),
     enabled: params?.enabled ?? true,
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useExpenses(params?: {
   date_from?: string;
   date_to?: string;
+  page?: number;
+  limit?: number;
   enabled?: boolean;
 }) {
   const searchParams = new URLSearchParams();
   if (params?.date_from) searchParams.set("date_from", params.date_from);
   if (params?.date_to) searchParams.set("date_to", params.date_to);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
   const queryString = searchParams.toString();
   return useQuery({
     queryKey: ["finance", "expenses", params],
     queryFn: () =>
       apiRequest<ExpensesData>(`/api/finance/expenses${queryString ? `?${queryString}` : ""}`),
     enabled: params?.enabled ?? true,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -168,6 +218,22 @@ export function useUndoSaleTransaction() {
   return useMutation({
     mutationFn: (transactionId: number) =>
       apiRequest<{ ok: boolean }>(`/api/finance/transactions/${transactionId}/undo-sale`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["finance"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+export function useUndoPurchaseTransaction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (transactionId: number) =>
+      apiRequest<{ ok: boolean }>(`/api/finance/transactions/${transactionId}/undo-purchase`, {
         method: "POST",
       }),
     onSuccess: () => {

@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Banknote, Building2, CreditCard, Handshake, Landmark, Search, UserRound } from "lucide-react";
+import { Banknote, Building2, CreditCard, Handshake, Landmark, Pencil, Search, Tags, Trash2, UserRound, X } from "lucide-react";
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
-import { useCatalogs, useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
+import {
+  type ClientSource,
+  useCatalogs,
+  useCreateClientSource,
+  useCreateWallet,
+  useDeleteClientSource,
+  useUpdateClientSource,
+} from "@/entities/catalogs/api/use-catalogs";
 import type { WalletType } from "@/entities/finance/api/use-finance";
 import { DeleteWalletButton } from "@/features/catalogs/DeleteWalletButton";
 import { WalletEditDialog } from "@/features/catalogs/WalletEditDialog";
@@ -35,9 +42,10 @@ export function CatalogsPage() {
   const [searchParams] = useSearchParams();
   const catalogsQuery = useCatalogs();
   const createWallet = useCreateWallet();
+  const createClientSource = useCreateClientSource();
   const currentUser = useCurrentUser().data;
   const [name, setName] = useState("");
-  const [walletType, setWalletType] = useState<WalletType>("card");
+  const [recordType, setRecordType] = useState<WalletType | "client_source">("card");
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [activeTab, setActiveTab] = useState(getCatalogTab(searchParams.get("tab")));
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -89,9 +97,25 @@ export function CatalogsPage() {
             className="grid gap-2 sm:grid-cols-[1fr_220px_auto]"
             onSubmit={(event) => {
               event.preventDefault();
-              if (!name.trim()) return;
+              const nextName = name.trim();
+              if (!nextName) return;
+              if (recordType === "client_source") {
+                createClientSource.mutate(
+                  { name: nextName },
+                  {
+                    onSuccess: () => {
+                      setName("");
+                      setActiveTab("advanced");
+                      toast.success(t("catalogs.clientSourceCreated"));
+                    },
+                    onError: (error) => toast.error(getApiErrorMessage(error)),
+                  },
+                );
+                return;
+              }
+
               createWallet.mutate(
-                { name: name.trim(), wallet_type: walletType },
+                { name: nextName, wallet_type: recordType },
                 {
                   onSuccess: () => {
                     setName("");
@@ -104,12 +128,20 @@ export function CatalogsPage() {
           >
             <Input ref={nameInputRef} value={name} onChange={(event) => setName(event.target.value)} placeholder={t("common.name")} />
             <AppSelect
-              value={walletType}
-              onValueChange={(value) => setWalletType(value as WalletType)}
-              options={catalogsQuery.data.wallet_types.map((type) => ({
-                id: type.value,
-                name: walletTypeLabel(type.value),
-              }))}
+              value={recordType}
+              onValueChange={(value) =>
+                setRecordType(value as WalletType | "client_source")
+              }
+              options={[
+                ...catalogsQuery.data.wallet_types.map((type) => ({
+                  id: type.value,
+                  name: walletTypeLabel(type.value),
+                })),
+                {
+                  id: "client_source",
+                  name: t("catalogs.clientSource"),
+                },
+              ]}
             />
             <Button type="submit">{t("common.create")}</Button>
           </form>
@@ -143,6 +175,7 @@ export function CatalogsPage() {
             <TabsContent value="wallets">
               <WalletTable
                 tableLabel={t("catalogs.walletsTable")}
+                tableIcon={<Banknote className="size-4" aria-hidden="true" />}
                 wallets={groupedWallets.wallets}
                 walletTypes={catalogsQuery.data.wallet_types}
                 emptyTitle={t("catalogs.walletsEmptyTitle")}
@@ -154,6 +187,7 @@ export function CatalogsPage() {
             <TabsContent value="clients">
               <WalletTable
                 tableLabel={t("catalogs.clientsTable")}
+                tableIcon={<UserRound className="size-4" aria-hidden="true" />}
                 wallets={groupedWallets.clients}
                 walletTypes={catalogsQuery.data.wallet_types}
                 emptyTitle={t("catalogs.clientsEmptyTitle")}
@@ -165,6 +199,7 @@ export function CatalogsPage() {
             <TabsContent value="suppliers">
               <WalletTable
                 tableLabel={t("catalogs.suppliersTable")}
+                tableIcon={<Handshake className="size-4" aria-hidden="true" />}
                 wallets={groupedWallets.suppliers}
                 walletTypes={catalogsQuery.data.wallet_types}
                 emptyTitle={t("catalogs.suppliersEmptyTitle")}
@@ -174,20 +209,386 @@ export function CatalogsPage() {
               />
             </TabsContent>
             <TabsContent value="advanced">
-              <WalletTable
-                tableLabel={t("catalogs.advancedTable")}
+              <AdvancedRecordsBlock
+                sources={catalogsQuery.data.client_sources.filter((source) =>
+                  source.name.toLowerCase().includes(search.toLowerCase().trim()),
+                )}
                 wallets={groupedWallets.advanced}
                 walletTypes={catalogsQuery.data.wallet_types}
-                emptyTitle={t("catalogs.advancedEmptyTitle")}
-                emptyDescription={t("catalogs.advancedEmptyDescription")}
-                onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
+                onCreateClick={() => nameInputRef.current?.focus()}
               />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+function AdvancedRecordsBlock({
+  sources,
+  wallets,
+  walletTypes,
+  canAdjustWallets,
+  onCreateClick,
+}: {
+  sources: ClientSource[];
+  wallets: NonNullable<ReturnType<typeof useCatalogs>["data"]>["wallets"];
+  walletTypes: Array<{ value: WalletType; label: string }>;
+  canAdjustWallets: boolean;
+  onCreateClick: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          <Tags className="size-4" aria-hidden="true" />
+          {t("catalogs.advancedTable")}
+        </div>
+      </div>
+      <AdvancedRecordsTable
+        sources={sources}
+        wallets={wallets}
+        walletTypes={walletTypes}
+        canAdjustWallets={canAdjustWallets}
+        onCreateClick={onCreateClick}
+      />
+    </div>
+  );
+}
+
+function AdvancedRecordsTable({
+  sources,
+  wallets,
+  walletTypes,
+  canAdjustWallets,
+  onCreateClick,
+}: {
+  sources: ClientSource[];
+  wallets: NonNullable<ReturnType<typeof useCatalogs>["data"]>["wallets"];
+  walletTypes: Array<{ value: WalletType; label: string }>;
+  canAdjustWallets: boolean;
+  onCreateClick: () => void;
+}) {
+  const { t } = useTranslation();
+  const updateClientSource = useUpdateClientSource();
+  const deleteClientSource = useDeleteClientSource();
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState("");
+
+  if (!sources.length && !wallets.length) {
+    return (
+      <EmptyState
+        title={t("catalogs.advancedEmptyTitle")}
+        description={t("catalogs.advancedEmptyDescription")}
+        action={
+          canAdjustWallets ? (
+            <Button type="button" onClick={onCreateClick}>
+              {t("catalogs.createRecord")}
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Desktop view */}
+      <div className="max-h-[70vh] overflow-auto rounded-xl border border-border bg-card shadow-sm hidden md:block">
+        <Table className="[&_td]:h-[52px]" containerClassName="rounded-none border-0">
+          <TableHeader className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
+            <TableRow>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("common.type")}</TableHead>
+              <TableHead className="text-right">{t("common.balance")}</TableHead>
+              <TableHead className="w-28" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sources.map((source) => {
+              const isEditing = editingId === source.id;
+              return (
+                <TableRow key={source.id}>
+                  <TableCell className="font-semibold">
+                    {isEditing ? (
+                      <Input
+                        value={editingName}
+                        onChange={(event) => setEditingName(event.target.value)}
+                        className="h-10"
+                      />
+                    ) : (
+                      source.name
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
+                      <Tags className="size-3" aria-hidden="true" />
+                      {t("catalogs.clientSource")}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">-</TableCell>
+                  <TableCell>
+                    {canAdjustWallets ? (
+                      <div className="flex justify-end gap-1.5">
+                        {isEditing ? (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => {
+                                const nextName = editingName.trim();
+                                if (!nextName) return;
+                                updateClientSource.mutate(
+                                  {
+                                    sourceId: source.id,
+                                    payload: { name: nextName },
+                                  },
+                                  {
+                                    onSuccess: () => {
+                                      setEditingId(null);
+                                      toast.success(t("catalogs.updated"));
+                                    },
+                                    onError: (error) =>
+                                      toast.error(getApiErrorMessage(error)),
+                                  },
+                                );
+                              }}
+                            >
+                              {t("common.save")}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => setEditingId(null)}
+                              aria-label={t("common.cancel")}
+                            >
+                              <X className="size-4" aria-hidden="true" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => {
+                                setEditingId(source.id);
+                                setEditingName(source.name);
+                              }}
+                              aria-label={t("common.edit")}
+                            >
+                              <Pencil className="size-4" aria-hidden="true" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => {
+                                deleteClientSource.mutate(source.id, {
+                                  onSuccess: () =>
+                                    toast.warning(t("catalogs.deleted")),
+                                  onError: (error) =>
+                                    toast.error(getApiErrorMessage(error)),
+                                });
+                              }}
+                              aria-label={t("common.delete")}
+                            >
+                              <Trash2 className="size-4" aria-hidden="true" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {wallets.map((wallet) => (
+              <TableRow key={`wallet-${wallet.id}`}>
+                <TableCell className="font-semibold">{wallet.name}</TableCell>
+                <TableCell>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
+                      walletTypeChipClass(wallet.type),
+                    )}
+                  >
+                    {walletTypeIcon(wallet.type)}
+                    {walletTypeLabel(wallet.type)}
+                  </span>
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "text-right font-bold",
+                    Number(wallet.balance) === 0 && "text-muted-foreground",
+                  )}
+                >
+                  {money(wallet.balance)}
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1.5">
+                    {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+                      <>
+                        <AdjustWalletDialog wallet={wallet} />
+                        <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
+                        <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
+                      </>
+                    ) : null}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="grid gap-3 md:hidden">
+        {sources.map((source) => {
+          const isEditing = editingId === source.id;
+          return (
+            <div key={source.id} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground text-sm flex-1 mr-2">
+                  {isEditing ? (
+                    <Input
+                      value={editingName}
+                      onChange={(event) => setEditingName(event.target.value)}
+                      className="h-11 text-base w-full"
+                    />
+                  ) : (
+                    source.name
+                  )}
+                </span>
+                <span className="text-right font-bold text-sm text-muted-foreground">-</span>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border/50 pt-2.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
+                  <Tags className="size-3" aria-hidden="true" />
+                  {t("catalogs.clientSource")}
+                </span>
+
+                {canAdjustWallets ? (
+                  <div className="flex items-center gap-1.5">
+                    {isEditing ? (
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            const nextName = editingName.trim();
+                            if (!nextName) return;
+                            updateClientSource.mutate(
+                              {
+                                sourceId: source.id,
+                                payload: { name: nextName },
+                              },
+                              {
+                                onSuccess: () => {
+                                  setEditingId(null);
+                                  toast.success(t("catalogs.updated"));
+                                },
+                                onError: (error) =>
+                                  toast.error(getApiErrorMessage(error)),
+                                },
+                              );
+                          }}
+                        >
+                          {t("common.save")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => setEditingId(null)}
+                          aria-label={t("common.cancel")}
+                        >
+                          <X className="size-4" aria-hidden="true" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => {
+                            setEditingId(source.id);
+                            setEditingName(source.name);
+                          }}
+                          aria-label={t("common.edit")}
+                        >
+                          <Pencil className="size-4" aria-hidden="true" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => {
+                            deleteClientSource.mutate(source.id, {
+                              onSuccess: () =>
+                                toast.warning(t("catalogs.deleted")),
+                              onError: (error) =>
+                                toast.error(getApiErrorMessage(error)),
+                            });
+                          }}
+                          aria-label={t("common.delete")}
+                        >
+                          <Trash2 className="size-4" aria-hidden="true" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+
+        {wallets.map((wallet) => (
+          <div key={`wallet-${wallet.id}`} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-foreground text-sm">{wallet.name}</span>
+              <span
+                className={cn(
+                  "font-bold text-sm",
+                  Number(wallet.balance) === 0 ? "text-muted-foreground" : 
+                  Number(wallet.balance) < 0 ? "text-rose-600" : "text-emerald-600"
+                )}
+              >
+                {money(wallet.balance)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-border/50 pt-2.5">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
+                  walletTypeChipClass(wallet.type),
+                )}
+              >
+                {walletTypeIcon(wallet.type)}
+                {walletTypeLabel(wallet.type)}
+              </span>
+
+              {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+                <div className="flex items-center gap-1.5">
+                  <AdjustWalletDialog wallet={wallet} />
+                  <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
+                  <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -200,6 +601,7 @@ function getCatalogTab(value: string | null) {
 
 function WalletTable({
   tableLabel,
+  tableIcon,
   wallets,
   walletTypes,
   emptyTitle,
@@ -208,6 +610,7 @@ function WalletTable({
   canAdjustWallets,
 }: {
   tableLabel: string;
+  tableIcon: React.ReactNode;
   wallets: NonNullable<ReturnType<typeof useCatalogs>["data"]>["wallets"];
   walletTypes: Array<{ value: WalletType; label: string }>;
   emptyTitle: string;
@@ -235,65 +638,109 @@ function WalletTable({
 
   return (
     <div className="space-y-3">
-      <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+        {tableIcon}
         {tableLabel}
       </div>
-      <div className="max-h-[70vh] overflow-auto rounded-xl border border-border bg-card shadow-sm">
-      <Table className="[&_td]:h-[52px]" containerClassName="rounded-none border-0">
-        <TableHeader className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
-          <TableRow>
-            <TableHead>{t("common.name")}</TableHead>
-            <TableHead>{t("common.type")}</TableHead>
-            <TableHead className="text-right">{t("common.balance")}</TableHead>
-            <TableHead className="w-24" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {wallets.map((wallet) => (
-            <TableRow key={wallet.id}>
-              <TableCell className="font-semibold">{wallet.name}</TableCell>
-              <TableCell>
-                <span
+      <div className="max-h-[70vh] overflow-auto rounded-xl border border-border bg-card shadow-sm hidden md:block">
+        <Table className="[&_td]:h-[52px]" containerClassName="rounded-none border-0">
+          <TableHeader className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
+            <TableRow>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("common.type")}</TableHead>
+              <TableHead className="text-right">{t("common.balance")}</TableHead>
+              <TableHead className="w-24" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {wallets.map((wallet) => (
+              <TableRow key={wallet.id}>
+                <TableCell className="font-semibold">{wallet.name}</TableCell>
+                <TableCell>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
+                      walletTypeChipClass(wallet.type),
+                    )}
+                  >
+                    {walletTypeIcon(wallet.type)}
+                    {walletTypeLabel(wallet.type)}
+                  </span>
+                </TableCell>
+                <TableCell
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
-                    walletTypeChipClass(wallet.type),
+                    "text-right font-bold",
+                    Number(wallet.balance) === 0 && "text-muted-foreground",
                   )}
                 >
-                  {walletTypeIcon(wallet.type)}
-                  {walletTypeLabel(wallet.type)}
-                </span>
-              </TableCell>
-              <TableCell
+                  {money(wallet.balance)}
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1.5">
+                    {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+                      <>
+                        <AdjustWalletDialog wallet={wallet} />
+                        <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
+                        <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
+                      </>
+                    ) : null}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Wallet Card List */}
+      <div className="grid gap-3 md:hidden">
+        {wallets.map((wallet) => (
+          <div key={wallet.id} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-foreground text-sm">{wallet.name}</span>
+              <span
                 className={cn(
-                  "text-right font-bold",
-                  Number(wallet.balance) === 0 && "text-muted-foreground",
+                  "font-bold text-sm",
+                  Number(wallet.balance) === 0 ? "text-muted-foreground" : 
+                  Number(wallet.balance) < 0 ? "text-rose-600" : "text-emerald-600"
                 )}
               >
                 {money(wallet.balance)}
-              </TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-1.5">
-                  {canAdjustWallets ? (
-                    <>
-                      <AdjustWalletDialog wallet={wallet} />
-                      <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
-                      <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
-                    </>
-                  ) : null}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-border/50 pt-2.5">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
+                  walletTypeChipClass(wallet.type),
+                )}
+              >
+                {walletTypeIcon(wallet.type)}
+                {walletTypeLabel(wallet.type)}
+              </span>
+
+              {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+                <div className="flex items-center gap-1.5">
+                  <AdjustWalletDialog wallet={wallet} />
+                  <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
+                  <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
                 </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              ) : null}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
 function walletTypeChipClass(type: string) {
-  if (["cash", "card", "bank_account"].includes(type)) {
+  if (["cash", "card", "bank_account", "credit_cash"].includes(type)) {
     return "bg-sky-50 text-sky-700 ring-1 ring-sky-200";
+  }
+  if (type === "internal_credit_debt") {
+    return "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200";
   }
   if (type === "client_debt") {
     return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
@@ -310,9 +757,15 @@ function walletTypeChipClass(type: string) {
 function walletTypeIcon(type: string) {
   const className = "size-3";
   if (type === "cash") return <Banknote className={className} />;
+  if (type === "credit_cash") return <Banknote className={className} />;
+  if (type === "internal_credit_debt") return <Landmark className={className} />;
   if (type === "bank_account") return <Landmark className={className} />;
   if (["card", "bank_card"].includes(type)) return <CreditCard className={className} />;
   if (type === "client_debt") return <UserRound className={className} />;
   if (["shop", "partner"].includes(type)) return <Handshake className={className} />;
   return <Building2 className={className} />;
+}
+
+function isSystemWallet(type: string) {
+  return type === "credit_cash" || type === "internal_credit_debt";
 }

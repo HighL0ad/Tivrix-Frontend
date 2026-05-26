@@ -76,8 +76,64 @@ function PaginationNext({
   );
 }
 
+function PaginationBar({
+  page,
+  totalPages,
+  total,
+  totalLabel,
+  onPageChange,
+  className,
+}: {
+  page: number;
+  totalPages: number;
+  total?: number;
+  totalLabel?: string;
+  onPageChange: (page: number) => void;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const normalizedTotalPages = Math.max(1, totalPages);
+
+  return (
+    <div
+      className={cn(
+        "mt-4 flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between",
+        className,
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex h-9 items-center rounded-md border bg-background px-3 font-semibold text-foreground">
+          {t("common.pageOf", { page, total: normalizedTotalPages })}
+        </span>
+        {total !== undefined ? (
+          <span className="text-muted-foreground">
+            {totalLabel ?? t("common.totalFound", { count: total })}
+          </span>
+        ) : null}
+      </div>
+      <Pagination className="shrink-0">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              disabled={page <= 1}
+              onClick={() => onPageChange(Math.max(1, page - 1))}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext
+              disabled={page >= normalizedTotalPages}
+              onClick={() => onPageChange(Math.min(normalizedTotalPages, page + 1))}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </div>
+  );
+}
+
 export {
   Pagination,
+  PaginationBar,
   PaginationContent,
   PaginationItem,
   PaginationNext,

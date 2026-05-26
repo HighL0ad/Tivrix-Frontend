@@ -31,10 +31,10 @@ export function useDeleteProduct(productId: number) {
 
 export function useUpdateProductSalePrice(productId: number) {
   return useMutation({
-    mutationFn: (totalPrice: string) =>
+    mutationFn: (payload: { total_price: string; cash_price?: string | null }) =>
       apiRequest<ProductDetail>(`/api/products/${productId}/sale-price`, {
         method: "PATCH",
-        json: { total_price: totalPrice },
+        json: payload,
       }),
   });
 }

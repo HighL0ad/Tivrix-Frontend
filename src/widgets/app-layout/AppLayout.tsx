@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router";
 import {
   Banknote,
   Boxes,
+  ContactRound,
   Database,
   Gauge,
   HandCoins,
@@ -40,6 +41,7 @@ const navItems = [
   { to: "/products", labelKey: "app.nav.products", icon: Boxes, resource: "products" },
   { to: "/finance", labelKey: "app.nav.finance", icon: Banknote, resource: "finance" },
   { to: "/debts", labelKey: "app.nav.debts", icon: HandCoins, resource: "debts" },
+  { to: "/clients", labelKey: "app.nav.clients", icon: ContactRound, resource: "clients" },
   { to: "/catalogs", labelKey: "app.nav.catalogs", icon: Database, resource: "catalogs" },
   { to: "/users", labelKey: "app.nav.users", icon: Users, adminOnly: true },
 ];
@@ -68,7 +70,9 @@ export function AppLayout() {
       : DEFAULT_SIDEBAR_WIDTH;
   });
   const visibleNavItems = navItems.filter((item) => {
-    return item.adminOnly ? currentUser?.is_admin : true;
+    if (item.adminOnly) return currentUser?.is_admin;
+    if (!item.resource) return true;
+    return currentUser?.permissions[item.resource as keyof CurrentUser["permissions"]];
   });
 
   function updateSidebarWidth(width: number) {

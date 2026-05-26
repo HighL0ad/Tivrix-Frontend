@@ -9,12 +9,17 @@ export type UserListItem = {
   avatar_url: string | null;
   password_setup_url: string | null;
   is_active: boolean;
+  created_at: string | null;
+  last_login_at: string | null;
+  password_set_at: string | null;
+  pending_activation: boolean;
   role: UserRole;
   is_admin: boolean;
   can_access_dashboard: boolean;
   can_access_products: boolean;
   can_access_finance: boolean;
   can_access_debts: boolean;
+  can_access_clients: boolean;
   can_access_catalogs: boolean;
   can_view_finance_history: boolean;
   can_view_finance_profit: boolean;
@@ -57,6 +62,7 @@ export type UserPayload = {
   can_access_products: boolean;
   can_access_finance: boolean;
   can_access_debts: boolean;
+  can_access_clients: boolean;
   can_access_catalogs: boolean;
   can_view_finance_history: boolean;
   can_view_finance_profit: boolean;

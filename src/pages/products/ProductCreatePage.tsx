@@ -5,7 +5,7 @@ import {
 } from "react";
 import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import {
@@ -18,6 +18,7 @@ import { getApiErrorMessage } from "@/shared/api/error";
 import { ApiError } from "@/shared/api/http";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { AppFileUpload } from "@/shared/ui/app-form";
+import { BackActionButton } from "@/shared/ui/back-button";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -34,7 +35,6 @@ import { SearchableSelect } from "@/shared/ui/searchable-select";
 import {
   Field,
   InfoBox,
-  InlineCreate,
   RegistrationCheckboxGroup,
   SummaryRow,
 } from "@/features/products/product-form/FormPrimitives";
@@ -48,6 +48,7 @@ import type { WalletType } from "@/entities/finance/api/use-finance";
 
 export function ProductCreatePage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
   const optionsQuery = useProductCreateOptions();
   const createMutation = useCreateProduct();
@@ -60,15 +61,12 @@ export function ProductCreatePage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
   const [supplierId, setSupplierId] = useState("");
-  const [newSupplierName, setNewSupplierName] = useState("");
   const [paymentWalletId, setPaymentWalletId] = useState("");
-  const [newPaymentWalletName, setNewPaymentWalletName] = useState("");
   const [paidNowEnabled, setPaidNowEnabled] = useState(false);
   const [paidNowAmount, setPaidNowAmount] = useState("");
   const [splitEnabled, setSplitEnabled] = useState(false);
   const [primarySplitAmount, setPrimarySplitAmount] = useState("");
   const [splitWalletId, setSplitWalletId] = useState("");
-  const [newSplitWalletName, setNewSplitWalletName] = useState("");
   const [registrationStatuses, setRegistrationStatuses] = useState<string[]>(
     [],
   );
@@ -110,6 +108,8 @@ export function ProductCreatePage() {
       return true;
     });
   }, [options, paidNowEnabled, paymentWalletId, scenario]);
+
+  const productsHref = (location.state as { from?: string } | null)?.from ?? "/products";
 
   function handleScenarioChange(value: string) {
     const next = value as PurchaseScenario;
@@ -241,6 +241,9 @@ export function ProductCreatePage() {
       <PageHeader
         title={t("products.newPurchase")}
         description={t("products.newPurchaseDescription")}
+        backButton={
+          <BackActionButton onClick={() => navigate(productsHref)} />
+        }
       />
 
       <form
@@ -426,17 +429,9 @@ export function ProductCreatePage() {
                   options={options?.supplier_wallet_options ?? []}
                   placeholder={t("products.selectSupplierOrPartner")}
                   searchPlaceholder={t("products.supplierSearch")}
-                />
-                <InlineCreate
-                  value={newSupplierName}
-                  onChange={setNewSupplierName}
-                  onCreate={() =>
-                    createInlineWallet(newSupplierName, "debt", (id) => {
-                      setSupplierId(id);
-                      setNewSupplierName("");
-                    })
+                  onCreateNew={(name) =>
+                    createInlineWallet(name, "debt", setSupplierId)
                   }
-                  placeholder={t("debts.newSupplier")}
                 />
               </Field>
 
@@ -485,17 +480,9 @@ export function ProductCreatePage() {
                             placeholder={t("products.selectPaymentWallet")}
                             searchPlaceholder={t("products.walletSearch")}
                             className="h-11"
-                          />
-                          <InlineCreate
-                            value={newPaymentWalletName}
-                            onChange={setNewPaymentWalletName}
-                            onCreate={() =>
-                              createInlineWallet(newPaymentWalletName, "card", (id) => {
-                                setPaymentWalletId(id);
-                                setNewPaymentWalletName("");
-                              })
+                            onCreateNew={(name) =>
+                              createInlineWallet(name, "card", setPaymentWalletId)
                             }
-                            placeholder={t("products.newWallet")}
                           />
                         </Field>
 
@@ -605,17 +592,9 @@ export function ProductCreatePage() {
                                   placeholder={t("products.selectSecondWallet")}
                                   searchPlaceholder={t("products.walletSearch")}
                                   className="h-11"
-                                />
-                                <InlineCreate
-                                  value={newSplitWalletName}
-                                  onChange={setNewSplitWalletName}
-                                  onCreate={() =>
-                                    createInlineWallet(newSplitWalletName, "card", (id) => {
-                                      setSplitWalletId(id);
-                                      setNewSplitWalletName("");
-                                    })
+                                  onCreateNew={(name) =>
+                                    createInlineWallet(name, "card", setSplitWalletId)
                                   }
-                                  placeholder={t("products.newWallet")}
                                 />
                               </Field>
                             </>
@@ -642,17 +621,9 @@ export function ProductCreatePage() {
                       options={options?.payment_wallet_options ?? []}
                       placeholder={t("products.selectCardOrAccount")}
                       searchPlaceholder={t("products.cardOrAccountSearch")}
-                    />
-                    <InlineCreate
-                      value={newPaymentWalletName}
-                      onChange={setNewPaymentWalletName}
-                      onCreate={() =>
-                        createInlineWallet(newPaymentWalletName, "card", (id) => {
-                          setPaymentWalletId(id);
-                          setNewPaymentWalletName("");
-                        })
+                      onCreateNew={(name) =>
+                        createInlineWallet(name, "card", setPaymentWalletId)
                       }
-                      placeholder={t("products.newCardOrAccount")}
                     />
                   </Field>
                 </div>
@@ -731,17 +702,9 @@ export function ProductCreatePage() {
                           placeholder={t("products.selectSecondWallet")}
                           searchPlaceholder={t("products.walletSearch")}
                           className="h-11"
-                        />
-                        <InlineCreate
-                          value={newSplitWalletName}
-                          onChange={setNewSplitWalletName}
-                          onCreate={() =>
-                            createInlineWallet(newSplitWalletName, "card", (id) => {
-                              setSplitWalletId(id);
-                              setNewSplitWalletName("");
-                            })
+                          onCreateNew={(name) =>
+                            createInlineWallet(name, "card", setSplitWalletId)
                           }
-                          placeholder={t("products.newWallet")}
                         />
                       </Field>
                     </>

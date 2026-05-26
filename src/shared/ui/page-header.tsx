@@ -8,15 +8,22 @@ export function PageHeader({
   description,
   actions,
   className,
+  backButton,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
   className?: string;
+  backButton?: ReactNode;
 }) {
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      {backButton ? (
+        <div className="flex items-center">
+          {backButton}
+        </div>
+      ) : null}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h2 className="text-2xl font-black tracking-tight text-gray-950">
             {title}
@@ -28,7 +35,9 @@ export function PageHeader({
           ) : null}
         </div>
         {actions ? (
-          <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
+          <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto">
+            {actions}
+          </div>
         ) : null}
       </div>
       <Separator />

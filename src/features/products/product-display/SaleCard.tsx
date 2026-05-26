@@ -23,7 +23,16 @@ export function SaleCard({
         <SaleRow label={t("products.customerName")} value={sale.client_name ?? t("products.notSpecified")} />
         <SaleRow label={t("products.phone")} value={sale.client_phone ?? "-"} />
         <SaleRow label={t("products.source")} value={getSaleSourceLabel(sale.source)} />
+        {sale.shop_debt_due_date ? (
+          <SaleRow
+            label={t("sell.shopDebtDueDate")}
+            value={formatDateOnly(sale.shop_debt_due_date)}
+          />
+        ) : null}
         <SaleRow label={t("products.salePrice")} value={`${sale.total_price} ₼`} strong />
+        {sale.sale_mode === "installment" && sale.cash_price ? (
+          <SaleRow label={t("sell.baseSalePrice")} value={`${sale.cash_price} ₼`} />
+        ) : null}
         <SaleRow
           label={t("products.netProfit")}
           value={signedMoney(sale.profit)}
@@ -83,4 +92,12 @@ function SaleRow({
 function signedMoney(value: string | number) {
   const amount = Number(value);
   return `${amount > 0 ? "+" : ""}${money(amount)}`;
+}
+
+function formatDateOnly(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  }).format(new Date(value));
 }

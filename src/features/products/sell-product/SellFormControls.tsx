@@ -118,6 +118,10 @@ export function SelectField({
   options,
   placeholder,
   className,
+  onCreateNew,
+  createNewFormat,
+  disabled = false,
+  clearable = false,
 }: {
   label: string;
   value: string;
@@ -125,6 +129,10 @@ export function SelectField({
   options: ProductOption[];
   placeholder: string;
   className?: string;
+  onCreateNew?: (query: string) => void;
+  createNewFormat?: string;
+  disabled?: boolean;
+  clearable?: boolean;
 }) {
   return (
     <AppFormField label={label}>
@@ -134,6 +142,10 @@ export function SelectField({
         options={options}
         placeholder={placeholder}
         className={className}
+        onCreateNew={onCreateNew}
+        createNewFormat={createNewFormat}
+        disabled={disabled}
+        clearable={clearable}
       />
     </AppFormField>
   );

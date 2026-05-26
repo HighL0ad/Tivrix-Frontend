@@ -10,6 +10,8 @@ import {
 import { DeleteUserButton } from "@/features/users/DeleteUserButton";
 import { UserDialog } from "@/features/users/UserDialog";
 import { getApiErrorMessage } from "@/shared/api/error";
+import { shortDate } from "@/shared/lib/format";
+import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -62,12 +64,13 @@ export function UsersPage() {
           <UserDialog mode="create" />
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("common.login")}</TableHead>
                 <TableHead>{t("common.role")}</TableHead>
                 <TableHead>{t("common.status")}</TableHead>
+                <TableHead>{t("users.lastLogin")}</TableHead>
                 <TableHead>{t("permissions.accesses")}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
@@ -94,7 +97,12 @@ export function UsersPage() {
                             getInitials(user.username)
                           )}
                         </span>
-                        <span className="font-semibold">{user.username}</span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-foreground">{user.username}</span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {t("users.createdAt")}: {shortDate(user.created_at)}
+                          </span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -107,9 +115,22 @@ export function UsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.is_active ? "secondary" : "outline"}>
-                        {user.is_active ? t("common.active") : t("common.disabled")}
-                      </Badge>
+                      {!user.is_active ? (
+                        <Badge variant="outline">
+                          {t("common.disabled")}
+                        </Badge>
+                      ) : user.pending_activation ? (
+                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                          {t("users.pendingActivation")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          {t("common.active")}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs font-medium text-muted-foreground">
+                      {user.last_login_at ? shortDate(user.last_login_at) : "—"}
                     </TableCell>
                     <TableCell>
                       {user.role === "super_admin" ? t("permissions.withAdminManagement") : user.is_admin ? t("common.all") : [
@@ -117,6 +138,7 @@ export function UsersPage() {
                         user.can_access_products && t("permissions.products"),
                         user.can_access_finance && t("permissions.finance"),
                         user.can_access_debts && t("permissions.debts"),
+                        user.can_access_clients && t("permissions.clients"),
                         user.can_access_catalogs && t("permissions.catalogs"),
                       ].filter(Boolean).join(", ")}
                     </TableCell>
@@ -140,7 +162,7 @@ export function UsersPage() {
                                 navigator.clipboard.writeText(
                                   `${window.location.origin}${data.password_setup_url}`,
                                 );
-                                toast.success(t("users.resetPasswordCopied"));
+                                toast.info(t("users.resetPasswordCopied"));
                               },
                               onError: (error) =>
                                 toast.error(getApiErrorMessage(error)),
@@ -164,6 +186,131 @@ export function UsersPage() {
               })}
             </TableBody>
           </Table>
+
+          {/* Mobile User Card List */}
+          <div className="grid gap-3 md:hidden">
+            {usersQuery.data.items.map((user) => {
+              const Icon = RoleIcon[user.role] ?? UserRound;
+              const canManageUser = currentUser
+                ? canManageTargetUser(currentUser, user)
+                : false;
+
+              return (
+                <div key={user.id} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-black uppercase text-primary">
+                        {user.avatar_url ? (
+                          <img
+                            src={user.avatar_url}
+                            alt=""
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          getInitials(user.username)
+                        )}
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-foreground text-sm">{user.username}</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {t("users.createdAt")}: {shortDate(user.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      {!user.is_active ? (
+                        <Badge variant="outline">
+                          {t("common.disabled")}
+                        </Badge>
+                      ) : user.pending_activation ? (
+                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                          {t("users.pendingActivation")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          {t("common.active")}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 border-y border-border/50 py-2.5 text-xs">
+                    <div>
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                        {t("common.role")}
+                      </span>
+                      <Badge variant="outline" className={cn("h-5 py-0", roleBadgeClassName[user.role])}>
+                        <Icon className="size-3" />
+                        <span>{roleLabelKey[user.role] ? t(roleLabelKey[user.role]) : user.role}</span>
+                      </Badge>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                        {t("users.lastLogin")}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {user.last_login_at ? shortDate(user.last_login_at) : "—"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-xs">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                      {t("permissions.accesses")}
+                    </span>
+                    <span className="text-muted-foreground font-medium">
+                      {user.role === "super_admin" ? t("permissions.withAdminManagement") : user.is_admin ? t("common.all") : [
+                        user.can_access_dashboard && t("permissions.dashboard"),
+                        user.can_access_products && t("permissions.products"),
+                        user.can_access_finance && t("permissions.finance"),
+                        user.can_access_debts && t("permissions.debts"),
+                        user.can_access_clients && t("permissions.clients"),
+                        user.can_access_catalogs && t("permissions.catalogs"),
+                      ].filter(Boolean).join(", ")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 border-t border-border/50 pt-3">
+                    <UserDialog
+                      mode="edit"
+                      user={user}
+                      disabled={!canManageUser}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      disabled={!canManageUser || passwordSetupLink.isPending}
+                      aria-label={t("users.resetPassword")}
+                      title={t("users.resetPassword")}
+                      onClick={() =>
+                        passwordSetupLink.mutate(user.id, {
+                          onSuccess: (data) => {
+                            navigator.clipboard.writeText(
+                              `${window.location.origin}${data.password_setup_url}`,
+                            );
+                            toast.info(t("users.resetPasswordCopied"));
+                          },
+                          onError: (error) =>
+                            toast.error(getApiErrorMessage(error)),
+                        })
+                      }
+                    >
+                      <KeyRound />
+                    </Button>
+                    <DeleteUserButton
+                      userId={user.id}
+                      username={user.username}
+                      disabled={
+                        user.id === usersQuery.data.current_user_id ||
+                        !canManageUser
+                      }
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     </section>

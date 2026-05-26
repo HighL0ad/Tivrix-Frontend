@@ -14,6 +14,7 @@ const resourceLabelKeys: Partial<Record<AppResourceKey, string>> = {
   products: "app.nav.products",
   finance: "app.nav.finance",
   debts: "app.nav.debts",
+  clients: "app.nav.clients",
   catalogs: "app.nav.catalogs",
 };
 

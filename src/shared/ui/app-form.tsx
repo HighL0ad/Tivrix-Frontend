@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, Upload, X } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Upload, X } from "lucide-react";
 import * as RadixPopover from "@radix-ui/react-popover";
 import type { ComponentProps, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -46,7 +46,7 @@ export type AppOption = {
 };
 
 const selectedControlTextClassName =
-  "min-w-0 flex-1 truncate text-left text-sm font-medium leading-5";
+  "min-w-0 flex-1 truncate text-left text-base md:text-sm font-medium leading-5";
 
 export function AppFormField({
   label,
@@ -99,7 +99,7 @@ export function AppSelect({
           onChange={(event) => onValueChange(event.target.value)}
           disabled={disabled}
           className={cn(
-            "h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-left text-sm font-medium leading-5 text-foreground outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
+          "h-11 md:h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-left text-base md:text-sm font-medium leading-5 text-foreground outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedOption && "text-muted-foreground",
             className,
           )}
@@ -122,7 +122,7 @@ export function AppSelect({
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className={cn("h-10", className)}>
+      <SelectTrigger className={cn("h-11 md:h-10", className)}>
         <span
           className={cn(
             selectedControlTextClassName,
@@ -146,6 +146,7 @@ export function AppSelect({
 export function AppCombobox({
   value,
   onValueChange,
+  onSearchChange,
   options,
   placeholder,
   searchPlaceholder,
@@ -153,9 +154,13 @@ export function AppCombobox({
   disabled,
   loading,
   className,
+  onCreateNew,
+  createNewFormat,
+  clearable,
 }: {
   value: string;
   onValueChange: (value: string) => void;
+  onSearchChange?: (value: string) => void;
   options: AppOption[];
   placeholder: string;
   searchPlaceholder?: string;
@@ -163,24 +168,71 @@ export function AppCombobox({
   disabled?: boolean;
   loading?: boolean;
   className?: string;
+  onCreateNew?: (query: string) => void;
+  createNewFormat?: string;
+  clearable?: boolean;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+
   const selectedOption = useMemo(
     () => options.find((option) => option.id === value),
     [options, value],
   );
 
+  const hasExactMatch = useMemo(() => {
+    const trimmed = internalSearchQuery.trim().toLowerCase();
+    if (!trimmed) return true;
+    return options.some((opt) => opt.name.toLowerCase() === trimmed);
+  }, [options, internalSearchQuery]);
+
+  const displayedOptions = useMemo(() => {
+    if (!onCreateNew || !internalSearchQuery.trim() || hasExactMatch) {
+      return options;
+    }
+    const query = internalSearchQuery.trim();
+    const resolvedName = createNewFormat
+      ? createNewFormat.replace("{{name}}", query)
+      : t("common.createNew", { name: query });
+
+    const newOption: AppOption = {
+      id: `NEW_ACTION:${query}`,
+      name: resolvedName,
+    };
+    return [...options, newOption];
+  }, [options, onCreateNew, internalSearchQuery, hasExactMatch, createNewFormat, t]);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setInternalSearchQuery("");
+    }
+  };
+  const canClear = clearable && Boolean(value) && !disabled && !loading;
+  const clearValue = () => {
+    onValueChange("");
+    setInternalSearchQuery("");
+    setOpen(false);
+  };
+
   return (
-    <RadixPopover.Root open={open} onOpenChange={setOpen}>
+    <RadixPopover.Root open={open} onOpenChange={handleOpenChange}>
       <RadixPopover.Trigger asChild>
         <Button
           type="button"
           variant="outline"
           disabled={disabled || loading}
           aria-expanded={open}
+          onKeyDown={(event) => {
+            if (!canClear) return;
+            if (event.key === "Backspace" || event.key === "Delete") {
+              event.preventDefault();
+              clearValue();
+            }
+          }}
           className={cn(
-            "h-10 w-full justify-between bg-card px-3 text-left text-sm font-medium shadow-none hover:bg-card",
+            "h-11 md:h-10 w-full justify-between bg-card px-3 text-left text-base md:text-sm font-medium shadow-none hover:bg-card",
             !selectedOption && "text-muted-foreground",
             className,
           )}
@@ -195,31 +247,55 @@ export function AppCombobox({
         <RadixPopover.Content
           align="start"
           sideOffset={4}
-          className="z-50 w-[var(--radix-popover-trigger-width)] rounded-lg border bg-card p-0 shadow-lg"
+          className="z-50 w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-32px)] rounded-lg border bg-card p-0 shadow-lg"
         >
           <Command>
-            <CommandInput placeholder={searchPlaceholder ?? t("common.search")} />
+            <CommandInput
+              placeholder={searchPlaceholder ?? t("common.search")}
+              onValueChange={(val) => {
+                setInternalSearchQuery(val);
+                onSearchChange?.(val);
+              }}
+            />
             <CommandList className="max-h-72">
               <CommandEmpty>{emptyMessage ?? t("common.noResults")}</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
-                  <CommandItem
-                    key={option.id}
-                    value={`${option.name} ${option.id}`}
-                    onSelect={() => {
-                      onValueChange(option.id);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
+                {displayedOptions.map((option) => {
+                  const isNew =
+                    option.id.startsWith("NEW:") ||
+                    option.id.startsWith("NEW_ACTION:") ||
+                    option.id === "NEW_CLIENT";
+                  return (
+                    <CommandItem
+                      key={option.id}
+                      value={`${option.name} ${option.id}`}
+                      onSelect={() => {
+                        if (option.id.startsWith("NEW_ACTION:")) {
+                          const query = option.id.substring("NEW_ACTION:".length);
+                          onCreateNew?.(query);
+                        } else {
+                          onValueChange(option.id);
+                        }
+                        setOpen(false);
+                      }}
                       className={cn(
-                        "size-4",
-                        option.id === value ? "opacity-100" : "opacity-0",
+                        isNew && "mt-1.5 mb-0.5 font-semibold text-sky-600 dark:text-sky-400 bg-sky-500/10 dark:bg-sky-500/15 hover:bg-sky-500/20 dark:hover:bg-sky-500/20 data-[selected=true]:bg-sky-500/20 dark:data-[selected=true]:bg-sky-500/20 data-[selected=true]:text-sky-700 dark:data-[selected=true]:text-sky-300 border border-dashed border-sky-300/60 dark:border-sky-800/80 rounded-lg"
                       )}
-                    />
-                    <span className="truncate">{option.name}</span>
-                  </CommandItem>
-                ))}
+                    >
+                      {isNew ? (
+                        <Plus className="size-4 text-sky-500 dark:text-sky-400 shrink-0" />
+                      ) : (
+                        <Check
+                          className={cn(
+                            "size-4 shrink-0",
+                            option.id === value ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                      )}
+                      <span className="truncate">{option.name}</span>
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             </CommandList>
           </Command>

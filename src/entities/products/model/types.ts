@@ -3,6 +3,8 @@ export type ProductStatus = "new" | "in_stock" | "sold" | "reserved" | "returned
 export type ProductSaleSummary = {
   id: number;
   total_price: string;
+  cash_price: string | null;
+  sale_mode: "full_payment" | "partial_debt" | "full_debt" | "installment";
   profit: string;
   sold_at: string | null;
 };
@@ -10,6 +12,7 @@ export type ProductSaleSummary = {
 export type ProductSaleDetail = ProductSaleSummary & {
   client_name: string | null;
   client_phone: string | null;
+  shop_debt_due_date: string | null;
   source: string | null;
   proof_image: string | null;
 };
@@ -75,6 +78,7 @@ export type ProductImeiCheck = {
 export type ProductSellOptions = {
   product: ProductDetail;
   sale_wallet_options: ProductOption[];
+  sale_client_options: ProductOption[];
   sale_client_debt_options: ProductOption[];
   sale_shop_partner_options: ProductOption[];
   sale_source_options: ProductOption[];
@@ -83,14 +87,18 @@ export type ProductSellOptions = {
 
 export type ProductSellPayload = {
   sale_type: "client" | "shop";
-  sale_mode: "full_payment" | "partial_debt" | "full_debt";
+  sale_mode: "full_payment" | "partial_debt" | "full_debt" | "installment";
   total_price: string;
+  cash_price?: string;
   payment_wallet_id?: number;
   split_payment_enabled?: boolean;
   split_payment_amount?: string;
   split_payment_wallet_id?: number;
   paid_now_amount?: string;
   client_debt_wallet_id?: number;
+  client_id?: number;
+  installment_months?: number;
+  installment_payment_day?: number;
   registration_fee_enabled?: boolean;
   registration_fee_amount?: string;
   shop_wallet_id?: number;
@@ -100,6 +108,7 @@ export type ProductSellPayload = {
   shop_split_payment_enabled?: boolean;
   shop_split_payment_amount?: string;
   shop_split_payment_wallet_id?: number;
+  shop_debt_due_date?: string;
   client_name?: string;
   client_phone?: string;
   source?: string;

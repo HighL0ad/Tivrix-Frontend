@@ -54,7 +54,7 @@ export function DeleteWalletButton({
             disabled={deleteWallet.isPending}
             onClick={() =>
               deleteWallet.mutate(walletId, {
-                onSuccess: () => toast.success(t("catalogs.deleted")),
+                onSuccess: () => toast.warning(t("catalogs.deleted")),
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }

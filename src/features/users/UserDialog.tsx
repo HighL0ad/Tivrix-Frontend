@@ -8,6 +8,7 @@ import {
   HandCoins,
   History,
   Pencil,
+  ContactRound,
   ReceiptText,
   RotateCcw,
   SlidersHorizontal,
@@ -36,6 +37,7 @@ const resourceAccessFields = [
   { key: "can_access_products", labelKey: "permissions.products", icon: Boxes },
   { key: "can_access_finance", labelKey: "permissions.finance", icon: WalletCards },
   { key: "can_access_debts", labelKey: "permissions.debts", icon: HandCoins },
+  { key: "can_access_clients", labelKey: "permissions.clients", icon: ContactRound },
   { key: "can_access_catalogs", labelKey: "permissions.catalogs", icon: Banknote },
 ] as const;
 
@@ -74,6 +76,7 @@ export function UserDialog({
     can_access_products: user?.can_access_products ?? true,
     can_access_finance: user?.can_access_finance ?? true,
     can_access_debts: user?.can_access_debts ?? true,
+    can_access_clients: user?.can_access_clients ?? true,
     can_access_catalogs: user?.can_access_catalogs ?? true,
   });
   const [operationPermissions, setOperationPermissions] = useState({
@@ -344,8 +347,11 @@ export function UserDialog({
 
           {setupUrl ? (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-              <div className="font-bold">{t("users.passwordSetupLink")}</div>
-              <div className="mt-1 break-all text-xs">
+              <div className="font-bold">{t("users.createdWithSetupLink")}</div>
+              <div className="mt-1 text-xs text-emerald-800">
+                {t("users.setupLinkDescription")}
+              </div>
+              <div className="mt-2 break-all rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs">
                 {window.location.origin}
                 {setupUrl}
               </div>
@@ -356,7 +362,7 @@ export function UserDialog({
                 className="mt-3 bg-white"
                 onClick={() => {
                   navigator.clipboard.writeText(`${window.location.origin}${setupUrl}`);
-                  toast.success(t("common.copied"));
+                  toast.info(t("common.copied"));
                 }}
               >
                 {t("users.copySetupLink")}
@@ -446,7 +452,7 @@ function PermissionTile({
       disabled={disabled}
       onClick={onToggle}
       className={cn(
-        "flex min-h-10 w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold leading-tight transition-colors",
+        "flex h-12 w-full items-center gap-2 rounded-lg border px-3 py-1 text-left text-sm font-semibold leading-tight transition-colors",
         selected
           ? "border-violet-300 bg-violet-50 text-violet-800 shadow-sm"
           : "border-border bg-muted/20 text-muted-foreground",

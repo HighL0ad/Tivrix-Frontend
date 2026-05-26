@@ -55,7 +55,7 @@ export function DeleteUserButton({
             disabled={deleteUser.isPending}
             onClick={() =>
               deleteUser.mutate(userId, {
-                onSuccess: () => toast.success(t("users.deleted")),
+                onSuccess: () => toast.warning(t("users.deleted")),
                 onError: (error) => toast.error(getApiErrorMessage(error)),
               })
             }
