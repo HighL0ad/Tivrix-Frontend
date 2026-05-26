@@ -28,6 +28,7 @@ import {
 } from "@/features/products/product-form/FormPrimitives";
 import { getProductFormErrorMessage, productStatusOptions } from "@/features/products/product-form/model";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
+import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 
 export function ProductEditPage() {
   const { t } = useTranslation();
@@ -84,7 +85,10 @@ export function ProductEditPage() {
     productReturnTo?: string;
   } | null;
   const backHref = locationState?.from ?? `/products/${productId}`;
-  const productReturnHref = locationState?.productReturnTo ?? locationState?.from ?? "/products";
+  const productReturnHref =
+    resolveProductsReturnLocation(
+      locationState?.productReturnTo ?? locationState?.from,
+    );
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (event) => {
     event.preventDefault();

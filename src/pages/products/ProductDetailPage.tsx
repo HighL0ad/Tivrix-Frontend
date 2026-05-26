@@ -56,6 +56,7 @@ import {
 import { PageHeader } from "@/shared/ui/page-header";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { toast } from "sonner";
+import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 
 export function ProductDetailPage() {
   const { t } = useTranslation();
@@ -105,7 +106,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
   }, [product]);
 
   const productsHref =
-    (location.state as { from?: string } | null)?.from ?? "/products";
+    resolveProductsReturnLocation((location.state as { from?: string } | null)?.from);
   const currentPath = `${location.pathname}${location.search}`;
 
   return (

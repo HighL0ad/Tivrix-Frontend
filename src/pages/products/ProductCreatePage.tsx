@@ -44,6 +44,7 @@ import {
   type PurchaseScenario,
   scenarioMeta,
 } from "@/features/products/product-form/model";
+import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 import type { WalletType } from "@/entities/finance/api/use-finance";
 
 export function ProductCreatePage() {
@@ -109,7 +110,8 @@ export function ProductCreatePage() {
     });
   }, [options, paidNowEnabled, paymentWalletId, scenario]);
 
-  const productsHref = (location.state as { from?: string } | null)?.from ?? "/products";
+  const productsHref =
+    resolveProductsReturnLocation((location.state as { from?: string } | null)?.from);
 
   function handleScenarioChange(value: string) {
     const next = value as PurchaseScenario;

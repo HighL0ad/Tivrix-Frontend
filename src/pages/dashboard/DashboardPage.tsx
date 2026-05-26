@@ -138,9 +138,9 @@ export function DashboardPage() {
           >
             {isCreditSystemExpanded ? t("common.hide") : t("common.show")}
             {isCreditSystemExpanded ? (
-              <ChevronUp className="ml-1 size-3" />
+              <ChevronUp className="ml-1 size-3" aria-hidden="true" />
             ) : (
-              <ChevronDown className="ml-1 size-3" />
+              <ChevronDown className="ml-1 size-3" aria-hidden="true" />
             )}
           </Button>
         </div>
@@ -190,7 +190,12 @@ export function DashboardPage() {
       {data.registration_alerts.length > 0 && (
         <div className="space-y-3">
           <Alert variant={hasExpiredAlerts ? "destructive" : "warning"} className="block px-4 py-3">
-            <div className="flex items-center justify-between gap-4">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-4 rounded-md text-left"
+              aria-expanded={isAlertsExpanded}
+              onClick={() => setIsAlertsExpanded(!isAlertsExpanded)}
+            >
               <AlertTitle className="mb-0 flex min-w-0 items-center gap-2 font-bold">
                 <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
                 <span className="min-w-0">
@@ -199,16 +204,12 @@ export function DashboardPage() {
                     : t("dashboard.imeiAlertCount", { count: data.registration_alerts.length })}
                 </span>
               </AlertTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 px-2 text-xs font-bold text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                  onClick={() => setIsAlertsExpanded(!isAlertsExpanded)}
-                >
-                  {isAlertsExpanded ? t("common.hide") : t("common.show")}
-                  {isAlertsExpanded ? <ChevronUp className="ml-1 size-3" /> : <ChevronDown className="ml-1 size-3" />}
-                </Button>
-            </div>
+              {isAlertsExpanded ? (
+                <ChevronUp className="size-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+              )}
+            </button>
               {isAlertsExpanded && (
                 <AlertDescription className="mt-3 border-t border-current/10 pt-3">
                   <div className="space-y-0">
@@ -245,7 +246,14 @@ export function DashboardPage() {
       {data.installment_alerts.length > 0 && (
         <div className="space-y-3">
           <Alert variant={hasOverdueInstallments ? "destructive" : "warning"} className="block px-4 py-3">
-            <div className="flex items-center justify-between gap-4">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-4 rounded-md text-left"
+              aria-expanded={isInstallmentAlertsExpanded}
+              onClick={() =>
+                setIsInstallmentAlertsExpanded(!isInstallmentAlertsExpanded)
+              }
+            >
               <AlertTitle className="mb-0 flex min-w-0 items-center gap-2 font-bold">
                 <HandCoins className="size-4 shrink-0" aria-hidden="true" />
                 <span className="min-w-0">
@@ -260,18 +268,12 @@ export function DashboardPage() {
                       })}
                 </span>
               </AlertTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs font-bold text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                onClick={() =>
-                  setIsInstallmentAlertsExpanded(!isInstallmentAlertsExpanded)
-                }
-              >
-                {isInstallmentAlertsExpanded ? t("common.hide") : t("common.show")}
-                {isInstallmentAlertsExpanded ? <ChevronUp className="ml-1 size-3" /> : <ChevronDown className="ml-1 size-3" />}
-              </Button>
-            </div>
+              {isInstallmentAlertsExpanded ? (
+                <ChevronUp className="size-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+              )}
+            </button>
             {isInstallmentAlertsExpanded && (
               <AlertDescription className="mt-3 border-t border-current/10 pt-3">
                 <div className="space-y-0">

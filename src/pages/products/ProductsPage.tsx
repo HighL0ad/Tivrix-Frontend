@@ -27,7 +27,7 @@ import {
   parseAsStringLiteral,
   useQueryStates,
 } from "nuqs";
-import { NavLink, useLocation, useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -47,6 +47,7 @@ import {
   formatProductSupplier,
   isLegacyInstallmentProduct,
 } from "@/features/products/product-display/format";
+import { saveProductsReturnLocation } from "@/features/products/product-return-location";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
 import {
   LegacyInstallmentBadge,
@@ -117,7 +118,6 @@ const sortDirections = ["asc", "desc"] as const;
 
 export function ProductsPage() {
   const { t } = useTranslation();
-  const location = useLocation();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [{ status, supplierIds, registrationStatuses, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
     status: parseAsStringLiteral(productStatusValues),
@@ -230,7 +230,23 @@ export function ProductsPage() {
     }
   }, [debouncedSearchValue, q, searchValue, setProductParams]);
 
-  const returnTo = `${location.pathname}${location.search}`;
+  const returnTo = useMemo(() => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (supplierIds) params.set("supplierIds", supplierIds);
+    if (registrationStatuses) params.set("registrationStatuses", registrationStatuses);
+    if (q) params.set("q", q);
+    if (sortBy) params.set("sortBy", sortBy);
+    if (sortDir) params.set("sortDir", sortDir);
+    if (page > 1) params.set("page", String(page));
+
+    const query = params.toString();
+    return query ? `/products?${query}` : "/products";
+  }, [page, q, registrationStatuses, sortBy, sortDir, status, supplierIds]);
+
+  useEffect(() => {
+    saveProductsReturnLocation(returnTo);
+  }, [returnTo]);
 
   return (
     <section className="space-y-5">
@@ -239,7 +255,7 @@ export function ProductsPage() {
         description={products ? t("products.total", { count: products.total }) : t("products.loading")}
         actions={
         <Button asChild>
-          <NavLink to="/products/new">
+          <NavLink to="/products/new" state={{ from: returnTo }}>
             <Plus aria-hidden="true" />
             {t("app.addProduct")}
           </NavLink>
@@ -539,7 +555,7 @@ export function ProductsPage() {
                       </Button>
                     ) : (
                       <Button asChild>
-                        <NavLink to="/products/new">
+                        <NavLink to="/products/new" state={{ from: returnTo }}>
                           <Plus aria-hidden="true" />
                           {t("products.addFirst")}
                         </NavLink>
