@@ -20,7 +20,7 @@ import { AdjustWalletDialog } from "@/features/finance/AdjustWalletDialog";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { money } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
-import { walletTypeLabel } from "@/shared/lib/wallet-labels";
+import { walletNameLabel, walletTypeLabel } from "@/shared/lib/wallet-labels";
 import { AppSelect } from "@/shared/ui/app-form";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -63,7 +63,10 @@ export function CatalogsPage() {
     return <PageError />;
   }
 
-  const filteredWallets = catalogsQuery.data.wallets.filter((wallet) => {
+  const visibleWallets = catalogsQuery.data.wallets.filter(
+    (wallet) => !isInternalSystemWallet(wallet),
+  );
+  const filteredWallets = visibleWallets.filter((wallet) => {
     const matchesSearch = wallet.name.toLowerCase().includes(search.toLowerCase().trim());
     return matchesSearch;
   });
@@ -410,7 +413,7 @@ function AdvancedRecordsTable({
             })}
             {wallets.map((wallet) => (
               <TableRow key={`wallet-${wallet.id}`}>
-                <TableCell className="font-semibold">{wallet.name}</TableCell>
+                <TableCell className="font-semibold">{walletNameLabel(wallet.name)}</TableCell>
                 <TableCell>
                   <span
                     className={cn(
@@ -554,7 +557,9 @@ function AdvancedRecordsTable({
         {wallets.map((wallet) => (
           <div key={`wallet-${wallet.id}`} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-foreground text-sm">{wallet.name}</span>
+              <span className="font-semibold text-foreground text-sm">
+                {walletNameLabel(wallet.name)}
+              </span>
               <span
                 className={cn(
                   "font-bold text-sm",
@@ -655,7 +660,7 @@ function WalletTable({
           <TableBody>
             {wallets.map((wallet) => (
               <TableRow key={wallet.id}>
-                <TableCell className="font-semibold">{wallet.name}</TableCell>
+                <TableCell className="font-semibold">{walletNameLabel(wallet.name)}</TableCell>
                 <TableCell>
                   <span
                     className={cn(
@@ -697,7 +702,9 @@ function WalletTable({
         {wallets.map((wallet) => (
           <div key={wallet.id} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-foreground text-sm">{wallet.name}</span>
+              <span className="font-semibold text-foreground text-sm">
+                {walletNameLabel(wallet.name)}
+              </span>
               <span
                 className={cn(
                   "font-bold text-sm",
@@ -766,6 +773,13 @@ function walletTypeIcon(type: string) {
   return <Building2 className={className} />;
 }
 
+function isInternalSystemWallet(wallet: { type: string; name?: string | null }) {
+  return (
+    wallet.type === "internal_credit_debt" ||
+    (wallet.type === "credit_cash" && wallet.name === "Кредитная касса")
+  );
+}
+
 function isSystemWallet(type: string) {
-  return type === "credit_cash" || type === "internal_credit_debt";
+  return type === "internal_credit_debt";
 }

@@ -7,13 +7,13 @@ export type ProductSaleSummary = {
   sale_mode: "full_payment" | "partial_debt" | "full_debt" | "installment";
   profit: string;
   sold_at: string | null;
+  source: string | null;
 };
 
 export type ProductSaleDetail = ProductSaleSummary & {
   client_name: string | null;
   client_phone: string | null;
   shop_debt_due_date: string | null;
-  source: string | null;
   proof_image: string | null;
 };
 

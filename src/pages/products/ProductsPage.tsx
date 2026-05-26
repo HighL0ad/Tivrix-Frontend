@@ -677,7 +677,7 @@ function ProductsCardList({
               </button>
 
               <div className="border-t bg-background/70 p-3">
-                {product.status === "in_stock" ? (
+                {product.status === "in_stock" && !isLegacyInstallment ? (
                   <div className="grid grid-cols-[1fr_auto] gap-2">
                     <SellProductByIdDialog
                       productId={product.id}
@@ -845,7 +845,8 @@ function ProductsTable({
             className="flex items-center justify-end gap-2"
             onClick={(event) => event.stopPropagation()}
           >
-            {row.original.status === "in_stock" ? (
+            {row.original.status === "in_stock" &&
+            !isLegacyInstallmentProduct(row.original) ? (
               <SellProductByIdDialog
                 productId={row.original.id}
                 trigger={

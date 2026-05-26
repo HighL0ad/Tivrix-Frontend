@@ -27,6 +27,7 @@ import { BackButton } from "@/shared/ui/back-button";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { DatePicker } from "@/shared/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -70,6 +71,7 @@ export function ClientDetailPage() {
   const [repayInstallment, setRepayInstallment] = useState<{
     open: boolean;
     installmentId?: number;
+    applyInstallments?: boolean;
     amount?: string;
     productName?: string;
   }>({ open: false });
@@ -114,6 +116,7 @@ export function ClientDetailPage() {
                 onClick={() =>
                   setRepayInstallment({
                     open: true,
+                    applyInstallments: true,
                     amount: client.total_debt,
                     productName: t("clients.totalDebt"),
                   })
@@ -616,6 +619,7 @@ export function ClientDetailPage() {
       <RepayDialog
         client={client}
         installmentId={repayInstallment.installmentId}
+        applyInstallments={repayInstallment.applyInstallments}
         defaultAmount={repayInstallment.amount}
         productName={repayInstallment.productName}
         open={repayInstallment.open}
@@ -669,6 +673,10 @@ function LegacyInstallmentDialog({ clientId }: { clientId: number }) {
           className="space-y-4 pt-1"
           onSubmit={(event) => {
             event.preventDefault();
+            if (!nextDueDate) {
+              toast.error(t("clients.nextPaymentDate"));
+              return;
+            }
             importInstallment.mutate(
               {
                 product_name: productName.trim(),
@@ -727,11 +735,11 @@ function LegacyInstallmentDialog({ clientId }: { clientId: number }) {
             <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               {t("clients.nextPaymentDate")}
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={nextDueDate}
-              onChange={(event) => setNextDueDate(event.target.value)}
-              required
+              onChange={setNextDueDate}
+              placeholder={t("clients.nextPaymentDate")}
+              className="w-full"
             />
           </div>
           <DialogFooter className="pt-1">
@@ -781,6 +789,7 @@ function NumberField({
 function RepayDialog({
   client,
   installmentId,
+  applyInstallments = false,
   defaultAmount = "",
   productName = "",
   open,
@@ -788,6 +797,7 @@ function RepayDialog({
 }: {
   client: NonNullable<ReturnType<typeof useClient>["data"]>;
   installmentId?: number;
+  applyInstallments?: boolean;
   defaultAmount?: string;
   productName?: string;
   open: boolean;
@@ -851,6 +861,7 @@ function RepayDialog({
         amount: String(amount),
         operation_type: "receive_client",
         installment_id: installmentId,
+        apply_installments: applyInstallments,
       },
       {
         onSuccess: () => {

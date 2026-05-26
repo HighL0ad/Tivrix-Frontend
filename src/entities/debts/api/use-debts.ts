@@ -52,6 +52,7 @@ export function useCreateDebtWallet() {
       queryClient.invalidateQueries({ queryKey: ["finance"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["catalogs"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 }
@@ -65,6 +66,7 @@ export function useRepayDebt() {
       amount: string;
       operation_type: RepaymentOperationType;
       installment_id?: number;
+      apply_installments?: boolean;
     }) =>
       apiRequest<{ ok: boolean }>("/api/debts/repay", {
         method: "POST",

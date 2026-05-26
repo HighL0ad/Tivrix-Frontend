@@ -6,6 +6,11 @@ export function walletTypeLabel(type: string | null | undefined) {
   return i18n.t(`walletTypes.${normalizedType}`, { defaultValue: normalizedType });
 }
 
+export function walletNameLabel(name: string | null | undefined) {
+  if (!name) return "";
+  return i18n.t(`walletNames.${name}`, { defaultValue: name });
+}
+
 export function walletTypeOptions<T extends { value: string; label: string }>(
   options: T[],
 ) {
