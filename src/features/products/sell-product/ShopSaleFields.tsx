@@ -8,6 +8,7 @@ import {
   SelectField,
   SplitPaymentFields,
 } from "@/features/products/sell-product/SellFormControls";
+import { formatNumberInput } from "@/shared/lib/input-formatters";
 
 export function ShopBuyerFields({
   shopWalletId,
@@ -92,11 +93,10 @@ export function ShopPaymentFields({
             <div className="relative">
               <Input
                 id="shop-prepayment"
-                type="number"
-                step="1"
-                min="1"
+                type="text"
+                inputMode="decimal"
                 value={shopPrepaymentAmount}
-                onChange={(event) => setShopPrepaymentAmount(event.target.value)}
+                onChange={(event) => setShopPrepaymentAmount(formatNumberInput(event.target.value))}
                 className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
                 required
               />

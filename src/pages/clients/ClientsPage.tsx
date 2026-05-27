@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
+import { HighlightText } from "@/shared/ui/highlight-text";
+import { formatPhoneInput } from "@/shared/lib/input-formatters";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { PaginationBar } from "@/shared/ui/pagination";
@@ -235,10 +237,12 @@ export function ClientsPage() {
                               >
                                 {getInitials(client.name)}
                               </div>
-                              <span>{client.name}</span>
+                              <span><HighlightText text={client.name} highlight={debouncedSearch} /></span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-gray-600">{client.phone ?? "—"}</TableCell>
+                          <TableCell className="text-gray-600">
+                            <HighlightText text={client.phone} highlight={debouncedSearch} />
+                          </TableCell>
                           <TableCell>
                             {hasDebt ? (
                               <Badge variant="outline" className="border-rose-200 bg-rose-50 font-bold text-rose-700">
@@ -281,7 +285,9 @@ export function ClientsPage() {
                             >
                               {getInitials(client.name)}
                             </div>
-                            <span className="font-semibold text-foreground text-sm">{client.name}</span>
+                            <span className="font-semibold text-foreground text-sm">
+                              <HighlightText text={client.name} highlight={debouncedSearch} />
+                            </span>
                           </div>
                           <div>
                             {hasDebt ? (
@@ -300,7 +306,7 @@ export function ClientsPage() {
                               {t("products.phone")}
                             </span>
                             <span className="font-medium text-foreground truncate block">
-                              {client.phone ?? "—"}
+                              <HighlightText text={client.phone} highlight={debouncedSearch} />
                             </span>
                           </div>
                           <div>
@@ -414,7 +420,7 @@ function ClientCreateDialog() {
                 </label>
                 <Input
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
                   placeholder="+994 (50) 123-45-67"
                 />
               </div>
@@ -424,7 +430,7 @@ function ClientCreateDialog() {
                 </label>
                 <Input
                   value={backupPhone}
-                  onChange={(e) => setBackupPhone(e.target.value)}
+                  onChange={(e) => setBackupPhone(formatPhoneInput(e.target.value))}
                   placeholder="+994 (70) 123-45-67"
                 />
               </div>

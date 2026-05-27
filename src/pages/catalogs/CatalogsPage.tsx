@@ -30,6 +30,7 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 
 const walletGroups = {
   wallets: ["cash", "card", "bank_account"],
@@ -301,7 +302,7 @@ function AdvancedRecordsTable({
   return (
     <div className="space-y-3">
       {/* Desktop view */}
-      <div className="max-h-[70vh] overflow-auto rounded-xl border border-border bg-card shadow-sm hidden md:block">
+      <ScrollArea className="max-h-[70vh] rounded-xl border border-border bg-card shadow-sm hidden md:block">
         <Table className="[&_td]:h-[52px]" containerClassName="rounded-none border-0">
           <TableHeader className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
             <TableRow>
@@ -448,7 +449,7 @@ function AdvancedRecordsTable({
             ))}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
 
       {/* Mobile Card List */}
       <div className="grid gap-3 md:hidden">
@@ -647,7 +648,7 @@ function WalletTable({
         {tableIcon}
         {tableLabel}
       </div>
-      <div className="max-h-[70vh] overflow-auto rounded-xl border border-border bg-card shadow-sm hidden md:block">
+      <ScrollArea className="max-h-[70vh] rounded-xl border border-border bg-card shadow-sm hidden md:block">
         <Table className="[&_td]:h-[52px]" containerClassName="rounded-none border-0">
           <TableHeader className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
             <TableRow>
@@ -695,7 +696,7 @@ function WalletTable({
             ))}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
 
       {/* Mobile Wallet Card List */}
       <div className="grid gap-3 md:hidden">

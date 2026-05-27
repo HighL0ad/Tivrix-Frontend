@@ -26,6 +26,7 @@ import { ClientDebtFields, ClientPaymentFields } from "./ClientSaleFields";
 import { DealSummary } from "./DealSummary";
 import { buildSellFormData, getErrorMessage, toNumber, toOptionalNumber } from "./lib";
 import { SelectField } from "./SellFormControls";
+import { formatPhoneInput, formatNumberInput } from "@/shared/lib/input-formatters";
 import { ShopBuyerFields, ShopPaymentFields } from "./ShopSaleFields";
 
 type SellProductDialogProps = {
@@ -123,7 +124,7 @@ export function SellProductDialog({
     const payload: ProductSellPayload = {
       sale_type: saleType,
       sale_mode: saleType === "shop" ? "full_payment" : effectiveSaleMode,
-      total_price: finalTotalPrice,
+      total_price: finalTotalPrice.replace(/\s/g, ""),
       source,
     };
 
@@ -138,35 +139,35 @@ export function SellProductDialog({
       }
       if (effectiveSaleMode !== "full_debt" && splitPaymentEnabled) {
         payload.split_payment_enabled = true;
-        payload.split_payment_amount = splitPaymentAmount;
+        payload.split_payment_amount = splitPaymentAmount.replace(/\s/g, "");
         payload.split_payment_wallet_id = toOptionalNumber(splitPaymentWalletId);
       }
       if ((saleMode === "partial_debt" || saleMode === "installment") && paidNowAmount) {
-        payload.paid_now_amount = paidNowAmount;
+        payload.paid_now_amount = paidNowAmount.replace(/\s/g, "");
       }
       if (effectiveSaleMode === "installment") {
         payload.installment_months = toOptionalNumber(installmentMonths);
         payload.installment_payment_day = toOptionalNumber(installmentPaymentDay);
-        payload.cash_price = totalPrice || undefined;
+        payload.cash_price = totalPrice ? totalPrice.replace(/\s/g, "") : undefined;
       }
       if (effectiveSaleMode !== "full_payment") {
         payload.client_debt_wallet_id = toOptionalNumber(clientDebtWalletId);
       }
       if (registrationFeeEnabled) {
         payload.registration_fee_enabled = true;
-        payload.registration_fee_amount = registrationFeeAmount;
+        payload.registration_fee_amount = registrationFeeAmount.replace(/\s/g, "");
       }
     } else {
       payload.shop_wallet_id = toOptionalNumber(shopWalletId);
       payload.shop_prepayment_enabled = shopPrepaymentEnabled;
       if (shopPrepaymentEnabled) {
-        payload.shop_prepayment_amount = shopPrepaymentAmount;
+        payload.shop_prepayment_amount = shopPrepaymentAmount.replace(/\s/g, "");
         payload.shop_prepayment_wallet_id = toOptionalNumber(
           shopPrepaymentWalletId,
         );
         if (shopSplitPaymentEnabled) {
           payload.shop_split_payment_enabled = true;
-          payload.shop_split_payment_amount = shopSplitPaymentAmount;
+          payload.shop_split_payment_amount = shopSplitPaymentAmount.replace(/\s/g, "");
           payload.shop_split_payment_wallet_id = toOptionalNumber(
             shopSplitPaymentWalletId,
           );
@@ -327,8 +328,9 @@ export function SellProductDialog({
                   <AppFormField label={t("sell.newBuyerPhone")}>
                     <Input
                       id="client-phone"
+                      type="tel"
                       value={clientPhone}
-                      onChange={(event) => setClientPhone(event.target.value)}
+                      onChange={(event) => setClientPhone(formatPhoneInput(event.target.value))}
                       placeholder={t("sell.newBuyerPhonePlaceholder")}
                       disabled={Boolean(clientId)}
                     />
@@ -362,11 +364,10 @@ export function SellProductDialog({
               <div className="relative">
                 <Input
                   id="total-price"
-                  type="number"
-                  min="0"
-                  step="1"
+                  type="text"
+                  inputMode="decimal"
                   value={totalPrice}
-                  onChange={(event) => setTotalPrice(event.target.value)}
+                  onChange={(event) => setTotalPrice(formatNumberInput(event.target.value))}
                   className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
                   required
                 />

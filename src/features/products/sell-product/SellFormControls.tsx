@@ -7,6 +7,7 @@ import {
   AppFormField,
 } from "@/shared/ui/app-form";
 import type { ProductOption } from "@/entities/products/model/types";
+import { formatNumberInput } from "@/shared/lib/input-formatters";
 
 export function InlineCreate({
   value,
@@ -84,11 +85,10 @@ export function SplitPaymentFields({
           <AppFormField label={t("sell.secondWalletAmount")}>
             <div className="relative">
               <Input
-                type="number"
-                step="1"
-                min="1"
+                type="text"
+                inputMode="decimal"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(event) => setAmount(formatNumberInput(event.target.value))}
                 className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
                 required
               />

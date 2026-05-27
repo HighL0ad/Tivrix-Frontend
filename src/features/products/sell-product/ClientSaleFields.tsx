@@ -7,6 +7,7 @@ import {
   SelectField,
   SplitPaymentFields,
 } from "@/features/products/sell-product/SellFormControls";
+import { formatNumberInput } from "@/shared/lib/input-formatters";
 
 export function ClientPaymentFields({
   saleMode,
@@ -128,11 +129,10 @@ export function ClientDebtFields({
           <div className="relative">
             <Input
               id="installment-total-price"
-              type="number"
-              step="1"
-              min="0"
+              type="text"
+              inputMode="decimal"
               value={installmentTotalPrice}
-              onChange={(event) => setInstallmentTotalPrice(event.target.value)}
+              onChange={(event) => setInstallmentTotalPrice(formatNumberInput(event.target.value))}
               className="h-11 pr-10 font-bold text-sky-700 border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
@@ -153,11 +153,10 @@ export function ClientDebtFields({
           <div className="relative">
             <Input
               id="paid-now"
-              type="number"
-              step="1"
-              min="0"
+              type="text"
+              inputMode="decimal"
               value={paidNowAmount}
-              onChange={(event) => setPaidNowAmount(event.target.value)}
+              onChange={(event) => setPaidNowAmount(formatNumberInput(event.target.value))}
               className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-amber-700/50 pointer-events-none">
@@ -224,11 +223,10 @@ export function ClientDebtFields({
             <AppFormField label={t("sell.registrationAmount")}>
               <div className="relative">
                 <Input
-                  type="number"
-                  step="1"
-                  min="1"
+                  type="text"
+                  inputMode="decimal"
                   value={registrationFeeAmount}
-                  onChange={(event) => setRegistrationFeeAmount(event.target.value)}
+                  onChange={(event) => setRegistrationFeeAmount(formatNumberInput(event.target.value))}
                   className="h-11 pr-10 font-bold text-amber-700 border-amber-200 bg-amber-50/50 focus:bg-background transition-colors"
                   required
                 />

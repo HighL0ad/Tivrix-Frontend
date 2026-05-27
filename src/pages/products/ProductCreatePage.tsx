@@ -46,6 +46,7 @@ import {
 } from "@/features/products/product-form/model";
 import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 import type { WalletType } from "@/entities/finance/api/use-finance";
+import { formatImeiInput, formatPhoneInput } from "@/shared/lib/input-formatters";
 
 export function ProductCreatePage() {
   const { t } = useTranslation();
@@ -132,7 +133,7 @@ export function ProductCreatePage() {
   }
 
   async function handleImeiBlur() {
-    const normalizedImei = imei.trim();
+    const normalizedImei = imei.replace(/\D/g, "");
     setImeiError("");
     if (!normalizedImei) return;
     setCheckingImei(true);
@@ -164,7 +165,7 @@ export function ProductCreatePage() {
 
     const formData = new FormData();
     formData.append("name", name.trim());
-    formData.append("imei", imei.trim());
+    formData.append("imei", imei.replace(/\D/g, ""));
     formData.append("buy_price", buyPrice);
     formData.append("supplier_id", supplierId);
     formData.append(
@@ -174,7 +175,7 @@ export function ProductCreatePage() {
         : getPaymentMethod(scenario),
     );
 
-    if (imei2.trim()) formData.append("imei2", imei2.trim());
+    if (imei2.trim()) formData.append("imei2", imei2.replace(/\D/g, ""));
     if (phoneNumber.trim()) formData.append("phone_number", phoneNumber.trim());
     if (scenario === "transfer_now" || (scenario === "supplier_debt" && paidNowEnabled))
       formData.append("wallet_id", paymentWalletId);
@@ -333,7 +334,7 @@ export function ProductCreatePage() {
                         : ""
                     }`}
                     value={imei}
-                    onChange={(e) => setImei(e.target.value)}
+                    onChange={(e) => setImei(formatImeiInput(e.target.value))}
                     onBlur={handleImeiBlur}
                   />
                   {imeiError ? (
@@ -352,7 +353,7 @@ export function ProductCreatePage() {
                     placeholder={t("common.optional")}
                     className="font-mono"
                     value={imei2}
-                    onChange={(e) => setImei2(e.target.value)}
+                    onChange={(e) => setImei2(formatImeiInput(e.target.value))}
                   />
                 </Field>
 
@@ -362,7 +363,7 @@ export function ProductCreatePage() {
                     placeholder="+994..."
                     className="font-mono"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => setPhoneNumber(formatPhoneInput(e.target.value))}
                   />
                 </Field>
 

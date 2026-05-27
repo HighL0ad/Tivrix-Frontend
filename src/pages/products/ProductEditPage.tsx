@@ -29,6 +29,7 @@ import {
 import { getProductFormErrorMessage, productStatusOptions } from "@/features/products/product-form/model";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
 import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
+import { formatImeiInput, formatPhoneInput } from "@/shared/lib/input-formatters";
 
 export function ProductEditPage() {
   const { t } = useTranslation();
@@ -59,11 +60,11 @@ export function ProductEditPage() {
   useEffect(() => {
     if (!product) return;
     setName(product.name);
-    setImei(product.imei);
-    setImei2(product.imei2 ?? "");
+    setImei(formatImeiInput(product.imei));
+    setImei2(formatImeiInput(product.imei2 ?? ""));
     setBuyPrice(product.buy_price);
     setSupplierId("");
-    setPhoneNumber(product.phone_number ?? "");
+    setPhoneNumber(formatPhoneInput(product.phone_number ?? ""));
     setRegistrationStatuses(product.registration_statuses);
     setStatus(product.status);
     setSalePrice(product.current_sale?.total_price ?? "");
@@ -96,8 +97,8 @@ export function ProductEditPage() {
 
     const formData = new FormData();
     formData.append("name", name.trim());
-    formData.append("imei", imei.trim());
-    formData.append("imei2", imei2.trim());
+    formData.append("imei", imei.replace(/\D/g, ""));
+    formData.append("imei2", imei2.replace(/\D/g, ""));
     formData.append("buy_price", buyPrice);
     if (supplierId) formData.append("supplier_id", supplierId);
     if (phoneNumber.trim()) formData.append("phone_number", phoneNumber.trim());
@@ -198,15 +199,15 @@ export function ProductEditPage() {
                 />
               </Field>
               <Field label="IMEI">
-                <Input value={imei} onChange={(event) => setImei(event.target.value)} required />
+                <Input value={imei} onChange={(event) => setImei(formatImeiInput(event.target.value))} required />
               </Field>
               <Field label={t("products.imei2")}>
-                <Input value={imei2} onChange={(event) => setImei2(event.target.value)} />
+                <Input value={imei2} onChange={(event) => setImei2(formatImeiInput(event.target.value))} />
               </Field>
               <Field label={t("products.simNumber")}>
                 <Input
                   value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  onChange={(event) => setPhoneNumber(formatPhoneInput(event.target.value))}
                 />
               </Field>
               <Field label={t("common.status")}>

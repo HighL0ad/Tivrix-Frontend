@@ -40,6 +40,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
+import { formatPhoneInput } from "@/shared/lib/input-formatters";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import {
@@ -51,6 +52,7 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 
 export function ClientDetailPage() {
   const { t } = useTranslation();
@@ -137,7 +139,7 @@ export function ClientDetailPage() {
         {/* ── Sidebar ── */}
         <div className="order-first min-w-0 space-y-3">
           {/* Avatar + stats + debt summary */}
-          <Card size="sm">
+          <Card size="sm" className={hasDebt ? "card-accent-rose" : "card-accent-emerald"}>
             <CardContent className="flex flex-col items-center gap-4 pt-5 text-center">
               {/* Avatar */}
               <div
@@ -210,7 +212,7 @@ export function ClientDetailPage() {
                 </div>
               </div>
               {ordinaryDebtNum > 0 ? (
-                <div className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-left">
+                <div className="w-full rounded-lg border border-amber-200 bg-amber-50/50 card-accent-amber px-3 py-2.5 text-left">
                   <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
                     {t("clients.ordinaryDebtNotice")}
                   </div>
@@ -451,7 +453,7 @@ export function ClientDetailPage() {
                     />
                   ))}
                 </div>
-                <div className="hidden max-h-72 overflow-y-auto md:block">
+                <ScrollArea className="hidden max-h-72 md:block">
                   <Table containerClassName="border-0 rounded-none">
                     <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                       <TableRow>
@@ -519,7 +521,7 @@ export function ClientDetailPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </ScrollArea>
                 </>
               ) : (
                 <div className="p-5">
@@ -552,7 +554,7 @@ export function ClientDetailPage() {
                     />
                   ))}
                 </div>
-                <div className="hidden max-h-64 overflow-y-auto md:block">
+                <ScrollArea className="hidden max-h-64 md:block">
                   <Table containerClassName="border-0 rounded-none">
                     <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                       <TableRow>
@@ -589,7 +591,7 @@ export function ClientDetailPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </ScrollArea>
                 </>
               ) : (
                 <div className="p-5">
@@ -1049,15 +1051,15 @@ function ClientEditDialog({
   const updateClient = useUpdateClient(client.id);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(client.name);
-  const [phone, setPhone] = useState(client.phone ?? "");
-  const [backupPhone, setBackupPhone] = useState(client.backup_phone ?? "");
+  const [phone, setPhone] = useState(formatPhoneInput(client.phone ?? ""));
+  const [backupPhone, setBackupPhone] = useState(formatPhoneInput(client.backup_phone ?? ""));
   const [description, setDescription] = useState(client.description ?? "");
 
   useEffect(() => {
     if (!open) return;
     setName(client.name);
-    setPhone(client.phone ?? "");
-    setBackupPhone(client.backup_phone ?? "");
+    setPhone(formatPhoneInput(client.phone ?? ""));
+    setBackupPhone(formatPhoneInput(client.backup_phone ?? ""));
     setDescription(client.description ?? "");
   }, [client, open]);
 
@@ -1117,7 +1119,7 @@ function ClientEditDialog({
                 </label>
                 <Input
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
                 />
               </div>
               <div className="space-y-1.5">
@@ -1126,7 +1128,7 @@ function ClientEditDialog({
                 </label>
                 <Input
                   value={backupPhone}
-                  onChange={(e) => setBackupPhone(e.target.value)}
+                  onChange={(e) => setBackupPhone(formatPhoneInput(e.target.value))}
                 />
               </div>
             </div>
@@ -1178,8 +1180,8 @@ function getAvatarColorStyle(id: number) {
 
 function getInstallmentBadgeClass(status: string) {
   if (status === "paid")
-    return "border-emerald-200 bg-emerald-50 text-emerald-700 font-semibold";
+    return "badge-soft-success";
   if (status === "overdue")
-    return "border-rose-200 bg-rose-50 text-rose-700 font-bold";
-  return "border-amber-200 bg-amber-50 text-amber-700 font-semibold";
+    return "badge-soft-danger font-bold";
+  return "badge-soft-warning";
 }

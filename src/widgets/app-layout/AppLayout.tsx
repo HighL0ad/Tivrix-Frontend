@@ -34,6 +34,7 @@ import {
   SheetTrigger,
 } from "@/shared/ui/sheet";
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
+import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
 
 const navItems = [
@@ -301,6 +302,7 @@ export function AppLayout() {
         </div>
       </nav>
       <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} />
+      <ChangelogDialog />
     </div>
   );
 }

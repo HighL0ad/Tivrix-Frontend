@@ -165,7 +165,7 @@ function PayablesBlock({
   const total = sumPayables(payables);
 
   return (
-    <Card className="gap-0 py-0">
+    <Card className="gap-0 py-0 card-accent-amber">
       <CardHeader className="flex flex-row items-center justify-between gap-3 border-b px-4 py-3">
         <CardTitle className="min-w-0 text-sm">{t("debts.unpaidPayables")}</CardTitle>
         <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
@@ -371,7 +371,11 @@ function DebtGroupBlock({
     blue: "border-blue-200 bg-blue-50 text-blue-700",
     good: "border-emerald-200 bg-emerald-50 text-emerald-700",
   }[tone];
-  const cardClass = tone === "blue" ? "gap-0 border-blue-200 py-0" : "gap-0 py-0";
+  const cardClass = {
+    bad: "gap-0 py-0 card-accent-rose",
+    blue: "gap-0 border-blue-200 py-0 card-accent-violet",
+    good: "gap-0 py-0 card-accent-emerald",
+  }[tone];
   const headerClass = tone === "blue"
     ? "flex flex-row items-center justify-between gap-3 border-b border-blue-200 bg-blue-50/50 px-4 py-3"
     : "flex flex-row items-center justify-between gap-3 border-b px-4 py-3";

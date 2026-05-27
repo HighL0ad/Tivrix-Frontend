@@ -71,6 +71,7 @@ import {
 import { ResponsiveModal } from "@/shared/ui/app-form";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { HighlightText } from "@/shared/ui/highlight-text";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import {
   DropdownMenu,
@@ -97,6 +98,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 
 const statusFilters: Array<{ value: ProductStatus | "all"; labelKey: string }> = [
   { value: "all", labelKey: "common.all" },
@@ -338,7 +340,7 @@ export function ProductsPage() {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <div className="max-h-64 overflow-y-auto">
+                <ScrollArea className="max-h-64">
                 {visibleSupplierOptions.length ? visibleSupplierOptions.map((supplier) => {
                   const checked = activeSupplierIds.includes(supplier.id);
                   return (
@@ -361,7 +363,7 @@ export function ProductsPage() {
                     {t("products.supplierNotFound")}
                   </div>
                 )}
-                </div>
+                </ScrollArea>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -383,7 +385,7 @@ export function ProductsPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72">
-                <div className="max-h-64 overflow-y-auto">
+                <ScrollArea className="max-h-64">
                   {registrationOptions.map((option) => {
                     const checked = activeRegistrationStatuses.includes(
                       option.value as (typeof registrationStatusValues)[number],
@@ -406,7 +408,7 @@ export function ProductsPage() {
                       </DropdownMenuCheckboxItem>
                     );
                   })}
-                </div>
+                </ScrollArea>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -517,11 +519,13 @@ export function ProductsPage() {
                     onSortChange={(nextSortBy, nextSortDir) =>
                       updateParams({ sortBy: nextSortBy, sortDir: nextSortDir })
                     }
+                    q={q ?? ""}
                   />
                 ) : (
                   <ProductsCardList
                     products={products.items}
                     returnTo={returnTo}
+                    q={q ?? ""}
                   />
                 )
               ) : (
@@ -584,9 +588,11 @@ export function ProductsPage() {
 function ProductsCardList({
   products,
   returnTo,
+  q,
 }: {
   products: ProductListItem[];
   returnTo: string;
+  q: string;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -624,9 +630,11 @@ function ProductsCardList({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="break-words font-bold text-foreground">{product.name}</div>
+                    <div className="break-words font-bold text-foreground">
+                      <HighlightText text={product.name} highlight={q} />
+                    </div>
                     <div className="mt-1 font-mono text-xs text-muted-foreground">
-                      {formatProductImei(product)}
+                      <HighlightText text={formatProductImei(product)} highlight={q} />
                     </div>
                   </div>
                   <ProductStatusBadge status={product.status} />
@@ -755,6 +763,7 @@ function ProductsTable({
   sortBy,
   sortDir,
   onSortChange,
+  q,
 }: {
   products: ProductListItem[];
   returnTo: string;
@@ -764,6 +773,7 @@ function ProductsTable({
     sortBy: (typeof productSortFields)[number] | null,
     sortDir: (typeof sortDirections)[number] | null,
   ) => void;
+  q: string;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -779,9 +789,11 @@ function ProductsTable({
         header: () => t("sell.product"),
         cell: ({ row }) => (
           <TableCellContent>
-            <div className="font-medium text-foreground">{row.original.name}</div>
+            <div className="font-medium text-foreground">
+              <HighlightText text={row.original.name} highlight={q ?? ""} />
+            </div>
             <div className="mt-1 font-mono text-xs text-muted-foreground">
-              {formatProductImei(row.original)}
+              <HighlightText text={formatProductImei(row.original)} highlight={q ?? ""} />
             </div>
             {isLegacyInstallmentProduct(row.original) ? (
               <div className="mt-2">

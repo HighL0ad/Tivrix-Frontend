@@ -58,6 +58,7 @@ import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 
 const financeTabValues = ["overview", "history", "profit", "expenses"] as const;
 const financeActionValues = ["transfer", "adjust"] as const;
@@ -918,7 +919,8 @@ function ProfitCard({
             <div className={`space-y-2 ${isFetching ? "opacity-60 transition-opacity duration-200" : "transition-opacity duration-200"}`}>
               {/* Desktop view */}
               <div className="hidden md:block">
-                <Table containerClassName="max-h-[60vh] overflow-y-auto">
+                <ScrollArea className="max-h-[60vh]">
+                  <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("sell.product")}</TableHead>
@@ -953,7 +955,8 @@ function ProfitCard({
                       </TableRow>
                     ) : null}
                   </TableBody>
-                </Table>
+                  </Table>
+                </ScrollArea>
               </div>
 
               {/* Mobile view */}
@@ -1060,7 +1063,8 @@ function ExpensesCard({
             <div className={`space-y-2 ${isFetching ? "opacity-60 transition-opacity duration-200" : "transition-opacity duration-200"}`}>
               {/* Desktop view */}
               <div className="hidden md:block">
-                <Table containerClassName="max-h-[60vh] overflow-y-auto">
+                <ScrollArea className="max-h-[60vh]">
+                  <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("common.details")}</TableHead>
@@ -1088,11 +1092,13 @@ function ExpensesCard({
                       </TableRow>
                     ) : null}
                   </TableBody>
-                </Table>
+                  </Table>
+                </ScrollArea>
               </div>
 
               {/* Mobile view */}
-              <div className="max-h-[60vh] space-y-3 overflow-auto pr-1 md:hidden">
+              <ScrollArea className="max-h-[60vh] md:hidden">
+                <div className="space-y-3 pr-1.5 pb-1">
                 {data.items.map((expense) => (
                   <div
                     key={expense.id}
@@ -1136,6 +1142,7 @@ function ExpensesCard({
                   </div>
                 ) : null}
               </div>
+              </ScrollArea>
 
               <PaginationBar
                 page={data.page}
