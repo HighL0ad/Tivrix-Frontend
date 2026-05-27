@@ -110,7 +110,7 @@ export function SellProductDialog({
   ) => {
     event.preventDefault();
 
-    // When "С задатком" is selected with 0 upfront → treat as full_debt for backend
+    // When partial debt is selected with 0 upfront -> treat as full_debt for backend
     const effectiveSaleMode: ProductSellPayload["sale_mode"] =
       saleMode === "partial_debt" && !paidNowAmount
         ? "full_debt"
@@ -189,6 +189,13 @@ export function SellProductDialog({
             query.queryKey[0] === "products" &&
             typeof query.queryKey[1] === "object",
         });
+        queryClient.invalidateQueries({
+          queryKey: ["products", product.id, "sell-options"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["clients"] });
+        queryClient.invalidateQueries({ queryKey: ["debts"] });
+        queryClient.invalidateQueries({ queryKey: ["finance"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
         onSold(soldProduct);
         setOpen(false);
         toast.success(t("sell.completed"));
