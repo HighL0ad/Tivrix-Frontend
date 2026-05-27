@@ -29,6 +29,7 @@ export function RepayDialog({
   const [amount, setAmount] = useState("");
   const formId = `repay-${wallet.id}-${operationType}`;
   const isPayment = operationType === "pay_supplier";
+  const payableBalance = Math.abs(Number(wallet.balance));
   const buttonTone = tone ?? (isPayment ? "bad" : "good");
   const triggerClass = {
     bad: "h-8 rounded-full bg-rose-100 px-3 text-xs font-bold text-rose-700 shadow-none hover:bg-rose-200 hover:text-rose-800",
@@ -38,7 +39,7 @@ export function RepayDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (nextOpen) {
-      setAmount(defaultDebtAmount(wallet.balance));
+      setAmount(defaultDebtAmount(payableBalance));
     }
   };
 
@@ -53,6 +54,7 @@ export function RepayDialog({
           size="sm"
           variant="ghost"
           className={triggerClass}
+          disabled={payableBalance <= 0}
         >
           {isPayment ? t("debts.pay") : t("debts.accept")}
         </Button>

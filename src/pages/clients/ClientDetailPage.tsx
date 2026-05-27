@@ -94,6 +94,7 @@ export function ClientDetailPage() {
 
   const totalPurchasesNum = Number(client.total_purchases);
   const totalDebtNum = Number(client.total_debt);
+  const ordinaryDebtNum = Number(client.ordinary_debt);
   const totalPaid = Math.max(0, totalPurchasesNum - totalDebtNum);
   const paidPercent =
     totalPurchasesNum > 0
@@ -208,6 +209,21 @@ export function ClientDetailPage() {
                   <span>{paidPercent}%</span>
                 </div>
               </div>
+              {ordinaryDebtNum > 0 ? (
+                <div className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-left">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                    {t("clients.ordinaryDebtNotice")}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <span className="text-xs font-medium text-amber-800">
+                      {t("clients.inDebtsSection")}
+                    </span>
+                    <span className="shrink-0 text-sm font-black text-amber-900">
+                      {money(client.ordinary_debt)}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -252,34 +268,6 @@ export function ClientDetailPage() {
             </Card>
           )}
 
-          {/* Debt wallets */}
-          {client.debt_wallets.length > 0 && (
-            <Card size="sm">
-              <CardHeader>
-                <CardTitle>{t("clients.debtWallets")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {client.debt_wallets.map((wallet) => (
-                  <div
-                    key={wallet.id}
-                    className="flex items-center justify-between rounded-lg border border-rose-100 bg-rose-50/50 px-3 py-2.5"
-                  >
-                    <div className="min-w-0">
-                      <div className="break-words text-xs font-semibold text-gray-700">
-                        {wallet.name}
-                      </div>
-                      <div className="text-[10px] text-gray-400">
-                        {t("clients.debt")}
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-sm font-black text-rose-600">
-                      {money(wallet.balance)}
-                    </span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* ── Main content ── */}

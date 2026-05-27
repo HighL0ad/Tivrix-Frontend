@@ -10,6 +10,7 @@ export type Client = {
   description: string | null;
   created_at: string | null;
   total_debt: string;
+  ordinary_debt: string;
   purchases_count: number;
   total_purchases: string;
   last_purchase_at: string | null;
