@@ -28,7 +28,6 @@ export function DashboardPage() {
   const [profitPeriod, setProfitPeriod] = useState<"7d" | "30d" | "90d">("7d");
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
   const [isInstallmentAlertsExpanded, setIsInstallmentAlertsExpanded] = useState(false);
-  const [isCreditSystemExpanded, setIsCreditSystemExpanded] = useState(false);
   const dashboardQuery = useDashboard();
   const data = dashboardQuery.data;
   const returnTo = `${location.pathname}${location.search}`;
@@ -123,67 +122,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2 text-base font-bold">
-            <Landmark className="size-4 text-sky-700" aria-hidden="true" />
-            {t("dashboard.creditSystem")}
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-xs font-bold"
-            onClick={() => setIsCreditSystemExpanded(!isCreditSystemExpanded)}
-          >
-            {isCreditSystemExpanded ? t("common.hide") : t("common.show")}
-            {isCreditSystemExpanded ? (
-              <ChevronUp className="ml-1 size-3" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="ml-1 size-3" aria-hidden="true" />
-            )}
-          </Button>
-        </div>
-        {isCreditSystemExpanded ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard
-              title={t("dashboard.mainCash")}
-              value={<Money value={data.main_cash_balance ?? data.total_money} />}
-              hint={t("dashboard.mainCashHint")}
-              tone="info"
-              icon={<Banknote className="size-4" />}
-            />
-            <MetricCard
-              title={t("dashboard.creditCash")}
-              value={<Money value={data.credit_cash_balance ?? 0} />}
-              hint={t("dashboard.creditCashHint")}
-              tone="good"
-              icon={<HandCoins className="size-4" />}
-            />
-            <MetricCard
-              title={t("dashboard.internalDebt")}
-              value={<Money value={data.internal_credit_debt ?? 0} />}
-              hint={t("dashboard.internalDebtHint")}
-              tone="warning"
-              icon={<Landmark className="size-4" />}
-            />
-            <MetricCard
-              title={t("dashboard.netCreditProfit")}
-              value={<Money value={data.net_credit_profit ?? 0} />}
-              hint={t("dashboard.netCreditProfitHint")}
-              tone="violet"
-              icon={<TrendingUp className="size-4" />}
-            />
-            <MetricCard
-              title={t("dashboard.activeCreditsTotal")}
-              value={<Money value={data.active_credits_total ?? 0} />}
-              hint={t("dashboard.activeCreditsTotalHint")}
-              tone="info"
-              icon={<ShoppingCart className="size-4" />}
-            />
-          </div>
-        ) : null}
-      </section>
+
 
 
 

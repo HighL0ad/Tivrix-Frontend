@@ -55,12 +55,12 @@ export function MetricCard({
     >
       <CardContent className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="min-h-8 text-xs font-bold uppercase leading-4 tracking-wide text-gray-500">
+          <div className="min-h-12 text-xs font-bold uppercase leading-4 tracking-wide text-gray-500">
             {title}
           </div>
           <div
             className={cn(
-              "mt-1 break-words font-black leading-none tracking-tight text-gray-950",
+              "mt-1 whitespace-nowrap font-black leading-none tracking-tight text-gray-950",
               compact ? "text-lg" : "text-xl",
             )}
           >

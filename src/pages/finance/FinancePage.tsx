@@ -628,142 +628,9 @@ function OverviewCard({
 }) {
   const { t } = useTranslation();
   const nonZeroWallets = data.my_wallets.filter((wallet) => Number(wallet.balance) !== 0);
-  const maxMonthlyForecast = Math.max(
-    ...data.attention.monthly_forecast.map((item) => Number(item.amount)),
-    1,
-  );
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle>{t("finance.attentionTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <AttentionMetric
-            title={t("finance.dueToday")}
-            value={money(data.attention.installment_due_today_amount)}
-            hint={t("finance.paymentsCount", {
-              count: String(data.attention.installment_due_today_count),
-            })}
-            icon={<CalendarClock className="size-4" />}
-            className="border-sky-200 bg-sky-50 text-sky-800"
-          />
-          <AttentionMetric
-            title={t("finance.overdueInstallments")}
-            value={money(data.attention.installment_overdue_amount)}
-            hint={t("finance.paymentsCount", {
-              count: String(data.attention.installment_overdue_count),
-            })}
-            icon={<AlertCircle className="size-4" />}
-            className="border-rose-200 bg-rose-50 text-rose-800"
-          />
-          <AttentionMetric
-            title={t("finance.next7dReceipts")}
-            value={money(data.attention.installment_next_7d_amount)}
-            hint={t("finance.paymentsCount", {
-              count: String(data.attention.installment_next_7d_count),
-            })}
-            icon={<TrendingUp className="size-4" />}
-            className="border-emerald-200 bg-emerald-50 text-emerald-800"
-          />
-          <AttentionMetric
-            title={t("finance.next30dReceipts")}
-            value={money(data.attention.installment_next_30d_amount)}
-            hint={t("finance.paymentsCount", {
-              count: String(data.attention.installment_next_30d_count),
-            })}
-            icon={<WalletCards className="size-4" />}
-            className="border-violet-200 bg-violet-50 text-violet-800"
-          />
-          <AttentionMetric
-            title={t("finance.shopOverdue")}
-            value={money(data.attention.shop_overdue_amount)}
-            hint={t("finance.dealsCount", {
-              count: String(data.attention.shop_overdue_count),
-            })}
-            icon={<HandCoins className="size-4" />}
-            className="border-amber-200 bg-amber-50 text-amber-800"
-          />
-          <AttentionMetric
-            title={t("finance.activeInstallmentClients")}
-            value={String(data.attention.active_installment_clients_count)}
-            hint={t("finance.clientsWithActiveInstallments")}
-            icon={<UsersRound className="size-4" />}
-            className="border-slate-200 bg-slate-50 text-slate-800"
-          />
-          <div className="rounded-lg border bg-white p-4 sm:col-span-2 xl:col-span-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="font-bold">{t("finance.upcomingPayments")}</div>
-              <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-xs">
-                <NavLink to="/clients">{t("app.nav.clients")}</NavLink>
-              </Button>
-            </div>
-            {data.attention.upcoming_installments.length ? (
-              <div className="divide-y">
-                {data.attention.upcoming_installments.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid gap-2 py-2 text-sm sm:grid-cols-[1fr_auto_auto] sm:items-center"
-                  >
-                    <div className="min-w-0">
-                      <NavLink
-                        to={`/clients/${item.client_id}`}
-                        className="font-semibold text-sky-700 hover:underline"
-                      >
-                        {item.client_name}
-                      </NavLink>
-                      {item.product_name ? (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          {item.product_name}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="text-xs font-semibold text-muted-foreground">
-                      {upcomingDueLabel(item.days_until_due, item.due_date, t)}
-                    </div>
-                    <div className="font-black">{money(item.remaining_amount)}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                {t("finance.noUpcomingPayments")}
-              </div>
-            )}
-          </div>
-          <div className="rounded-lg border bg-white p-4 sm:col-span-2 xl:col-span-3">
-            <div className="mb-3 font-bold">{t("finance.monthlyForecast")}</div>
-            {data.attention.monthly_forecast.length ? (
-              <div className="grid gap-2">
-                {data.attention.monthly_forecast.map((item) => {
-                  const amount = Number(item.amount);
-                  const width = `${Math.max((amount / maxMonthlyForecast) * 100, amount > 0 ? 8 : 0)}%`;
-
-                  return (
-                    <div key={item.month} className="grid gap-2 text-sm sm:grid-cols-[86px_1fr_120px] sm:items-center">
-                      <div className="font-semibold text-muted-foreground">{formatForecastMonth(item.month)}</div>
-                      <div className="h-3 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full rounded-full bg-emerald-500" style={{ width }} />
-                      </div>
-                      <div className="text-right">
-                        <div className="font-black">{money(item.amount)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {t("finance.paymentsCount", { count: String(item.count) })}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                {t("finance.noForecast")}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>{t("finance.walletBalances")}</CardTitle>
@@ -793,21 +660,22 @@ function OverviewCard({
           )}
         </CardContent>
       </Card>
-      <Card className="xl:col-span-2">
+      
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HandCoins className="size-5 text-rose-600" />
             {t("finance.supplierDebts")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="grid gap-2 sm:grid-cols-2">
           {data.debt_wallets.length ? data.debt_wallets.map((wallet) => (
             <div key={wallet.id} className="flex items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
               <span className="font-semibold">{wallet.name}</span>
               <span className="font-bold">{money(wallet.balance)}</span>
             </div>
           )) : (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center text-sm font-semibold text-emerald-700 sm:col-span-2 lg:col-span-3">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center text-sm font-semibold text-emerald-700 sm:col-span-2">
               {t("finance.noSupplierDebts")}
             </div>
           )}

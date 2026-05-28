@@ -19,7 +19,7 @@ export function Money({
   return (
     <span
       className={cn(
-        "tabular-nums",
+        "tabular-nums whitespace-nowrap",
         colored && numValue > 0 && "text-emerald-700",
         colored && numValue < 0 && "text-rose-600",
         className,
