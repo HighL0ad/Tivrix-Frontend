@@ -51,6 +51,12 @@ export function formatPhoneInput(value: string): string {
  */
 export function formatImeiInput(value: string): string {
   if (!value) return "";
+  
+  // If the value contains any non-digit, non-dash characters (e.g. serial numbers), return as-is
+  if (/[^\d-]/.test(value)) {
+    return value;
+  }
+  
   const digits = value.replace(/\D/g, "").slice(0, 15);
   if (!digits) return "";
   

@@ -1,5 +1,5 @@
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, useRef, useState } from "react";
-import { NavLink, Outlet } from "react-router";
+import { Navigate, NavLink, Outlet } from "react-router";
 import {
   Banknote,
   Boxes,
@@ -36,6 +36,7 @@ import {
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
+import { PageLoading } from "@/shared/ui/page-state";
 
 const navItems = [
   { to: "/", labelKey: "app.nav.dashboard", icon: Gauge, resource: "dashboard" },
@@ -109,6 +110,14 @@ export function AppLayout() {
     await logout();
     queryClient.removeQueries({ queryKey: ["auth"] });
     window.location.assign("/login");
+  }
+
+  if (currentUserQuery.isLoading) {
+    return <PageLoading />;
+  }
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
   }
 
   return (

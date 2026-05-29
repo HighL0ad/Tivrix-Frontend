@@ -133,7 +133,8 @@ export function ProductCreatePage() {
   }
 
   async function handleImeiBlur() {
-    const normalizedImei = imei.replace(/\D/g, "");
+    const isAlphanumeric = /[^\d-]/.test(imei);
+    const normalizedImei = isAlphanumeric ? imei.trim() : imei.replace(/\D/g, "");
     setImeiError("");
     if (!normalizedImei) return;
     setCheckingImei(true);
@@ -165,7 +166,8 @@ export function ProductCreatePage() {
 
     const formData = new FormData();
     formData.append("name", name.trim());
-    formData.append("imei", imei.replace(/\D/g, ""));
+    const isAlphanumeric = /[^\d-]/.test(imei);
+    formData.append("imei", isAlphanumeric ? imei.trim() : imei.replace(/\D/g, ""));
     formData.append("buy_price", buyPrice);
     formData.append("supplier_id", supplierId);
     formData.append(
@@ -175,7 +177,10 @@ export function ProductCreatePage() {
         : getPaymentMethod(scenario),
     );
 
-    if (imei2.trim()) formData.append("imei2", imei2.replace(/\D/g, ""));
+    if (imei2.trim()) {
+      const isImei2Alphanumeric = /[^\d-]/.test(imei2);
+      formData.append("imei2", isImei2Alphanumeric ? imei2.trim() : imei2.replace(/\D/g, ""));
+    }
     if (phoneNumber.trim()) formData.append("phone_number", phoneNumber.trim());
     if (scenario === "transfer_now" || (scenario === "supplier_debt" && paidNowEnabled))
       formData.append("wallet_id", paymentWalletId);

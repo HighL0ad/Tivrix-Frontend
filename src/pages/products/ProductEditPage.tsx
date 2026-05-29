@@ -97,8 +97,10 @@ export function ProductEditPage() {
 
     const formData = new FormData();
     formData.append("name", name.trim());
-    formData.append("imei", imei.replace(/\D/g, ""));
-    formData.append("imei2", imei2.replace(/\D/g, ""));
+    const isAlphanumeric = /[^\d-]/.test(imei);
+    const isImei2Alphanumeric = /[^\d-]/.test(imei2);
+    formData.append("imei", isAlphanumeric ? imei.trim() : imei.replace(/\D/g, ""));
+    formData.append("imei2", isImei2Alphanumeric ? imei2.trim() : imei2.replace(/\D/g, ""));
     formData.append("buy_price", buyPrice);
     if (supplierId) formData.append("supplier_id", supplierId);
     if (phoneNumber.trim()) formData.append("phone_number", phoneNumber.trim());
