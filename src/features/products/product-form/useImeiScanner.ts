@@ -42,14 +42,52 @@ export function validateLuhn(imei: string): boolean {
   return sum % 10 === 0;
 }
 
+/**
+ * Normalise a raw ZXing decode result before candidate extraction.
+ *
+ * Apple / carrier boxes use GS1-128, which ZXing returns with:
+ *   - a "]C1" symbology identifier prefix
+ *   - ASCII GS (0x1D) as the group-separator between AIs
+ *   - Application Identifiers like (01), (21), (17) wrapping the payload
+ *
+ * Example raw string for IMEI/MEID barcode:
+ *   "]C1\x1D011035937235889055621..."
+ *   or after stripping "]C1": "011035937235889055621..."
+ *   AI 01 = GTIN-14, AI 21 = Serial — the 15-digit IMEI sits inside the
+ *   GTIN-14 value (positions 1–15 of the 14-digit payload when leading
+ *   digit is 0, or extracted by stripping the check digit).
+ *
+ * We strip all of that and fall back to the sliding-window digit scan,
+ * which finds any 15-digit sequence that passes Luhn — exactly the IMEI.
+ */
+function normaliseBarcode(raw: string): string {
+  return (
+    raw
+      // Remove ZXing symbology identifier ("]C1", "]e0", "]d2", etc.)
+      .replace(/^\][A-Za-z]\d/, "")
+      // Remove ASCII control chars incl. GS (0x1D), RS (0x1E), EOT (0x04)
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1F\x7F]/g, " ")
+      // Remove GS1 Application Identifier wrappers like (01), (21), (17)
+      .replace(/\(\d{2,4}\)/g, " ")
+  );
+}
+
 export function extractImeiCandidates(text: string): string[] {
-  const onlyDigits = text.replace(/\D/g, "");
+  const normalised = normaliseBarcode(text);
+  const onlyDigits = normalised.replace(/\D/g, "");
   const candidates = new Set<string>();
-  (text.match(/\b\d{15}\b/g) ?? []).forEach((v) => candidates.add(v));
-  (text.match(/\d{15}/g) ?? []).forEach((v) => candidates.add(v));
+
+  // Strict word-boundary matches on the normalised text
+  (normalised.match(/\b\d{15}\b/g) ?? []).forEach((v) => candidates.add(v));
+  // Loose matches (no boundary required)
+  (normalised.match(/\d{15}/g) ?? []).forEach((v) => candidates.add(v));
+  // Sliding window over all digits — catches IMEI embedded in longer strings
+  // (e.g. GTIN-14 where the IMEI is digits 1–15)
   for (let i = 0; i <= onlyDigits.length - 15; i++) {
     candidates.add(onlyDigits.slice(i, i + 15));
   }
+
   return Array.from(candidates);
 }
 
@@ -109,6 +147,9 @@ function createReader() {
     BarcodeFormat.ITF,
   ]);
   hints.set(DecodeHintType.TRY_HARDER, true);
+  // Позволяет ZXing читать GS1-128 (Apple/carrier коробки используют его
+  // для IMEI с Application Identifier префиксами)
+  hints.set(DecodeHintType.ASSUME_GS1, true);
   return new BrowserMultiFormatReader(hints, {
     // Пауза между попытками декодирования кадров (мс)
     delayBetweenScanAttempts: 100,
