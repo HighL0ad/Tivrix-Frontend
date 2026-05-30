@@ -23,6 +23,21 @@ interface ScannerDevice {
   label: string;
 }
 
+type ZoomCapability = {
+  min?: number;
+  max?: number;
+  step?: number;
+};
+
+type TunableMediaTrackCapabilities = MediaTrackCapabilities & {
+  focusMode?: string[];
+  zoom?: ZoomCapability;
+};
+
+type TunableMediaTrackSettings = MediaTrackSettings & {
+  zoom?: number;
+};
+
 export function validateLuhn(imei: string): boolean {
   const cleaned = imei.replace(/\D/g, "");
   if (cleaned.length !== 15) return false;
@@ -73,21 +88,67 @@ function getBackCameraDevices(devices: ScannerDevice[]) {
   });
 }
 
+function getCameraScore(device: ScannerDevice) {
+  const label = device.label.toLowerCase();
+  let score = 0;
+
+  if (label.includes("back") || label.includes("rear")) score += 50;
+  if (label.includes("environment") || label.includes("основная")) score += 50;
+  if (label.includes("wide") && !label.includes("ultra")) score += 12;
+  if (label.includes("dual") || label.includes("triple")) score += 8;
+  if (label.includes("ultra")) score -= 20;
+  if (label.includes("telephoto")) score -= 12;
+  if (label.includes("front") || label.includes("selfie")) score -= 100;
+
+  return score;
+}
+
+function sortCameras(devices: ScannerDevice[]) {
+  return [...devices].sort((left, right) => {
+    const scoreDiff = getCameraScore(right) - getCameraScore(left);
+    if (scoreDiff !== 0) return scoreDiff;
+    return left.label.localeCompare(right.label);
+  });
+}
+
 function pickBestCamera(devices: ScannerDevice[]) {
   const backDevices = getBackCameraDevices(devices);
-  const candidates = backDevices.length > 0 ? backDevices : devices;
+  const candidates = sortCameras(backDevices.length > 0 ? backDevices : devices);
+  return candidates[0];
+}
 
-  return (
-    candidates.find((device) => {
-      const label = device.label.toLowerCase();
-      return (
-        label.includes("back") ||
-        label.includes("rear") ||
-        label.includes("environment") ||
-        label.includes("основная")
+async function tuneCameraForBarcode(scanner: Html5Qrcode) {
+  try {
+    const capabilities =
+      scanner.getRunningTrackCapabilities() as TunableMediaTrackCapabilities;
+    const settings =
+      scanner.getRunningTrackSettings() as TunableMediaTrackSettings;
+    const advanced: MediaTrackConstraintSet[] = [];
+
+    if (capabilities.focusMode?.includes("continuous")) {
+      advanced.push({
+        focusMode: "continuous",
+      } as unknown as MediaTrackConstraintSet);
+    }
+
+    if (capabilities.zoom?.max && capabilities.zoom.max > 1) {
+      const currentZoom = settings.zoom ?? capabilities.zoom.min ?? 1;
+      const targetZoom = Math.min(
+        capabilities.zoom.max,
+        Math.max(currentZoom, 2),
       );
-    }) || candidates[0]
-  );
+
+      advanced.push({
+        zoom: targetZoom,
+      } as unknown as MediaTrackConstraintSet);
+    }
+
+    if (advanced.length > 0) {
+      await scanner.applyVideoConstraints({ advanced });
+    }
+  } catch (err) {
+    console.warn("[IMEI SCANNER] Failed to tune camera", err);
+  }
 }
 
 export function useImeiScanner({
@@ -141,10 +202,10 @@ export function useImeiScanner({
         deviceId: camera.id,
         label: camera.label,
       }));
-      const visibleDevices = getBackCameraDevices(allDevices);
+      const visibleDevices = sortCameras(getBackCameraDevices(allDevices));
       const bestCamera = pickBestCamera(allDevices);
 
-      setDevices(visibleDevices.length > 0 ? visibleDevices : allDevices);
+      setDevices(visibleDevices.length > 0 ? visibleDevices : sortCameras(allDevices));
       setSelectedDeviceId(bestCamera?.deviceId || "");
     } catch (err) {
       console.warn("[IMEI SCANNER] Failed to list video devices", err);
@@ -241,6 +302,7 @@ export function useImeiScanner({
         handleSuccess,
         handleError,
       );
+      await tuneCameraForBarcode(scanner);
       setIsCameraLoading(false);
       setScanStatus("scanning");
     } catch (err) {
