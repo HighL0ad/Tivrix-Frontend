@@ -337,12 +337,20 @@ export function useImeiScanner({
           if (!result) return;
 
           const decoded = result.getText();
-          const validImeis = extractValidImeis(decoded);
-          const candidates = extractImeiCandidates(decoded);
-          const accepted =
-            validImeis.length > 0
-              ? validImeis
-              : candidates.filter((c) => c.length === 15);
+
+          // Debug: убери эти логи в продакшне
+          console.log("[IMEI RAW]", JSON.stringify(decoded));
+          console.log(
+            "[IMEI HEX]",
+            [...decoded]
+              .map((c) => c.charCodeAt(0).toString(16).padStart(2, "0"))
+              .join(" "),
+          );
+
+          // Принимаем ТОЛЬКО кандидатов прошедших Luhn.
+          // Fallback на "просто 15 цифр" убран — давал ложные срабатывания
+          // на EID (20 цифр) и Serial рядом с IMEI на коробке Apple.
+          const accepted = extractValidImeis(decoded);
 
           setScanStatus(accepted.length > 0 ? "imei-found" : "code-found");
           if (accepted.length === 0) return;

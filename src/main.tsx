@@ -1,3 +1,9 @@
+// TODO: убрать после отладки
+if (import.meta.env.DEV) {
+  const VConsole = (await import("vconsole")).default;
+  new VConsole();
+}
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
