@@ -213,6 +213,10 @@ export function useImeiScanner({
 
   // ── Stop active scan ──────────────────────────────────────────────────────
   const stopScanning = useCallback(() => {
+    if (videoElRef.current?.srcObject instanceof MediaStream) {
+      videoElRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      videoElRef.current.srcObject = null;
+    }
     controlsRef.current?.stop();
     controlsRef.current = null;
     setIsCameraLoading(false);
@@ -254,21 +258,34 @@ export function useImeiScanner({
     setError("");
 
     const videoEl = ensureVideoEl();
-    const reader = createReader();
+    const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
 
-    const deviceIdOrConstraints = selectedDeviceId
-      ? selectedDeviceId
-      : { facingMode: "environment" };
+    // Запрашиваем высокое разрешение камеры
+    const constraints: MediaStreamConstraints = {
+      video: selectedDeviceId
+        ? {
+            deviceId: { exact: selectedDeviceId },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            // Зум если поддерживается устройством
+            advanced: [{ zoom: 2.0 }] as any,
+          }
+        : {
+            facingMode: "environment", // задняя камера
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            // Зум если поддерживается устройством
+            advanced: [{ zoom: 2.0 }] as any,
+          },
+    };
 
     try {
-      const controls = await reader.decodeFromConstraints(
-        {
-          video:
-            typeof deviceIdOrConstraints === "string"
-              ? { deviceId: { exact: deviceIdOrConstraints } }
-              : deviceIdOrConstraints,
-        },
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoEl.srcObject = stream;
+
+      const controls = await reader.decodeFromStream(
+        stream,
         videoEl,
         (result, err) => {
           // err is fired on every frame where no barcode is found — ignore
@@ -307,7 +324,6 @@ export function useImeiScanner({
       );
 
       controlsRef.current = controls;
-      await tuneCameraForBarcode(videoEl);
       setIsCameraLoading(false);
       setScanStatus("scanning");
     } catch (err) {

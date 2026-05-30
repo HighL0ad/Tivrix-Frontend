@@ -160,11 +160,11 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
           </div>
 
           <div className="w-full mt-4 space-y-3">
-            <DialogDescription className="text-center text-xs text-slate-400 font-medium">
+            <p className="mt-4 text-sm text-white/70 text-center font-medium">
               {t("ru") === "ru"
-                ? "Держи коробку на расстоянии 15-25 см и помести IMEI штрихкод внутрь рамки."
-                : "Qutunu 15-25 sm məsafədə saxla və IMEI ştrix-kodunu çərçivəyə sal."}
-            </DialogDescription>
+                ? "Поднесите коробку ближе к камере"
+                : "Qutunu kameraya daha yaxın gətirin"}
+            </p>
 
             {scanner.scanStatus === "code-found" ? (
               <Alert
