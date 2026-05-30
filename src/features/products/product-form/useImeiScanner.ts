@@ -135,8 +135,6 @@ function pickBestCamera(devices: ScannerDevice[]) {
 }
 
 // ─── ZXing reader factory ─────────────────────────────────────────────────────
-// FIX: каждый раз создаём новый экземпляр reader — ZXing не поддерживает
-// повторный запуск одного и того же экземпляра после stop().
 
 function createReader() {
   const hints = new Map<DecodeHintType, unknown>();
@@ -147,16 +145,9 @@ function createReader() {
     BarcodeFormat.ITF,
   ]);
   hints.set(DecodeHintType.TRY_HARDER, true);
-  // Позволяет ZXing читать GS1-128 (Apple/carrier коробки используют его
-  // для IMEI с Application Identifier префиксами)
   hints.set(DecodeHintType.ASSUME_GS1, true);
   return new BrowserMultiFormatReader(hints, {
-    // Пауза между попытками декодирования кадров (мс)
     delayBetweenScanAttempts: 100,
-    // FIX: большое значение — ZXing продолжает сканировать непрерывно
-    // после успешного результата, не останавливается.
-    // Нашу дедупликацию (pendingScanRef) это не ломает — она работает
-    // на уровне колбэка независимо от этого таймера.
     delayBetweenScanSuccess: 500,
   });
 }
@@ -288,14 +279,7 @@ export function useImeiScanner({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoElRef = useRef<HTMLVideoElement | null>(null);
 
-  // FIX: храним controls и reader отдельно.
-  // controls.stop() останавливает декодирование и камеру.
-  // После stop() reader нельзя переиспользовать — нужен новый экземпляр.
   const controlsRef = useRef<{ stop: () => void } | null>(null);
-
-  // FIX: флаг активной сессии — защита от гонки при быстром
-  // закрытии/открытии модала пока await reader.decodeFromConstraints ещё не
-  // разрешился.
   const sessionRef = useRef<symbol | null>(null);
 
   const lastScannedRef = useRef<string>("");
@@ -319,13 +303,11 @@ export function useImeiScanner({
     onScanErrorRef.current = onScanError;
   }, [onScanSuccess, onScanError]);
 
-  // videoRef — та же сигнатура что раньше, ImeiScannerButton не трогаем
   const videoRef = useCallback((element: HTMLDivElement | null) => {
     containerRef.current = element;
     setContainerEl(element);
   }, []);
 
-  // Гарантируем наличие <video> внутри контейнера
   const ensureVideoEl = useCallback((): HTMLVideoElement => {
     const container = containerRef.current!;
     let video = container.querySelector<HTMLVideoElement>("video");
@@ -343,14 +325,12 @@ export function useImeiScanner({
 
   // ── Stop ──────────────────────────────────────────────────────────────────
   const stopScanning = useCallback(() => {
-    // Инвалидируем текущую сессию — если startScanning ещё в полёте,
-    // он проверит этот флаг и не установит controls.
     sessionRef.current = null;
 
     try {
       controlsRef.current?.stop();
     } catch {
-      // ignore — stop() иногда бросает если поток уже закрыт
+
     }
     controlsRef.current = null;
 
@@ -384,10 +364,8 @@ export function useImeiScanner({
   const startScanning = useCallback(async () => {
     if (!containerEl) return;
 
-    // Останавливаем предыдущую сессию
     stopScanning();
 
-    // Создаём токен для этой сессии
     const session = Symbol("scan-session");
     sessionRef.current = session;
 
@@ -399,8 +377,6 @@ export function useImeiScanner({
 
     const videoEl = ensureVideoEl();
 
-    // FIX: новый reader на каждый запуск — ZXing не позволяет
-    // повторно использовать один экземпляр после stop()
     const reader = createReader();
 
     const videoConstraints: MediaTrackConstraints = selectedDeviceId
@@ -419,18 +395,6 @@ export function useImeiScanner({
 
           const decoded = result.getText();
 
-          // Debug: убери эти логи в продакшне
-          console.log("[IMEI RAW]", JSON.stringify(decoded));
-          console.log(
-            "[IMEI HEX]",
-            [...decoded]
-              .map((c) => c.charCodeAt(0).toString(16).padStart(2, "0"))
-              .join(" "),
-          );
-
-          // Принимаем ТОЛЬКО кандидатов прошедших Luhn.
-          // Fallback на "просто 15 цифр" убран — давал ложные срабатывания
-          // на EID (20 цифр) и Serial рядом с IMEI на коробке Apple.
           const accepted = extractValidImeis(decoded);
 
           setScanStatus(accepted.length > 0 ? "imei-found" : "code-found");
@@ -452,8 +416,6 @@ export function useImeiScanner({
         },
       );
 
-      // FIX: проверяем, что сессия ещё актуальна — пользователь мог
-      // закрыть модал пока decodeFromConstraints ещё резолвился
       if (sessionRef.current !== session) {
         controls.stop();
         return;
