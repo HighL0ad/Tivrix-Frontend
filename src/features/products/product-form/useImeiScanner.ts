@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from "@zxing/library";
 
-// ─── Public types (same as before) ───────────────────────────────────────────
+// ─── Public types ─────────────────────────────────────────────────────────────
 
 export interface UseImeiScannerProps {
   onScanSuccess: (imeis: string[]) => void;
@@ -25,7 +25,7 @@ interface ScannerDevice {
   label: string;
 }
 
-// ─── IMEI validation helpers (unchanged) ─────────────────────────────────────
+// ─── IMEI helpers (unchanged) ─────────────────────────────────────────────────
 
 export function validateLuhn(imei: string): boolean {
   const cleaned = imei.replace(/\D/g, "");
@@ -57,7 +57,7 @@ export function extractValidImeis(text: string): string[] {
   return extractImeiCandidates(text).filter(validateLuhn);
 }
 
-// ─── Camera selection helpers (unchanged) ────────────────────────────────────
+// ─── Camera helpers (unchanged) ───────────────────────────────────────────────
 
 function getBackCameraDevices(devices: ScannerDevice[]) {
   return devices.filter(({ label }) => {
@@ -97,10 +97,8 @@ function pickBestCamera(devices: ScannerDevice[]) {
 }
 
 // ─── ZXing reader factory ─────────────────────────────────────────────────────
-//
-// We restrict formats to the same set the old scanner used so ZXing doesn't
-// waste time trying to decode QR, DataMatrix, etc.  TRY_HARDER makes a big
-// difference for dense CODE_128 on low-end cameras.
+// FIX: каждый раз создаём новый экземпляр reader — ZXing не поддерживает
+// повторный запуск одного и того же экземпляра после stop().
 
 function createReader() {
   const hints = new Map<DecodeHintType, unknown>();
@@ -111,11 +109,18 @@ function createReader() {
     BarcodeFormat.ITF,
   ]);
   hints.set(DecodeHintType.TRY_HARDER, true);
-  // delayBetweenScanSuccess = 300 ms prevents double-firing on the same code
-  return new BrowserMultiFormatReader(hints, { delayBetweenScanSuccess: 300 });
+  return new BrowserMultiFormatReader(hints, {
+    // Пауза между попытками декодирования кадров (мс)
+    delayBetweenScanAttempts: 100,
+    // FIX: большое значение — ZXing продолжает сканировать непрерывно
+    // после успешного результата, не останавливается.
+    // Нашу дедупликацию (pendingScanRef) это не ломает — она работает
+    // на уровне колбэка независимо от этого таймера.
+    delayBetweenScanSuccess: 500,
+  });
 }
 
-// ─── Camera zoom tuning (same logic, MediaTrack API) ─────────────────────────
+// ─── Camera zoom/focus tuning ────────────────────────────────────────────────
 
 type TunableCapabilities = MediaTrackCapabilities & {
   focusMode?: string[];
@@ -125,10 +130,9 @@ type TunableSettings = MediaTrackSettings & { zoom?: number };
 
 async function tuneCameraForBarcode(videoEl: HTMLVideoElement) {
   try {
-    const track =
-      videoEl.srcObject instanceof MediaStream
-        ? videoEl.srcObject.getVideoTracks()[0]
-        : null;
+    const stream = videoEl.srcObject;
+    if (!(stream instanceof MediaStream)) return;
+    const track = stream.getVideoTracks()[0];
     if (!track) return;
 
     const capabilities = track.getCapabilities() as TunableCapabilities;
@@ -159,14 +163,18 @@ export function useImeiScanner({
   onScanSuccess,
   onScanError,
 }: UseImeiScannerProps) {
-  // ZXing attaches itself to a <video> element directly — no wrapper div with
-  // an id needed.  We expose a `videoRef` callback ref (same name as before)
-  // that the parent can attach to any container div; we fish the <video> out
-  // of it after ZXing inserts it, OR we create one ourselves.
-  const videoElRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+
+  // FIX: храним controls и reader отдельно.
+  // controls.stop() останавливает декодирование и камеру.
+  // После stop() reader нельзя переиспользовать — нужен новый экземпляр.
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+
+  // FIX: флаг активной сессии — защита от гонки при быстром
+  // закрытии/открытии модала пока await reader.decodeFromConstraints ещё не
+  // разрешился.
+  const sessionRef = useRef<symbol | null>(null);
 
   const lastScannedRef = useRef<string>("");
   const pendingScanRef = useRef<{ key: string; count: number }>({
@@ -189,13 +197,13 @@ export function useImeiScanner({
     onScanErrorRef.current = onScanError;
   }, [onScanSuccess, onScanError]);
 
-  // videoRef — same name/signature as before so ImeiScannerButton is untouched
+  // videoRef — та же сигнатура что раньше, ImeiScannerButton не трогаем
   const videoRef = useCallback((element: HTMLDivElement | null) => {
     containerRef.current = element;
     setContainerEl(element);
   }, []);
 
-  // ── Ensure a <video> element lives inside the container ───────────────────
+  // Гарантируем наличие <video> внутри контейнера
   const ensureVideoEl = useCallback((): HTMLVideoElement => {
     const container = containerRef.current!;
     let video = container.querySelector<HTMLVideoElement>("video");
@@ -204,52 +212,62 @@ export function useImeiScanner({
       video.style.cssText =
         "width:100%;height:100%;object-fit:cover;display:block;";
       video.setAttribute("playsinline", "");
-      video.setAttribute("muted", "");
+      video.muted = true;
       container.appendChild(video);
     }
     videoElRef.current = video;
     return video;
   }, []);
 
-  // ── Stop active scan ──────────────────────────────────────────────────────
+  // ── Stop ──────────────────────────────────────────────────────────────────
   const stopScanning = useCallback(() => {
-    if (videoElRef.current?.srcObject instanceof MediaStream) {
-      videoElRef.current.srcObject.getTracks().forEach((track) => track.stop());
-      videoElRef.current.srcObject = null;
+    // Инвалидируем текущую сессию — если startScanning ещё в полёте,
+    // он проверит этот флаг и не установит controls.
+    sessionRef.current = null;
+
+    try {
+      controlsRef.current?.stop();
+    } catch {
+      // ignore — stop() иногда бросает если поток уже закрыт
     }
-    controlsRef.current?.stop();
     controlsRef.current = null;
+
     setIsCameraLoading(false);
     setScanStatus("idle");
   }, []);
 
-  // ── Load device list ──────────────────────────────────────────────────────
+  // ── Load devices ──────────────────────────────────────────────────────────
   const loadDevices = useCallback(async () => {
     setIsInitializing(true);
     setError("");
     try {
-      const rawDevices = await BrowserMultiFormatReader.listVideoInputDevices();
-      const allDevices: ScannerDevice[] = rawDevices.map((d) => ({
+      const raw = await BrowserMultiFormatReader.listVideoInputDevices();
+      const allDevices: ScannerDevice[] = raw.map((d) => ({
         deviceId: d.deviceId,
         label: d.label,
       }));
       const back = getBackCameraDevices(allDevices);
-      const visible = sortCameras(back.length > 0 ? back : allDevices);
-      setDevices(visible);
+      setDevices(sortCameras(back.length > 0 ? back : allDevices));
       const best = pickBestCamera(allDevices);
       setSelectedDeviceId(best?.deviceId ?? "");
     } catch (err) {
-      console.warn("[IMEI SCANNER] Failed to list video devices", err);
+      console.warn("[IMEI SCANNER] Failed to list devices", err);
       setSelectedDeviceId("");
     } finally {
       setIsInitializing(false);
     }
   }, []);
 
-  // ── Start scan ────────────────────────────────────────────────────────────
+  // ── Start ─────────────────────────────────────────────────────────────────
   const startScanning = useCallback(async () => {
     if (!containerEl) return;
+
+    // Останавливаем предыдущую сессию
     stopScanning();
+
+    // Создаём токен для этой сессии
+    const session = Symbol("scan-session");
+    sessionRef.current = session;
 
     lastScannedRef.current = "";
     pendingScanRef.current = { key: "", count: 0 };
@@ -258,40 +276,22 @@ export function useImeiScanner({
     setError("");
 
     const videoEl = ensureVideoEl();
-    const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
 
-    // Запрашиваем высокое разрешение камеры
-    const constraints: MediaStreamConstraints = {
-      video: selectedDeviceId
-        ? {
-            deviceId: { exact: selectedDeviceId },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            // Зум если поддерживается устройством
-            advanced: [{ zoom: 2.0 }] as any,
-          }
-        : {
-            facingMode: "environment", // задняя камера
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            // Зум если поддерживается устройством
-            advanced: [{ zoom: 2.0 }] as any,
-          },
-    };
+    // FIX: новый reader на каждый запуск — ZXing не позволяет
+    // повторно использовать один экземпляр после stop()
+    const reader = createReader();
+
+    const videoConstraints: MediaTrackConstraints = selectedDeviceId
+      ? { deviceId: { exact: selectedDeviceId } }
+      : { facingMode: "environment" };
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoEl.srcObject = stream;
-
-      const controls = await reader.decodeFromStream(
-        stream,
+      const controls = await reader.decodeFromConstraints(
+        { video: videoConstraints },
         videoEl,
         (result, err) => {
-          // err is fired on every frame where no barcode is found — ignore
-          // NotFoundException; only log unexpected errors.
           if (err && !(err instanceof NotFoundException)) {
-            console.warn("[IMEI SCANNER] decode error", err);
+            console.warn("[IMEI SCANNER] frame error", err);
           }
           if (!result) return;
 
@@ -315,7 +315,6 @@ export function useImeiScanner({
             pendingScanRef.current = { key, count: 1 };
           }
 
-          // Require 2 consecutive matching reads to reduce false positives
           if (pendingScanRef.current.count < 2) return;
 
           lastScannedRef.current = key;
@@ -323,10 +322,19 @@ export function useImeiScanner({
         },
       );
 
+      // FIX: проверяем, что сессия ещё актуальна — пользователь мог
+      // закрыть модал пока decodeFromConstraints ещё резолвился
+      if (sessionRef.current !== session) {
+        controls.stop();
+        return;
+      }
+
       controlsRef.current = controls;
+      await tuneCameraForBarcode(videoEl);
       setIsCameraLoading(false);
       setScanStatus("scanning");
     } catch (err) {
+      if (sessionRef.current !== session) return; // уже остановлено
       setIsCameraLoading(false);
       setScanStatus("idle");
       const message =
