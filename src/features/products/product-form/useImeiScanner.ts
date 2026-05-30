@@ -161,6 +161,87 @@ function createReader() {
   });
 }
 
+// ─── Smart Viewfinder Cropping for ZXing ──────────────────────────────────────
+//
+// Overwrite the static drawImageOnCanvas method of BrowserMultiFormatReader to
+// crop the video frame to the exact visible viewport of the viewfinder overlay.
+// This restricts ZXing's scanning to only the region inside the red target line.
+(BrowserMultiFormatReader as any).drawImageOnCanvas = function (
+  canvasElementContext: CanvasRenderingContext2D,
+  srcElement: HTMLVideoElement,
+): void {
+  const container = srcElement.parentElement;
+  if (!container) {
+    canvasElementContext.drawImage(
+      srcElement,
+      0,
+      0,
+      canvasElementContext.canvas.width,
+      canvasElementContext.canvas.height,
+    );
+    return;
+  }
+
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
+
+  // Viewfinder dimensions (matching the CSS in ImeiScannerButton.tsx)
+  const viewfinderWidth = Math.min(containerWidth * 0.88, 360);
+  const viewfinderHeight = containerWidth < 640 ? 84 : 96;
+
+  // Viewfinder is exactly centered in the container
+  const viewfinderLeft = (containerWidth - viewfinderWidth) / 2;
+  const viewfinderTop = (containerHeight - viewfinderHeight) / 2;
+
+  const videoWidth = srcElement.videoWidth;
+  const videoHeight = srcElement.videoHeight;
+
+  if (videoWidth && videoHeight) {
+    const videoRatio = videoWidth / videoHeight;
+    const containerRatio = containerWidth / containerHeight;
+
+    let scale = 1;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    if (videoRatio > containerRatio) {
+      // Video is wider than container (object-fit: cover crops horizontally)
+      scale = containerHeight / videoHeight;
+      xOffset = (videoWidth - containerWidth / scale) / 2;
+    } else {
+      // Video is taller than container (object-fit: cover crops vertically)
+      scale = containerWidth / videoWidth;
+      yOffset = (videoHeight - containerHeight / scale) / 2;
+    }
+
+    const cropX = xOffset + viewfinderLeft / scale;
+    const cropY = yOffset + viewfinderTop / scale;
+    const cropWidth = viewfinderWidth / scale;
+    const cropHeight = viewfinderHeight / scale;
+
+    // Draw only the cropped viewfinder region on the canvas
+    canvasElementContext.drawImage(
+      srcElement,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      canvasElementContext.canvas.width,
+      canvasElementContext.canvas.height,
+    );
+  } else {
+    canvasElementContext.drawImage(
+      srcElement,
+      0,
+      0,
+      canvasElementContext.canvas.width,
+      canvasElementContext.canvas.height,
+    );
+  }
+};
+
 // ─── Camera zoom/focus tuning ────────────────────────────────────────────────
 
 type TunableCapabilities = MediaTrackCapabilities & {
