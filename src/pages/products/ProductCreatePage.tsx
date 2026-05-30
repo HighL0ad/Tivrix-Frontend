@@ -1,8 +1,4 @@
-import {
-  type ComponentProps,
-  useMemo,
-  useState,
-} from "react";
+import { type ComponentProps, useMemo, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
@@ -38,6 +34,7 @@ import {
   RegistrationCheckboxGroup,
   SummaryRow,
 } from "@/features/products/product-form/FormPrimitives";
+import { ImeiScannerButton } from "@/features/products/product-form/ImeiScannerButton";
 import {
   getPaymentMethod,
   getProductFormErrorMessage,
@@ -46,7 +43,10 @@ import {
 } from "@/features/products/product-form/model";
 import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 import type { WalletType } from "@/entities/finance/api/use-finance";
-import { formatImeiInput, formatPhoneInput } from "@/shared/lib/input-formatters";
+import {
+  formatImeiInput,
+  formatPhoneInput,
+} from "@/shared/lib/input-formatters";
 
 export function ProductCreatePage() {
   const { t } = useTranslation();
@@ -81,7 +81,9 @@ export function ProductCreatePage() {
   const paidNowNumber = Number(paidNowAmount || 0);
   const primarySplitNumber = Number(primarySplitAmount || 0);
   const splitTotalAmount =
-    scenario === "supplier_debt" && paidNowEnabled ? paidNowNumber : buyPriceNumber;
+    scenario === "supplier_debt" && paidNowEnabled
+      ? paidNowNumber
+      : buyPriceNumber;
   const secondarySplitAmount = splitEnabled
     ? Math.max(splitTotalAmount - primarySplitNumber, 0)
     : 0;
@@ -105,14 +107,19 @@ export function ProductCreatePage() {
         return false;
       if (scenario === "transfer_now" && option.id === paymentWalletId)
         return false;
-      if (scenario === "supplier_debt" && paidNowEnabled && option.id === paymentWalletId)
+      if (
+        scenario === "supplier_debt" &&
+        paidNowEnabled &&
+        option.id === paymentWalletId
+      )
         return false;
       return true;
     });
   }, [options, paidNowEnabled, paymentWalletId, scenario]);
 
-  const productsHref =
-    resolveProductsReturnLocation((location.state as { from?: string } | null)?.from);
+  const productsHref = resolveProductsReturnLocation(
+    (location.state as { from?: string } | null)?.from,
+  );
 
   function handleScenarioChange(value: string) {
     const next = value as PurchaseScenario;
@@ -132,18 +139,34 @@ export function ProductCreatePage() {
     }
   }
 
-  async function handleImeiBlur() {
-    const isAlphanumeric = /[^\d-]/.test(imei);
-    const normalizedImei = isAlphanumeric ? imei.trim() : imei.replace(/\D/g, "");
+  async function checkImeiValue(value: string) {
+    const isAlphanumeric = /[^\d-]/.test(value);
+    const normalizedImei = isAlphanumeric
+      ? value.trim()
+      : value.replace(/\D/g, "");
+
     setImeiError("");
+
     if (!normalizedImei) return;
+
     setCheckingImei(true);
+
     try {
       const result = await checkProductImei(normalizedImei);
       if (result.exists) setImeiError(t("products.imeiExists"));
     } finally {
       setCheckingImei(false);
     }
+  }
+
+  async function handleImeiBlur() {
+    await checkImeiValue(imei);
+  }
+
+  function handlePrimaryImeiScan(scannedImei: string) {
+    const formatted = formatImeiInput(scannedImei);
+    setImei(formatted);
+    checkImeiValue(formatted);
   }
 
   function isFormValid() {
@@ -167,7 +190,10 @@ export function ProductCreatePage() {
     const formData = new FormData();
     formData.append("name", name.trim());
     const isAlphanumeric = /[^\d-]/.test(imei);
-    formData.append("imei", isAlphanumeric ? imei.trim() : imei.replace(/\D/g, ""));
+    formData.append(
+      "imei",
+      isAlphanumeric ? imei.trim() : imei.replace(/\D/g, ""),
+    );
     formData.append("buy_price", buyPrice);
     formData.append("supplier_id", supplierId);
     formData.append(
@@ -179,10 +205,16 @@ export function ProductCreatePage() {
 
     if (imei2.trim()) {
       const isImei2Alphanumeric = /[^\d-]/.test(imei2);
-      formData.append("imei2", isImei2Alphanumeric ? imei2.trim() : imei2.replace(/\D/g, ""));
+      formData.append(
+        "imei2",
+        isImei2Alphanumeric ? imei2.trim() : imei2.replace(/\D/g, ""),
+      );
     }
     if (phoneNumber.trim()) formData.append("phone_number", phoneNumber.trim());
-    if (scenario === "transfer_now" || (scenario === "supplier_debt" && paidNowEnabled))
+    if (
+      scenario === "transfer_now" ||
+      (scenario === "supplier_debt" && paidNowEnabled)
+    )
       formData.append("wallet_id", paymentWalletId);
     if (scenario === "supplier_debt" && paidNowEnabled)
       formData.append("paid_now_amount", paidNowAmount);
@@ -202,7 +234,9 @@ export function ProductCreatePage() {
         navigate(`/products/${product.id}`, { replace: true });
       },
       onError: (error) =>
-        toast.error(getApiErrorMessage(error, t("products.createPurchaseError"))),
+        toast.error(
+          getApiErrorMessage(error, t("products.createPurchaseError")),
+        ),
     });
   };
 
@@ -249,9 +283,7 @@ export function ProductCreatePage() {
       <PageHeader
         title={t("products.newPurchase")}
         description={t("products.newPurchaseDescription")}
-        backButton={
-          <BackActionButton onClick={() => navigate(productsHref)} />
-        }
+        backButton={<BackActionButton onClick={() => navigate(productsHref)} />}
       />
 
       <form
@@ -316,7 +348,9 @@ export function ProductCreatePage() {
           <Card>
             <CardHeader>
               <CardTitle>{t("sell.product")}</CardTitle>
-              <CardDescription>{t("products.mainDataDescription")}</CardDescription>
+              <CardDescription>
+                {t("products.mainDataDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Field label={t("products.nameModel")}>
@@ -330,18 +364,23 @@ export function ProductCreatePage() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Field label={t("products.imeiSerial")}>
-                  <Input
-                    required
-                    placeholder="35..."
-                    className={`font-mono ${
-                      imeiError
-                        ? "border-red-300 bg-red-50 focus-visible:ring-red-500/20"
-                        : ""
-                    }`}
-                    value={imei}
-                    onChange={(e) => setImei(formatImeiInput(e.target.value))}
-                    onBlur={handleImeiBlur}
-                  />
+                  <div className="relative flex items-center w-full">
+                    <Input
+                      required
+                      placeholder="35..."
+                      className={`font-mono pr-10 w-full ${
+                        imeiError
+                          ? "border-red-300 bg-red-50 focus-visible:ring-red-500/20"
+                          : ""
+                      }`}
+                      value={imei}
+                      onChange={(e) => setImei(formatImeiInput(e.target.value))}
+                      onBlur={handleImeiBlur}
+                    />
+                    <div className="absolute right-1 flex items-center">
+                      <ImeiScannerButton onScan={handlePrimaryImeiScan} />
+                    </div>
+                  </div>
                   {imeiError ? (
                     <p className="mt-1 text-xs font-semibold text-red-600">
                       {imeiError}
@@ -354,12 +393,23 @@ export function ProductCreatePage() {
                 </Field>
 
                 <Field label="IMEI 2">
-                  <Input
-                    placeholder={t("common.optional")}
-                    className="font-mono"
-                    value={imei2}
-                    onChange={(e) => setImei2(formatImeiInput(e.target.value))}
-                  />
+                  <div className="relative flex items-center w-full">
+                    <Input
+                      placeholder={t("common.optional")}
+                      className="font-mono pr-10 w-full"
+                      value={imei2}
+                      onChange={(e) =>
+                        setImei2(formatImeiInput(e.target.value))
+                      }
+                    />
+                    <div className="absolute right-1 flex items-center">
+                      <ImeiScannerButton
+                        onScan={(scannedImei) =>
+                          setImei2(formatImeiInput(scannedImei))
+                        }
+                      />
+                    </div>
+                  </div>
                 </Field>
 
                 <Field label={t("products.phoneNumber")}>
@@ -368,7 +418,9 @@ export function ProductCreatePage() {
                     placeholder="+994..."
                     className="font-mono"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(formatPhoneInput(e.target.value))}
+                    onChange={(e) =>
+                      setPhoneNumber(formatPhoneInput(e.target.value))
+                    }
                   />
                 </Field>
 
@@ -408,12 +460,16 @@ export function ProductCreatePage() {
           <Card>
             <CardHeader>
               <CardTitle>{t("products.photo")}</CardTitle>
-              <CardDescription>{t("products.photoDescription")}</CardDescription>
+              <CardDescription>
+                {t("products.photoDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <AppFileUpload
                 value={photos}
-                onChange={(files) => setPhotos(Array.isArray(files) ? files : [])}
+                onChange={(files) =>
+                  setPhotos(Array.isArray(files) ? files : [])
+                }
                 multiple
                 accept="image/*"
                 label={t("products.uploadProductPhoto")}
@@ -445,7 +501,10 @@ export function ProductCreatePage() {
 
               {scenario === "supplier_debt" ? (
                 <div className="space-y-4">
-                  <InfoBox color="red" title={t("products.supplierDebtInfoTitle")}>
+                  <InfoBox
+                    color="red"
+                    title={t("products.supplierDebtInfoTitle")}
+                  >
                     {paidNowEnabled
                       ? t("products.partialSupplierDebtInfo")
                       : t("products.supplierDebtInfo")}
@@ -489,7 +548,11 @@ export function ProductCreatePage() {
                             searchPlaceholder={t("products.walletSearch")}
                             className="h-11"
                             onCreateNew={(name) =>
-                              createInlineWallet(name, "card", setPaymentWalletId)
+                              createInlineWallet(
+                                name,
+                                "card",
+                                setPaymentWalletId,
+                              )
                             }
                           />
                         </Field>
@@ -509,7 +572,9 @@ export function ProductCreatePage() {
                                     : "border-sky-200 bg-sky-50/50 focus:bg-background transition-colors"
                                 }`}
                                 value={paidNowAmount}
-                                onChange={(e) => setPaidNowAmount(e.target.value)}
+                                onChange={(e) =>
+                                  setPaidNowAmount(e.target.value)
+                                }
                               />
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-sky-700/50 pointer-events-none">
                                 ₼
@@ -522,7 +587,10 @@ export function ProductCreatePage() {
                             ) : null}
                           </Field>
 
-                          <Field label={t("products.remainingSupplierDebt")} strong>
+                          <Field
+                            label={t("products.remainingSupplierDebt")}
+                            strong
+                          >
                             <div className="flex h-11 items-center rounded-lg border border-amber-200 bg-amber-50 px-3 font-bold text-amber-700">
                               {partialDebtAmount.toFixed(2)} ₼
                             </div>
@@ -556,7 +624,10 @@ export function ProductCreatePage() {
                           {splitEnabled ? (
                             <>
                               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <Field label={t("products.amountFromPrimaryAccount")} strong>
+                                <Field
+                                  label={t("products.amountFromPrimaryAccount")}
+                                  strong
+                                >
                                   <div className="relative">
                                     <Input
                                       required
@@ -585,14 +656,20 @@ export function ProductCreatePage() {
                                   ) : null}
                                 </Field>
 
-                                <Field label={t("products.amountFromSecondWallet")} strong>
+                                <Field
+                                  label={t("products.amountFromSecondWallet")}
+                                  strong
+                                >
                                   <div className="flex h-11 items-center rounded-lg border border-sky-200 bg-sky-50 px-3 font-bold text-sky-700">
                                     {secondarySplitAmount.toFixed(2)} ₼
                                   </div>
                                 </Field>
                               </div>
 
-                              <Field label={t("products.secondSplitWallet")} strong>
+                              <Field
+                                label={t("products.secondSplitWallet")}
+                                strong
+                              >
                                 <SearchableSelect
                                   value={splitWalletId}
                                   onValueChange={setSplitWalletId}
@@ -601,7 +678,11 @@ export function ProductCreatePage() {
                                   searchPlaceholder={t("products.walletSearch")}
                                   className="h-11"
                                   onCreateNew={(name) =>
-                                    createInlineWallet(name, "card", setSplitWalletId)
+                                    createInlineWallet(
+                                      name,
+                                      "card",
+                                      setSplitWalletId,
+                                    )
                                   }
                                 />
                               </Field>
@@ -696,7 +777,10 @@ export function ProductCreatePage() {
                           ) : null}
                         </Field>
 
-                        <Field label={t("products.amountFromSecondWallet")} strong>
+                        <Field
+                          label={t("products.amountFromSecondWallet")}
+                          strong
+                        >
                           <div className="flex h-11 items-center rounded-lg border border-sky-200 bg-sky-50 px-3 font-bold text-sky-700">
                             {secondarySplitAmount.toFixed(2)} ₼
                           </div>
@@ -728,7 +812,9 @@ export function ProductCreatePage() {
           <Card>
             <CardHeader>
               <CardTitle>{t("products.summary")}</CardTitle>
-              <CardDescription>{t("products.checkBeforeCreate")}</CardDescription>
+              <CardDescription>
+                {t("products.checkBeforeCreate")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
@@ -742,7 +828,9 @@ export function ProductCreatePage() {
               <SummaryRow
                 label={t("products.split")}
                 value={
-                  splitEnabled ? `${secondarySplitAmount.toFixed(2)} ₼` : t("common.no")
+                  splitEnabled
+                    ? `${secondarySplitAmount.toFixed(2)} ₼`
+                    : t("common.no")
                 }
               />
               {scenario === "supplier_debt" && paidNowEnabled ? (
@@ -750,7 +838,9 @@ export function ProductCreatePage() {
                   <SummaryRow
                     label={t("products.paidNowAmount")}
                     value={
-                      paidNowAmount ? `${Number(paidNowAmount).toFixed(2)} ₼` : "-"
+                      paidNowAmount
+                        ? `${Number(paidNowAmount).toFixed(2)} ₼`
+                        : "-"
                     }
                   />
                   <SummaryRow
@@ -764,7 +854,9 @@ export function ProductCreatePage() {
                 disabled={createMutation.isPending || !isFormValid()}
                 className="mt-2 w-full py-4"
               >
-                {createMutation.isPending ? t("products.creating") : t("products.createPurchase")}
+                {createMutation.isPending
+                  ? t("products.creating")
+                  : t("products.createPurchase")}
               </Button>
             </CardContent>
           </Card>
