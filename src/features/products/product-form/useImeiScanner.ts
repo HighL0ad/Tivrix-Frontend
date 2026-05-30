@@ -232,25 +232,10 @@ export function useImeiScanner({
           }),
           videoConstraints: selectedDeviceId
             ? {
-                deviceId: { ideal: selectedDeviceId },
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                advanced: [
-                  {
-                    focusMode: "continuous",
-                  } as unknown as MediaTrackConstraintSet,
-                ],
+                deviceId: selectedDeviceId,
               }
             : {
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                advanced: [
-                  {
-                    focusMode: "continuous",
-                  } as unknown as MediaTrackConstraintSet,
-                ],
+                facingMode: "environment",
               },
         },
         handleSuccess,
