@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BrowserCodeReader, BrowserMultiFormatReader } from "@zxing/browser";
 import {
   DecodeHintType,
   BarcodeFormat,
@@ -63,12 +63,9 @@ export function validateLuhn(imei: string): boolean {
 function normaliseBarcode(raw: string): string {
   return (
     raw
-      // Remove ZXing symbology identifier ("]C1", "]e0", "]d2", etc.)
       .replace(/^\][A-Za-z]\d/, "")
-      // Remove ASCII control chars incl. GS (0x1D), RS (0x1E), EOT (0x04)
       // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x1F\x7F]/g, " ")
-      // Remove GS1 Application Identifier wrappers like (01), (21), (17)
       .replace(/\(\d{2,4}\)/g, " ")
   );
 }
@@ -78,12 +75,8 @@ export function extractImeiCandidates(text: string): string[] {
   const onlyDigits = normalised.replace(/\D/g, "");
   const candidates = new Set<string>();
 
-  // Strict word-boundary matches on the normalised text
   (normalised.match(/\b\d{15}\b/g) ?? []).forEach((v) => candidates.add(v));
-  // Loose matches (no boundary required)
   (normalised.match(/\d{15}/g) ?? []).forEach((v) => candidates.add(v));
-  // Sliding window over all digits — catches IMEI embedded in longer strings
-  // (e.g. GTIN-14 where the IMEI is digits 1–15)
   for (let i = 0; i <= onlyDigits.length - 15; i++) {
     candidates.add(onlyDigits.slice(i, i + 15));
   }
@@ -152,17 +145,28 @@ function createReader() {
   });
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 // ─── Smart Viewfinder Cropping for ZXing ──────────────────────────────────────
-//
-// Overwrite the static drawImageOnCanvas method of BrowserMultiFormatReader to
-// crop the video frame to the exact visible viewport of the viewfinder overlay.
-// This restricts ZXing's scanning to only the region inside the red target line.
-(BrowserMultiFormatReader as any).drawImageOnCanvas = function (
+
+(BrowserCodeReader as unknown as {
+  drawImageOnCanvas: (
+    canvasElementContext: CanvasRenderingContext2D,
+    srcElement: HTMLVideoElement,
+  ) => void;
+}).drawImageOnCanvas = function (
   canvasElementContext: CanvasRenderingContext2D,
   srcElement: HTMLVideoElement,
 ): void {
-  const container = srcElement.parentElement;
-  if (!container) {
+  const scanRegion = srcElement
+    .closest("[data-imei-scanner]")
+    ?.querySelector<HTMLElement>("[data-imei-scan-region]");
+  const videoRect = srcElement.getBoundingClientRect();
+  const regionRect = scanRegion?.getBoundingClientRect();
+
+  if (!regionRect || videoRect.width <= 0 || videoRect.height <= 0) {
     canvasElementContext.drawImage(
       srcElement,
       0,
@@ -173,56 +177,10 @@ function createReader() {
     return;
   }
 
-  const containerWidth = container.clientWidth;
-  const containerHeight = container.clientHeight;
-
-  // Viewfinder dimensions (matching the CSS in ImeiScannerButton.tsx)
-  const viewfinderWidth = Math.min(containerWidth * 0.88, 360);
-  const viewfinderHeight = containerWidth < 640 ? 84 : 96;
-
-  // Viewfinder is exactly centered in the container
-  const viewfinderLeft = (containerWidth - viewfinderWidth) / 2;
-  const viewfinderTop = (containerHeight - viewfinderHeight) / 2;
-
   const videoWidth = srcElement.videoWidth;
   const videoHeight = srcElement.videoHeight;
 
-  if (videoWidth && videoHeight) {
-    const videoRatio = videoWidth / videoHeight;
-    const containerRatio = containerWidth / containerHeight;
-
-    let scale = 1;
-    let xOffset = 0;
-    let yOffset = 0;
-
-    if (videoRatio > containerRatio) {
-      // Video is wider than container (object-fit: cover crops horizontally)
-      scale = containerHeight / videoHeight;
-      xOffset = (videoWidth - containerWidth / scale) / 2;
-    } else {
-      // Video is taller than container (object-fit: cover crops vertically)
-      scale = containerWidth / videoWidth;
-      yOffset = (videoHeight - containerHeight / scale) / 2;
-    }
-
-    const cropX = xOffset + viewfinderLeft / scale;
-    const cropY = yOffset + viewfinderTop / scale;
-    const cropWidth = viewfinderWidth / scale;
-    const cropHeight = viewfinderHeight / scale;
-
-    // Draw only the cropped viewfinder region on the canvas
-    canvasElementContext.drawImage(
-      srcElement,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      canvasElementContext.canvas.width,
-      canvasElementContext.canvas.height,
-    );
-  } else {
+  if (!videoWidth || !videoHeight) {
     canvasElementContext.drawImage(
       srcElement,
       0,
@@ -230,7 +188,39 @@ function createReader() {
       canvasElementContext.canvas.width,
       canvasElementContext.canvas.height,
     );
+    return;
   }
+
+  const scale = Math.max(
+    videoRect.width / videoWidth,
+    videoRect.height / videoHeight,
+  );
+  const visibleVideoWidth = videoRect.width / scale;
+  const visibleVideoHeight = videoRect.height / scale;
+  const visibleVideoLeft = (videoWidth - visibleVideoWidth) / 2;
+  const visibleVideoTop = (videoHeight - visibleVideoHeight) / 2;
+
+  const regionLeft = clamp(regionRect.left - videoRect.left, 0, videoRect.width);
+  const regionTop = clamp(regionRect.top - videoRect.top, 0, videoRect.height);
+  const regionRight = clamp(regionRect.right - videoRect.left, 0, videoRect.width);
+  const regionBottom = clamp(regionRect.bottom - videoRect.top, 0, videoRect.height);
+
+  const cropX = clamp(visibleVideoLeft + regionLeft / scale, 0, videoWidth - 1);
+  const cropY = clamp(visibleVideoTop + regionTop / scale, 0, videoHeight - 1);
+  const cropWidth = clamp((regionRight - regionLeft) / scale, 1, videoWidth - cropX);
+  const cropHeight = clamp((regionBottom - regionTop) / scale, 1, videoHeight - cropY);
+
+  canvasElementContext.drawImage(
+    srcElement,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    canvasElementContext.canvas.width,
+    canvasElementContext.canvas.height,
+  );
 };
 
 // ─── Camera zoom/focus tuning ────────────────────────────────────────────────
@@ -330,7 +320,7 @@ export function useImeiScanner({
     try {
       controlsRef.current?.stop();
     } catch {
-
+      // Scanner may already be stopped by ZXing controls.
     }
     controlsRef.current = null;
 
@@ -338,7 +328,6 @@ export function useImeiScanner({
     setScanStatus("idle");
   }, []);
 
-  // ── Load devices ──────────────────────────────────────────────────────────
   const loadDevices = useCallback(async () => {
     setIsInitializing(true);
     setError("");
@@ -360,7 +349,6 @@ export function useImeiScanner({
     }
   }, []);
 
-  // ── Start ─────────────────────────────────────────────────────────────────
   const startScanning = useCallback(async () => {
     if (!containerEl) return;
 
@@ -426,7 +414,7 @@ export function useImeiScanner({
       setIsCameraLoading(false);
       setScanStatus("scanning");
     } catch (err) {
-      if (sessionRef.current !== session) return; // уже остановлено
+      if (sessionRef.current !== session) return;
       setIsCameraLoading(false);
       setScanStatus("idle");
       const message =
@@ -438,7 +426,6 @@ export function useImeiScanner({
     }
   }, [containerEl, selectedDeviceId, stopScanning, ensureVideoEl]);
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
   useEffect(() => {
     loadDevices();
     return () => stopScanning();

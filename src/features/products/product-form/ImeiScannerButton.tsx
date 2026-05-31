@@ -39,7 +39,9 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
         if ("vibrate" in navigator) {
           navigator.vibrate(150);
         }
-      } catch (e) {}
+      } catch {
+        // Some browsers block vibration without user activation.
+      }
 
       if (imeis.length > 0) {
         onScan(imeis[0]);
@@ -105,7 +107,10 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
               <span className="sr-only">Close</span>
           </DialogClose>
 
-          <div className="relative w-full aspect-video sm:aspect-[4/3] rounded-xl bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-800/80">
+          <div
+            data-imei-scanner
+            className="relative w-full aspect-video sm:aspect-[4/3] rounded-xl bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-800/80"
+          >
             {open && (
               <div
                 ref={scanner.videoRef}
@@ -114,7 +119,10 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
             )}
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="relative w-[88%] max-w-[360px] h-[84px] sm:h-[96px] rounded-lg border border-white/25 bg-black/10">
+              <div
+                data-imei-scan-region
+                className="relative w-[88%] max-w-[360px] h-[84px] sm:h-[96px] rounded-lg border border-white/25 bg-black/10"
+              >
                 <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-sky-400 rounded-tl-lg" />
                 <div className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-sky-400 rounded-tr-lg" />
                 <div className="absolute bottom-0 left-0 w-5 h-5 border-b-2 border-l-2 border-sky-400 rounded-bl-lg" />
