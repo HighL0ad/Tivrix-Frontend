@@ -270,13 +270,15 @@ export function AppCombobox({
                       key={option.id}
                       value={`${option.name} ${option.id}`}
                       onSelect={() => {
+                        setOpen(false);
                         if (option.id.startsWith("NEW_ACTION:")) {
                           const query = option.id.substring("NEW_ACTION:".length);
-                          onCreateNew?.(query);
+                          setTimeout(() => {
+                            onCreateNew?.(query);
+                          }, 0);
                         } else {
                           onValueChange(option.id);
                         }
-                        setOpen(false);
                       }}
                       className={cn(
                         isNew && "mt-1.5 mb-0.5 font-semibold text-sky-600 dark:text-sky-400 bg-sky-500/10 dark:bg-sky-500/15 hover:bg-sky-500/20 dark:hover:bg-sky-500/20 data-[selected=true]:bg-sky-500/20 dark:data-[selected=true]:bg-sky-500/20 data-[selected=true]:text-sky-700 dark:data-[selected=true]:text-sky-300 border border-dashed border-sky-300/60 dark:border-sky-800/80 rounded-lg"

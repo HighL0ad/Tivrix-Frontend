@@ -64,6 +64,7 @@ export type ProductWalletOption = ProductOption & {
 
 export type ProductCreateOptions = {
   supplier_wallet_options: ProductOption[];
+  purchase_source_options: ProductWalletOption[];
   payment_wallet_options: ProductOption[];
   split_wallet_options: ProductWalletOption[];
   cash_wallet_id: string | null;

@@ -1,5 +1,5 @@
 import { type ComponentProps, useMemo, useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Banknote, Building2, Check, CreditCard, Phone, Store, UserRound, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import {
   useCreateProduct,
   useProductCreateOptions,
 } from "@/entities/products/api/use-product-create";
+import { useCreateClient } from "@/entities/clients/api/use-clients";
 import { useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { ApiError } from "@/shared/api/http";
@@ -29,12 +30,23 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { SearchableSelect } from "@/shared/ui/searchable-select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
+import { Sheet, SheetContent } from "@/shared/ui/sheet";
+import { useMediaQuery } from "@/shared/lib/use-media-query";
+import { cn } from "@/shared/lib/utils";
+import {
   Field,
   InfoBox,
   RegistrationCheckboxGroup,
   SummaryRow,
 } from "@/features/products/product-form/FormPrimitives";
 import { ImeiScannerButton } from "@/features/products/product-form/ImeiScannerButton";
+import { PhotoMetadataScanStatus } from "@/features/products/product-form/PhotoMetadataScanStatus";
+import { ProductFormSkeleton } from "@/features/products/product-form/ProductFormSkeleton";
 import {
   getPaymentMethod,
   getProductFormErrorMessage,
@@ -44,17 +56,29 @@ import {
 import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 import type { WalletType } from "@/entities/finance/api/use-finance";
 import {
+  applyPhotoMetadataToProductFields,
+  extractProductMetadataFromPhoto,
+} from "@/features/products/product-form/photoMetadataScanner";
+import {
   formatImeiInput,
   formatPhoneInput,
 } from "@/shared/lib/input-formatters";
 
+const scenarioIcons: Record<PurchaseScenario, LucideIcon> = {
+  supplier_debt: Building2,
+  cash_now: Banknote,
+  transfer_now: CreditCard,
+};
+
 export function ProductCreatePage() {
   const { t } = useTranslation();
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const location = useLocation();
   const navigate = useNavigate();
   const optionsQuery = useProductCreateOptions();
   const createMutation = useCreateProduct();
   const createWalletMutation = useCreateWallet();
+  const createClientMutation = useCreateClient();
 
   const [scenario, setScenario] = useState<PurchaseScenario>("supplier_debt");
   const [name, setName] = useState("");
@@ -75,6 +99,12 @@ export function ProductCreatePage() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [imeiError, setImeiError] = useState("");
   const [checkingImei, setCheckingImei] = useState(false);
+  const [isPhotoMetadataScanning, setIsPhotoMetadataScanning] = useState(false);
+  const [quickSourceOpen, setQuickSourceOpen] = useState(false);
+  const [quickSourceName, setQuickSourceName] = useState("");
+  const [quickSourcePhone, setQuickSourcePhone] = useState("");
+  const [quickSourceType, setQuickSourceType] =
+    useState<"client_debt" | "debt" | "shop">("client_debt");
 
   const options = optionsQuery.data;
   const buyPriceNumber = Number(buyPrice || 0);
@@ -116,6 +146,44 @@ export function ProductCreatePage() {
       return true;
     });
   }, [options, paidNowEnabled, paymentWalletId, scenario]);
+  const purchaseSourceOptions =
+    scenario === "supplier_debt"
+      ? options?.supplier_wallet_options ?? []
+      : options?.purchase_source_options ?? options?.supplier_wallet_options ?? [];
+  const purchaseSourcePlaceholder =
+    scenario === "supplier_debt"
+      ? t("products.selectSupplierOrPartner")
+      : t("products.selectPurchaseSource");
+  const purchaseSourceSearchPlaceholder =
+    scenario === "supplier_debt"
+      ? t("products.supplierSearch")
+      : t("products.purchaseSourceSearch");
+  const QuickSourceContainer = isMobile ? Sheet : Dialog;
+  const QuickSourceContent = isMobile ? SheetContent : DialogContent;
+  const sourceTypeOptions = [
+    ...(scenario !== "supplier_debt"
+      ? [
+          {
+            value: "client_debt" as const,
+            label: t("products.sourceTypeClient"),
+            hint: t("products.sourceTypeClientHint"),
+            icon: UserRound,
+          },
+        ]
+      : []),
+    {
+      value: "debt" as const,
+      label: t("products.sourceTypeSupplier"),
+      hint: t("products.sourceTypeSupplierHint"),
+      icon: Building2,
+    },
+    {
+      value: "shop" as const,
+      label: t("products.sourceTypePartner"),
+      hint: t("products.sourceTypePartnerHint"),
+      icon: Store,
+    },
+  ];
 
   const productsHref = resolveProductsReturnLocation(
     (location.state as { from?: string } | null)?.from,
@@ -124,18 +192,18 @@ export function ProductCreatePage() {
   function handleScenarioChange(value: string) {
     const next = value as PurchaseScenario;
     setScenario(next);
-    if (next !== "transfer_now" && next !== "supplier_debt") {
-      setPaymentWalletId("");
-    }
+    setSupplierId("");
+    setPaymentWalletId("");
+    setSplitEnabled(false);
+    setPrimarySplitAmount("");
+    setSplitWalletId("");
     if (next === "supplier_debt") {
-      setSplitEnabled(false);
-      setSplitWalletId("");
-      setPrimarySplitAmount("");
+      setPaidNowEnabled(false);
+      setPaidNowAmount("");
     }
     if (next !== "supplier_debt") {
       setPaidNowEnabled(false);
       setPaidNowAmount("");
-      setPrimarySplitAmount("");
     }
   }
 
@@ -167,6 +235,51 @@ export function ProductCreatePage() {
     const formatted = formatImeiInput(scannedImei);
     setImei(formatted);
     checkImeiValue(formatted);
+  }
+
+  async function handlePhotosChange(files: File | File[] | null) {
+    const nextPhotos = Array.isArray(files) ? files : [];
+    setPhotos(nextPhotos);
+
+    const photo = nextPhotos.find((file) => file.type.startsWith("image/"));
+    if (!photo) return;
+
+    setIsPhotoMetadataScanning(true);
+    try {
+      const metadata = await extractProductMetadataFromPhoto(photo);
+      const nextFields = applyPhotoMetadataToProductFields(metadata, {
+        name,
+        imei,
+        imei2,
+      });
+      const filledName = !name.trim() && nextFields.name;
+      const filledImei = !imei.trim() && nextFields.imei;
+      const filledImei2 = !imei2.trim() && nextFields.imei2;
+
+      if (filledName) setName(nextFields.name);
+      if (filledImei) {
+        setImei(nextFields.imei);
+        await checkImeiValue(nextFields.imei);
+      }
+      if (filledImei2) setImei2(nextFields.imei2);
+
+      if (filledName || filledImei || filledImei2) {
+        toast.success(
+          t("ru") === "ru"
+            ? "Данные с фото распознаны"
+            : "Fotodan məlumatlar oxundu",
+        );
+      }
+    } catch (err) {
+      console.warn("[PRODUCT PHOTO OCR] Failed to read photo", err);
+      toast.error(
+        t("ru") === "ru"
+          ? "Не удалось распознать данные с фото"
+          : "Fotodan məlumatları oxumaq mümkün olmadı",
+      );
+    } finally {
+      setIsPhotoMetadataScanning(false);
+    }
   }
 
   function isFormValid() {
@@ -268,14 +381,51 @@ export function ProductCreatePage() {
     );
   }
 
+  function openQuickSourceDialog(query: string) {
+    setQuickSourceName(query);
+    setQuickSourcePhone("");
+    setQuickSourceType(scenario === "supplier_debt" ? "debt" : "client_debt");
+    setQuickSourceOpen(true);
+  }
+
+  const handleQuickSourceSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = async (event) => {
+    event.preventDefault();
+    const trimmedName = quickSourceName.trim();
+    if (!trimmedName) return;
+
+    try {
+      if (quickSourceType === "client_debt") {
+        const client = await createClientMutation.mutateAsync({
+          name: trimmedName,
+          phone: quickSourcePhone.trim() || undefined,
+        });
+        const refreshed = await optionsQuery.refetch();
+        const createdOption = refreshed.data?.purchase_source_options.find(
+          (option) =>
+            option.type === "client_debt" &&
+            option.name.replace(/^[^:]+:\s*/, "").trim() === client.name,
+        );
+        if (createdOption) setSupplierId(createdOption.id);
+      } else {
+        const wallet = await createWalletMutation.mutateAsync({
+          name: trimmedName,
+          wallet_type: quickSourceType,
+        });
+        setSupplierId(String(wallet.id));
+        await optionsQuery.refetch();
+      }
+
+      setQuickSourceOpen(false);
+      setQuickSourceName("");
+      setQuickSourcePhone("");
+      toast.success(t("products.purchaseSourceCreated"));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
+  };
+
   if (optionsQuery.isLoading) {
-    return (
-      <Card className="mx-auto max-w-3xl">
-        <CardContent className="p-8 text-sm text-muted-foreground">
-          {t("products.loadingPurchaseForm")}
-        </CardContent>
-      </Card>
-    );
+    return <ProductFormSkeleton sidebar />;
   }
 
   return (
@@ -288,9 +438,9 @@ export function ProductCreatePage() {
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
+        className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
       >
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {error ? (
             <Alert className="rounded-lg border-red-200 bg-red-50 px-4 py-3 text-red-700">
               <AlertCircle aria-hidden="true" />
@@ -318,24 +468,37 @@ export function ProductCreatePage() {
                   (value) => {
                     const meta = scenarioMeta[value];
                     const selected = scenario === value;
+                    const Icon = scenarioIcons[value];
                     return (
                       <label
                         key={value}
-                        className={`flex cursor-pointer gap-3 rounded-lg border p-4 transition-all ${
+                        className={cn(
+                          "relative flex flex-col items-center justify-between text-center cursor-pointer gap-3 rounded-xl border p-5 transition-all duration-200 select-none shadow-sm hover:shadow",
                           selected
-                            ? "border-primary bg-sky-50 ring-2 ring-primary/10"
-                            : "border-border bg-background hover:border-muted-foreground/40"
-                        }`}
+                            ? "border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20 scale-[1.02]"
+                            : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",
+                        )}
                       >
-                        <RadioGroupItem value={value} className="mt-0.5" />
-                        <span>
-                          <span className="block text-[13px] font-bold leading-5 text-foreground">
+                        <RadioGroupItem value={value} className="sr-only" />
+                        {selected && (
+                          <div className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-primary-foreground">
+                            <Check className="size-3 stroke-[3px]" />
+                          </div>
+                        )}
+                        <div className={cn(
+                          "rounded-full p-2.5 transition-colors duration-200",
+                          selected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                        )}>
+                          <Icon className="size-5 shrink-0" />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <span className="block text-sm font-bold leading-5 tracking-tight">
                             {t(meta.titleKey)}
                           </span>
-                          <span className="mt-1 block text-[13px] leading-5 text-gray-500">
+                          <span className="block text-xs leading-4 text-muted-foreground/80 font-medium">
                             {t(meta.descriptionKey)}
                           </span>
-                        </span>
+                        </div>
                       </label>
                     );
                   },
@@ -467,13 +630,20 @@ export function ProductCreatePage() {
             <CardContent>
               <AppFileUpload
                 value={photos}
-                onChange={(files) =>
-                  setPhotos(Array.isArray(files) ? files : [])
-                }
+                onChange={handlePhotosChange}
                 multiple
                 accept="image/*"
                 label={t("products.uploadProductPhoto")}
               />
+              {isPhotoMetadataScanning ? (
+                <PhotoMetadataScanStatus
+                  text={
+                    t("ru") === "ru"
+                      ? "Считываем модель и IMEI с фото"
+                      : "Fotodan model və IMEI oxunur"
+                  }
+                />
+              ) : null}
             </CardContent>
           </Card>
 
@@ -485,22 +655,23 @@ export function ProductCreatePage() {
                 {t("products.paymentDescription")}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="min-w-0 space-y-5">
               <Field label={t("products.buyFrom")} strong>
                 <SearchableSelect
                   value={supplierId}
                   onValueChange={setSupplierId}
-                  options={options?.supplier_wallet_options ?? []}
-                  placeholder={t("products.selectSupplierOrPartner")}
-                  searchPlaceholder={t("products.supplierSearch")}
-                  onCreateNew={(name) =>
-                    createInlineWallet(name, "debt", setSupplierId)
+                  options={purchaseSourceOptions}
+                  placeholder={purchaseSourcePlaceholder}
+                  searchPlaceholder={purchaseSourceSearchPlaceholder}
+                  onCreateNew={openQuickSourceDialog}
+                  createNewFormat={
+                    t("products.createPurchaseSourceFormat")
                   }
                 />
               </Field>
 
               {scenario === "supplier_debt" ? (
-                <div className="space-y-4">
+                <div className="min-w-0 space-y-4">
                   <InfoBox
                     color="red"
                     title={t("products.supplierDebtInfoTitle")}
@@ -510,7 +681,7 @@ export function ProductCreatePage() {
                       : t("products.supplierDebtInfo")}
                   </InfoBox>
 
-                  <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+                  <div className="min-w-0 space-y-4 rounded-lg border bg-muted/40 p-4">
                     <label className="flex cursor-pointer items-start gap-3">
                       <Checkbox
                         checked={paidNowEnabled}
@@ -702,7 +873,7 @@ export function ProductCreatePage() {
               ) : null}
 
               {scenario === "transfer_now" ? (
-                <div className="space-y-4 rounded-lg border border-sky-200 bg-background p-4">
+                <div className="min-w-0 space-y-4 rounded-lg border border-sky-200 bg-background p-4">
                   <Field label={t("products.primaryAccountOrCard")} strong>
                     <SearchableSelect
                       value={paymentWalletId}
@@ -719,7 +890,7 @@ export function ProductCreatePage() {
               ) : null}
 
               {scenario !== "supplier_debt" ? (
-                <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+                <div className="min-w-0 space-y-4 rounded-lg border bg-muted/40 p-4">
                   <label className="flex cursor-pointer items-start gap-3">
                     <Checkbox
                       checked={splitEnabled}
@@ -808,7 +979,7 @@ export function ProductCreatePage() {
         </div>
 
         {/* Sidebar */}
-        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>{t("products.summary")}</CardTitle>
@@ -862,6 +1033,139 @@ export function ProductCreatePage() {
           </Card>
         </aside>
       </form>
+
+      <QuickSourceContainer
+        open={quickSourceOpen}
+        onOpenChange={setQuickSourceOpen}
+      >
+        <QuickSourceContent
+          className={
+            isMobile
+              ? "rounded-t-2xl border-border bg-card p-0"
+              : "sm:max-w-[540px] overflow-hidden p-0"
+          }
+        >
+          <div className="border-b bg-muted/30 px-5 py-4">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold">
+                {t("products.createPurchaseSource")}
+              </DialogTitle>
+              <p className="text-[13px] leading-5 text-muted-foreground">
+                {t("products.createPurchaseSourceDescription")}
+              </p>
+            </DialogHeader>
+          </div>
+
+          <form className="space-y-5 px-5 py-4" onSubmit={handleQuickSourceSubmit}>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t("products.sourceType")}
+              </label>
+              <RadioGroup
+                value={quickSourceType}
+                onValueChange={(value) =>
+                  setQuickSourceType(value as "client_debt" | "debt" | "shop")
+                }
+                className="grid gap-3 sm:grid-cols-3"
+              >
+                {sourceTypeOptions.map((option) => {
+                  const selected = quickSourceType === option.value;
+                  const Icon = option.icon;
+                  return (
+                    <label
+                      key={option.value}
+                      className={cn(
+                        "relative flex flex-col items-center justify-between text-center cursor-pointer gap-2 rounded-xl border p-4 transition-all duration-200 select-none shadow-sm hover:shadow",
+                        selected
+                          ? "border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20 scale-[1.02]"
+                          : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",
+                      )}
+                    >
+                      <RadioGroupItem value={option.value} className="sr-only" />
+                      {selected && (
+                        <div className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-primary-foreground">
+                          <Check className="size-3 stroke-[3px]" />
+                        </div>
+                      )}
+                      <div className={cn(
+                        "rounded-full p-2.5 transition-colors duration-200",
+                        selected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                      )}>
+                        <Icon className="size-5 shrink-0" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block text-sm font-semibold tracking-tight">
+                          {option.label}
+                        </span>
+                        <span className="mt-1 block text-[10px] leading-3 text-muted-foreground/80 font-medium">
+                          {option.hint}
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </RadioGroup>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {t("common.name")} <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <UserRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                  <Input
+                    value={quickSourceName}
+                    onChange={(event) => setQuickSourceName(event.target.value)}
+                    required
+                    autoFocus={!isMobile}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {quickSourceType === "client_debt" ? (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t("products.phone")}
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                    <Input
+                      value={quickSourcePhone}
+                      onChange={(event) =>
+                        setQuickSourcePhone(formatPhoneInput(event.target.value))
+                      }
+                      placeholder="+994..."
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setQuickSourceOpen(false)}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  createWalletMutation.isPending || createClientMutation.isPending
+                }
+              >
+                {createWalletMutation.isPending || createClientMutation.isPending
+                  ? t("common.saving")
+                  : t("common.save")}
+              </Button>
+            </div>
+          </form>
+        </QuickSourceContent>
+      </QuickSourceContainer>
     </section>
   );
 }

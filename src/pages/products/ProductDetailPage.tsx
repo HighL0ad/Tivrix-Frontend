@@ -54,9 +54,9 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { PageHeader } from "@/shared/ui/page-header";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { toast } from "sonner";
 import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
+import { ProductDetailSkeleton } from "@/features/products/ProductDetailSkeleton";
 
 export function ProductDetailPage() {
   const { t } = useTranslation();
@@ -332,15 +332,3 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
   );
 }
 
-function ProductDetailSkeleton() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Skeleton className="aspect-square w-full" />
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-2/3" />
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-48 w-full" />
-      </div>
-    </div>
-  );
-}

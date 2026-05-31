@@ -4,7 +4,6 @@ import {
   DecodeHintType,
   BarcodeFormat,
   NotFoundException,
-  type Result,
 } from "@zxing/library";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
@@ -158,158 +157,6 @@ function createReader() {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
-}
-
-function loadImageFile(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load image."));
-    };
-    image.src = url;
-  });
-}
-
-function drawImageCropToCanvas(
-  image: HTMLImageElement,
-  crop: { x: number; y: number; width: number; height: number },
-  rotation: 0 | 90 | 180 | 270,
-  contrast = false,
-) {
-  const canvas = document.createElement("canvas");
-  const rotated = rotation === 90 || rotation === 270;
-  const scale = Math.min(2, Math.max(1, 1200 / Math.max(crop.width, crop.height)));
-  canvas.width = Math.round((rotated ? crop.height : crop.width) * scale);
-  canvas.height = Math.round((rotated ? crop.width : crop.height) * scale);
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Failed to prepare image.");
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.translate(canvas.width / 2, canvas.height / 2);
-  ctx.rotate((rotation * Math.PI) / 180);
-  ctx.scale(scale, scale);
-  ctx.drawImage(
-    image,
-    crop.x,
-    crop.y,
-    crop.width,
-    crop.height,
-    -crop.width / 2,
-    -crop.height / 2,
-    crop.width,
-    crop.height,
-  );
-
-  if (contrast) {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const value = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-      const boosted = value < 150 ? 0 : 255;
-      data[i] = boosted;
-      data[i + 1] = boosted;
-      data[i + 2] = boosted;
-    }
-    ctx.putImageData(imageData, 0, 0);
-  }
-
-  return canvas;
-}
-
-function createImageScanCrops(image: HTMLImageElement) {
-  const width = image.naturalWidth || image.width;
-  const height = image.naturalHeight || image.height;
-  const crops = [
-    { x: 0, y: 0, width, height },
-    { x: width * 0.45, y: 0, width: width * 0.55, height },
-    { x: width * 0.55, y: height * 0.45, width: width * 0.35, height: height * 0.5 },
-    { x: width * 0.58, y: height * 0.55, width: width * 0.28, height: height * 0.4 },
-    { x: width * 0.62, y: height * 0.6, width: width * 0.25, height: height * 0.35 },
-    { x: width * 0.68, y: height * 0.5, width: width * 0.18, height: height * 0.45 },
-    { x: width * 0.7, y: height * 0.58, width: width * 0.16, height: height * 0.35 },
-    {
-      x: width * 0.35,
-      y: height * 0.2,
-      width: width * 0.65,
-      height: height * 0.8,
-    },
-    {
-      x: width * 0.5,
-      y: height * 0.2,
-      width: width * 0.5,
-      height: height * 0.8,
-    },
-    {
-      x: width * 0.4,
-      y: height * 0.45,
-      width: width * 0.6,
-      height: height * 0.55,
-    },
-    { x: width * 0.55, y: 0, width: width * 0.35, height },
-  ];
-
-  return crops.map((crop) => ({
-    x: Math.floor(clamp(crop.x, 0, width - 1)),
-    y: Math.floor(clamp(crop.y, 0, height - 1)),
-    width: Math.floor(clamp(crop.width, 1, width - crop.x)),
-    height: Math.floor(clamp(crop.height, 1, height - crop.y)),
-  }));
-}
-
-function getResultText(result: Result | undefined) {
-  return result?.getText() ?? "";
-}
-
-type NativeBarcodeDetector = new (options?: { formats?: string[] }) => {
-  detect: (source: CanvasImageSource) => Promise<Array<{ rawValue?: string }>>;
-};
-
-async function detectNativeBarcodeTexts(source: CanvasImageSource) {
-  const detectorClass = (globalThis as unknown as {
-    BarcodeDetector?: NativeBarcodeDetector;
-  }).BarcodeDetector;
-  if (!detectorClass) return [];
-
-  try {
-    const detector = new detectorClass({
-      formats: ["code_128", "code_39", "code_93", "itf"],
-    });
-    const barcodes = await detector.detect(source);
-    return barcodes.map((barcode) => barcode.rawValue ?? "").filter(Boolean);
-  } catch (err) {
-    console.warn("[IMEI SCANNER] native barcode detector failed", err);
-    return [];
-  }
-}
-
-async function decodeCanvasTexts(
-  reader: BrowserMultiFormatReader,
-  canvas: HTMLCanvasElement,
-) {
-  const texts = new Set<string>();
-
-  for (const decoded of await detectNativeBarcodeTexts(canvas)) {
-    texts.add(decoded);
-  }
-
-  try {
-    const decoded = getResultText(reader.decodeFromCanvas(canvas));
-    if (decoded) texts.add(decoded);
-  } catch (err) {
-    if (!(err instanceof NotFoundException)) {
-      console.warn("[IMEI SCANNER] image decode error", err);
-    }
-  }
-
-  return Array.from(texts);
 }
 
 // ─── Smart Viewfinder Cropping for ZXing ──────────────────────────────────────
@@ -472,7 +319,6 @@ export function useImeiScanner({
   const [error, setError] = useState<string>("");
   const [isInitializing, setIsInitializing] = useState(false);
   const [isCameraLoading, setIsCameraLoading] = useState(false);
-  const [isImageScanning, setIsImageScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState<ImeiScanStatus>("idle");
 
   const onScanSuccessRef = useRef(onScanSuccess);
@@ -626,53 +472,6 @@ export function useImeiScanner({
     }
   }, [containerEl, selectedDeviceId, stopScanning, ensureVideoEl]);
 
-  const scanImageFile = useCallback(async (file: File) => {
-    setIsImageScanning(true);
-    setError("");
-    setScanStatus("starting");
-
-    try {
-      const image = await loadImageFile(file);
-      const reader = createReader();
-      const rotations: Array<0 | 90 | 180 | 270> = [0, 90, 270, 180];
-      const decodedTexts = new Set<string>();
-      const contrastModes = [false, true];
-
-      for (const crop of createImageScanCrops(image)) {
-        for (const rotation of rotations) {
-          for (const contrast of contrastModes) {
-            const canvas = drawImageCropToCanvas(image, crop, rotation, contrast);
-            const decodedCandidates = await decodeCanvasTexts(reader, canvas);
-
-            for (const decoded of decodedCandidates) {
-              if (!decoded || decodedTexts.has(decoded)) continue;
-
-              decodedTexts.add(decoded);
-              const accepted = extractValidImeis(decoded);
-              if (accepted.length === 0) continue;
-
-              setScanStatus("imei-found");
-              onScanSuccessRef.current(accepted);
-              return;
-            }
-          }
-        }
-      }
-
-      setScanStatus("code-found");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to scan image.";
-      setScanStatus("idle");
-      setError(message);
-      if (onScanErrorRef.current && err instanceof Error) {
-        onScanErrorRef.current(err);
-      }
-    } finally {
-      setIsImageScanning(false);
-    }
-  }, []);
-
   useEffect(() => {
     loadDevices();
     return () => stopScanning();
@@ -691,10 +490,8 @@ export function useImeiScanner({
     error,
     isInitializing,
     isCameraLoading,
-    isImageScanning,
     scanStatus,
     refetchDevices: loadDevices,
-    scanImageFile,
     startScanning,
     stopScanning,
   };

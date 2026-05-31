@@ -161,11 +161,20 @@ export function ProductsPage() {
   });
   const products = productsQuery.data;
   const supplierOptions = useMemo(
-    () => createOptionsQuery.data?.supplier_wallet_options.map((supplier) => ({
-      id: supplier.id,
-      name: supplier.name,
-    })) ?? [],
-    [createOptionsQuery.data?.supplier_wallet_options],
+    () => {
+      const options =
+        createOptionsQuery.data?.purchase_source_options ??
+        createOptionsQuery.data?.supplier_wallet_options ??
+        [];
+      return options.map((supplier) => ({
+        id: supplier.id,
+        name: supplier.name,
+      }));
+    },
+    [
+      createOptionsQuery.data?.purchase_source_options,
+      createOptionsQuery.data?.supplier_wallet_options,
+    ],
   );
   const selectedSuppliers = useMemo(
     () => supplierOptions.filter((supplier) => activeSupplierIds.includes(supplier.id)),

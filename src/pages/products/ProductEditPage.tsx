@@ -20,13 +20,19 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Input } from "@/shared/ui/input";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { PageError } from "@/shared/ui/page-state";
 import { SearchableSelect } from "@/shared/ui/searchable-select";
 import {
   Field,
   RegistrationCheckboxGroup,
 } from "@/features/products/product-form/FormPrimitives";
 import { getProductFormErrorMessage, productStatusOptions } from "@/features/products/product-form/model";
+import { PhotoMetadataScanStatus } from "@/features/products/product-form/PhotoMetadataScanStatus";
+import {
+  applyPhotoMetadataToProductFields,
+  extractProductMetadataFromPhoto,
+} from "@/features/products/product-form/photoMetadataScanner";
+import { ProductFormSkeleton } from "@/features/products/product-form/ProductFormSkeleton";
 import { ProductStatusBadge } from "@/features/products/product-display/ProductStatusBadge";
 import { resolveProductsReturnLocation } from "@/features/products/product-return-location";
 import { formatImeiInput, formatPhoneInput } from "@/shared/lib/input-formatters";
@@ -56,6 +62,7 @@ export function ProductEditPage() {
   const [replacePhotos, setReplacePhotos] = useState(false);
   const [removePhotoIds, setRemovePhotoIds] = useState<number[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [isPhotoMetadataScanning, setIsPhotoMetadataScanning] = useState(false);
 
   useEffect(() => {
     if (!product) return;
@@ -155,8 +162,50 @@ export function ProductEditPage() {
     });
   };
 
+  async function handlePhotosChange(files: File | File[] | null) {
+    const nextPhotos = Array.isArray(files) ? files : [];
+    setPhotos(nextPhotos);
+
+    const photo = nextPhotos.find((file) => file.type.startsWith("image/"));
+    if (!photo) return;
+
+    setIsPhotoMetadataScanning(true);
+    try {
+      const metadata = await extractProductMetadataFromPhoto(photo);
+      const nextFields = applyPhotoMetadataToProductFields(metadata, {
+        name,
+        imei,
+        imei2,
+      });
+      const filledName = !name.trim() && nextFields.name;
+      const filledImei = !imei.trim() && nextFields.imei;
+      const filledImei2 = !imei2.trim() && nextFields.imei2;
+
+      if (filledName) setName(nextFields.name);
+      if (filledImei) setImei(nextFields.imei);
+      if (filledImei2) setImei2(nextFields.imei2);
+
+      if (filledName || filledImei || filledImei2) {
+        toast.success(
+          t("ru") === "ru"
+            ? "Данные с фото распознаны"
+            : "Fotodan məlumatlar oxundu",
+        );
+      }
+    } catch (err) {
+      console.warn("[PRODUCT PHOTO OCR] Failed to read photo", err);
+      toast.error(
+        t("ru") === "ru"
+          ? "Не удалось распознать данные с фото"
+          : "Fotodan məlumatları oxumaq mümkün olmadı",
+      );
+    } finally {
+      setIsPhotoMetadataScanning(false);
+    }
+  }
+
   if (productQuery.isLoading || optionsQuery.isLoading) {
-    return <PageLoading />;
+    return <ProductFormSkeleton />;
   }
 
   if (!product || !optionsQuery.data) {
@@ -232,12 +281,15 @@ export function ProductEditPage() {
                 <SearchableSelect
                   value={supplierId}
                   onValueChange={setSupplierId}
-                  options={optionsQuery.data.supplier_wallet_options}
-                  placeholder={product.supplier_name ?? t("products.selectSupplier")}
-                  searchPlaceholder={t("products.supplierSearch")}
+                  options={
+                    optionsQuery.data.purchase_source_options ??
+                    optionsQuery.data.supplier_wallet_options
+                  }
+                  placeholder={product.supplier_name ?? t("products.selectPurchaseSource")}
+                  searchPlaceholder={t("products.purchaseSourceSearch")}
                   onCreateNew={(name) => {
                     createWallet.mutate(
-                      { name, wallet_type: "debt" },
+                      { name, wallet_type: "client_debt" },
                       {
                         onSuccess: (wallet) => {
                           setSupplierId(String(wallet.id));
@@ -348,11 +400,20 @@ export function ProductEditPage() {
               </label>
               <AppFileUpload
                 value={photos}
-                onChange={(files) => setPhotos(Array.isArray(files) ? files : [])}
+                onChange={handlePhotosChange}
                 multiple
                 accept="image/*"
                 label={t("products.selectPhoto")}
               />
+              {isPhotoMetadataScanning ? (
+                <PhotoMetadataScanStatus
+                  text={
+                    t("ru") === "ru"
+                      ? "Считываем модель и IMEI с фото"
+                      : "Fotodan model və IMEI oxunur"
+                  }
+                />
+              ) : null}
             </AppFormField>
 
             <div className="flex justify-end">

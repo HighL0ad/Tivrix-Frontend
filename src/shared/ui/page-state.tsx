@@ -3,10 +3,10 @@ import { i18n } from "@/shared/i18n";
 
 export function PageLoading() {
   return (
-    <div className="space-y-3">
-      <Skeleton className="h-10 w-48" />
-      <Skeleton className="h-28 w-full" />
-      <Skeleton className="h-64 w-full" />
+    <div className="mx-auto flex min-h-[45vh] w-full max-w-md flex-col justify-center space-y-3 px-4">
+      <Skeleton className="h-8 w-44" />
+      <Skeleton className="h-4 w-64 max-w-full" />
+      <Skeleton className="h-24 w-full rounded-lg" />
     </div>
   );
 }
