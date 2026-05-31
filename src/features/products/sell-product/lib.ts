@@ -24,9 +24,7 @@ export function buildSellFormData(payload: ProductSellPayload, proofPhoto: File)
       return;
     }
     if (typeof value === "boolean") {
-      if (value) {
-        formData.append(key, "on");
-      }
+      formData.append(key, value ? "true" : "false");
       return;
     }
     formData.append(key, String(value));
