@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Scan, X, Camera, RefreshCw } from "lucide-react";
+import { Scan, X, Camera, RefreshCw, ImageUp } from "lucide-react";
 
 import { useImeiScanner } from "@/features/products/product-form/useImeiScanner";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
@@ -31,6 +31,7 @@ interface ImeiScannerButtonProps {
 export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const scanner = useImeiScanner({
@@ -54,7 +55,15 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
     },
   });
 
-  const showLoading = scanner.isInitializing || scanner.isCameraLoading;
+  const showLoading =
+    scanner.isInitializing || scanner.isCameraLoading || scanner.isImageScanning;
+
+  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    await scanner.scanImageFile(file);
+  };
 
   const ModalContainer = isMobile ? Sheet : Dialog;
   const ModalContent = isMobile ? SheetContent : DialogContent;
@@ -168,6 +177,28 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
           </div>
 
           <div className="w-full mt-4 space-y-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleImageChange}
+            />
+
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-white"
+                disabled={scanner.isImageScanning}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImageUp className="size-4" />
+                {t("ru") === "ru" ? "Загрузить фото" : "Foto yüklə"}
+              </Button>
+            </div>
+
             <p className="mt-4 text-sm text-white/70 text-center font-medium">
               {t("ru") === "ru"
                 ? "Поднесите коробку ближе к камере"
