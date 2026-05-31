@@ -25,6 +25,15 @@ interface ScannerDevice {
   label: string;
 }
 
+function isIosDevice() {
+  if (typeof navigator === "undefined") return false;
+  const platform = navigator.platform.toLowerCase();
+  return (
+    /iphone|ipad|ipod/.test(platform) ||
+    (platform === "macintel" && navigator.maxTouchPoints > 1)
+  );
+}
+
 // ─── IMEI helpers (unchanged) ─────────────────────────────────────────────────
 
 export function validateLuhn(imei: string): boolean {
@@ -104,11 +113,12 @@ function getBackCameraDevices(devices: ScannerDevice[]) {
 
 function getCameraScore({ label }: ScannerDevice) {
   const l = label.toLowerCase();
+  const isIos = isIosDevice();
   let score = 0;
   if (l.includes("back") || l.includes("rear")) score += 50;
   if (l.includes("environment") || l.includes("основная")) score += 50;
-  if (l.includes("wide") && !l.includes("ultra")) score += 12;
-  if (l.includes("dual") || l.includes("triple")) score += 8;
+  if (l.includes("wide") && !l.includes("ultra")) score += isIos ? 4 : 12;
+  if (l.includes("dual") || l.includes("triple")) score += isIos ? -8 : 8;
   if (l.includes("ultra")) score -= 20;
   if (l.includes("telephoto")) score -= 12;
   if (l.includes("front") || l.includes("selfie")) score -= 100;
@@ -228,8 +238,23 @@ function clamp(value: number, min: number, max: number) {
 type TunableCapabilities = MediaTrackCapabilities & {
   focusMode?: string[];
   zoom?: { min?: number; max?: number; step?: number };
+  exposureMode?: string[];
 };
 type TunableSettings = MediaTrackSettings & { zoom?: number };
+
+function createVideoConstraints(deviceId: string): MediaTrackConstraints {
+  const base: MediaTrackConstraints = {
+    width: { ideal: 1920 },
+    height: { ideal: 1080 },
+    aspectRatio: { ideal: 16 / 9 },
+  };
+
+  if (deviceId) {
+    return { ...base, deviceId: { exact: deviceId } };
+  }
+
+  return { ...base, facingMode: { ideal: "environment" } };
+}
 
 async function tuneCameraForBarcode(videoEl: HTMLVideoElement) {
   try {
@@ -241,15 +266,25 @@ async function tuneCameraForBarcode(videoEl: HTMLVideoElement) {
     const capabilities = track.getCapabilities() as TunableCapabilities;
     const settings = track.getSettings() as TunableSettings;
     const advanced: MediaTrackConstraintSet[] = [];
+    const isIos = isIosDevice();
 
     if (capabilities.focusMode?.includes("continuous")) {
       advanced.push({
         focusMode: "continuous",
       } as unknown as MediaTrackConstraintSet);
     }
+    if (capabilities.exposureMode?.includes("continuous")) {
+      advanced.push({
+        exposureMode: "continuous",
+      } as unknown as MediaTrackConstraintSet);
+    }
     if (capabilities.zoom?.max && capabilities.zoom.max > 1) {
       const current = settings.zoom ?? capabilities.zoom.min ?? 1;
-      const target = Math.min(capabilities.zoom.max, Math.max(current, 2));
+      const preferredZoom = isIos ? 1.15 : 2;
+      const target = Math.min(
+        capabilities.zoom.max,
+        Math.max(current, capabilities.zoom.min ?? 1, preferredZoom),
+      );
       advanced.push({ zoom: target } as unknown as MediaTrackConstraintSet);
     }
     if (advanced.length > 0) {
@@ -306,6 +341,7 @@ export function useImeiScanner({
       video.style.cssText =
         "width:100%;height:100%;object-fit:cover;display:block;";
       video.setAttribute("playsinline", "");
+      video.setAttribute("autoplay", "");
       video.muted = true;
       container.appendChild(video);
     }
@@ -367,42 +403,52 @@ export function useImeiScanner({
 
     const reader = createReader();
 
-    const videoConstraints: MediaTrackConstraints = selectedDeviceId
-      ? { deviceId: { exact: selectedDeviceId } }
-      : { facingMode: "environment" };
+    const videoConstraints = createVideoConstraints(selectedDeviceId);
 
     try {
-      const controls = await reader.decodeFromConstraints(
-        { video: videoConstraints },
-        videoEl,
-        (result, err) => {
-          if (err && !(err instanceof NotFoundException)) {
-            console.warn("[IMEI SCANNER] frame error", err);
-          }
-          if (!result) return;
+      const handleFrame = (result: { getText: () => string } | undefined, err: unknown) => {
+        if (err && !(err instanceof NotFoundException)) {
+          console.warn("[IMEI SCANNER] frame error", err);
+        }
+        if (!result) return;
 
-          const decoded = result.getText();
+        const decoded = result.getText();
 
-          const accepted = extractValidImeis(decoded);
+        const accepted = extractValidImeis(decoded);
 
-          setScanStatus(accepted.length > 0 ? "imei-found" : "code-found");
-          if (accepted.length === 0) return;
+        setScanStatus(accepted.length > 0 ? "imei-found" : "code-found");
+        if (accepted.length === 0) return;
 
-          const key = accepted.join(",");
-          if (lastScannedRef.current === key) return;
+        const key = accepted.join(",");
+        if (lastScannedRef.current === key) return;
 
-          if (pendingScanRef.current.key === key) {
-            pendingScanRef.current.count += 1;
-          } else {
-            pendingScanRef.current = { key, count: 1 };
-          }
+        if (pendingScanRef.current.key === key) {
+          pendingScanRef.current.count += 1;
+        } else {
+          pendingScanRef.current = { key, count: 1 };
+        }
 
-          if (pendingScanRef.current.count < 2) return;
+        if (pendingScanRef.current.count < 2) return;
 
-          lastScannedRef.current = key;
-          onScanSuccessRef.current(accepted);
-        },
-      );
+        lastScannedRef.current = key;
+        onScanSuccessRef.current(accepted);
+      };
+
+      let controls: { stop: () => void };
+      try {
+        controls = await reader.decodeFromConstraints(
+          { video: videoConstraints },
+          videoEl,
+          handleFrame,
+        );
+      } catch (err) {
+        if (!selectedDeviceId || !(err instanceof DOMException)) throw err;
+        controls = await reader.decodeFromConstraints(
+          { video: createVideoConstraints("") },
+          videoEl,
+          handleFrame,
+        );
+      }
 
       if (sessionRef.current !== session) {
         controls.stop();

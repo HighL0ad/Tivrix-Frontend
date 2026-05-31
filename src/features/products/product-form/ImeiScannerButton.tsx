@@ -121,7 +121,7 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <div
                 data-imei-scan-region
-                className="relative w-[88%] max-w-[360px] h-[84px] sm:h-[96px] rounded-lg border border-white/25 bg-black/10"
+                className="relative w-[70%] max-w-[280px] h-[72px] sm:h-[80px] rounded-lg border border-white/25 bg-black/10 [--scan-line-travel:52px] sm:[--scan-line-travel:60px]"
               >
                 <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-sky-400 rounded-tl-lg" />
                 <div className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-sky-400 rounded-tr-lg" />
@@ -135,7 +135,7 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
             <style>{`
               @keyframes imei-scan-line {
                 0%, 100% { transform: translateY(0); opacity: 0.55; }
-                50% { transform: translateY(64px); opacity: 1; }
+                50% { transform: translateY(var(--scan-line-travel)); opacity: 1; }
               }
             `}</style>
 
