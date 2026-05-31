@@ -14,6 +14,7 @@ import { Button } from "@/shared/ui/button";
 import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 import { WalletSelect } from "@/features/debts/WalletSelect";
+import { Checkbox } from "@/shared/ui/checkbox";
 
 export function MoneyFlowDialog({
   title,
@@ -43,6 +44,7 @@ export function MoneyFlowDialog({
   const [targetId, setTargetId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [shopDebtOffset, setShopDebtOffset] = useState(true);
   const [createdCounterparty, setCreatedCounterparty] = useState<Wallet | null>(null);
   const pending = mode === "lend" ? lend.isPending : borrow.isPending;
   const formId = `money-flow-${mode}`;
@@ -55,6 +57,24 @@ export function MoneyFlowDialog({
       ? mergeWallets(targetWallets, createdCounterparty)
       : targetWallets;
   const counterpartyWalletType = mode === "lend" ? "client_debt" : "debt";
+
+  const selectedTarget = targetOptions.find((w) => String(w.id) === targetId);
+  const isShopOrSupplierTarget = selectedTarget && (selectedTarget.type === "shop" || selectedTarget.type === "debt");
+
+  const selectedSource = sourceOptions.find((w) => String(w.id) === sourceId);
+  const isShopOrSupplierSource = selectedSource && (selectedSource.type === "shop" || selectedSource.type === "debt");
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setSourceId("");
+      setTargetId("");
+      setAmount("");
+      setDescription("");
+      setShopDebtOffset(true);
+      setCreatedCounterparty(null);
+    }
+  }
 
   function handleCreateCounterparty(name: string) {
     createWallet.mutate(
@@ -77,7 +97,7 @@ export function MoneyFlowDialog({
   return (
     <ResponsiveModal
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       title={title}
       trigger={
         <Button type="button" variant="outline">
@@ -100,7 +120,7 @@ export function MoneyFlowDialog({
           onSubmit={(event) => {
             event.preventDefault();
             const onSuccess = () => {
-              setOpen(false);
+              handleOpenChange(false);
               toast.success(mode === "lend" ? t("debts.moneyLent") : t("debts.moneyBorrowed"));
             };
             const onError = (error: unknown) => toast.error(getApiErrorMessage(error));
@@ -111,6 +131,7 @@ export function MoneyFlowDialog({
                   shop_wallet_id: Number(targetId),
                   amount,
                   description: description.trim() || undefined,
+                  shop_debt_offset: isShopOrSupplierTarget ? shopDebtOffset : undefined,
                 },
                 { onSuccess, onError },
               );
@@ -121,6 +142,7 @@ export function MoneyFlowDialog({
                   target_wallet_id: Number(targetId),
                   amount,
                   description: description.trim() || undefined,
+                  shop_debt_offset: isShopOrSupplierSource ? shopDebtOffset : undefined,
                 },
                 { onSuccess, onError },
               );
@@ -134,6 +156,28 @@ export function MoneyFlowDialog({
             wallets={sourceOptions}
             onCreateNew={mode === "borrow" ? handleCreateCounterparty : undefined}
           />
+
+          {mode === "borrow" && isShopOrSupplierSource && (
+            <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+              <label className="flex cursor-pointer items-start gap-3 select-none">
+                <Checkbox
+                  checked={shopDebtOffset}
+                  onCheckedChange={(checked) =>
+                    setShopDebtOffset(Boolean(checked))
+                  }
+                  className="mt-1 size-5"
+                />
+                <span>
+                  <span className="block text-[13px] font-bold leading-5 text-foreground">
+                    {t("debts.borrowOffset")}
+                  </span>
+                  <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
+                    {t("debts.borrowOffsetDescription")}
+                  </span>
+                </span>
+              </label>
+            </div>
+          )}
           <WalletSelect
             label={mode === "lend" ? t("debts.lendTo") : t("debts.target")}
             value={targetId}
@@ -141,6 +185,29 @@ export function MoneyFlowDialog({
             wallets={targetOptions}
             onCreateNew={mode === "lend" ? handleCreateCounterparty : undefined}
           />
+
+          {mode === "lend" && isShopOrSupplierTarget && (
+            <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+              <label className="flex cursor-pointer items-start gap-3 select-none">
+                <Checkbox
+                  checked={shopDebtOffset}
+                  onCheckedChange={(checked) =>
+                    setShopDebtOffset(Boolean(checked))
+                  }
+                  className="mt-1 size-5"
+                />
+                <span>
+                  <span className="block text-[13px] font-bold leading-5 text-foreground">
+                    {t("debts.offsetOurDebt")}
+                  </span>
+                  <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
+                    {t("debts.offsetOurDebtDescription")}
+                  </span>
+                </span>
+              </label>
+            </div>
+          )}
+
           <FormField label={t("debts.amount")}>
             <div className="relative">
               <Input

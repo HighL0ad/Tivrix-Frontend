@@ -110,6 +110,7 @@ export type ProductSellPayload = {
   shop_split_payment_amount?: string;
   shop_split_payment_wallet_id?: number;
   shop_debt_due_date?: string;
+  shop_debt_offset?: boolean;
   client_name?: string;
   client_phone?: string;
   source?: string;

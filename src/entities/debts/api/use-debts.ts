@@ -88,6 +88,7 @@ export function useLendMoney() {
       source_wallet_id: number;
       amount: string;
       description?: string;
+      shop_debt_offset?: boolean;
     }) =>
       apiRequest<{ ok: boolean }>("/api/debts/lend-money", {
         method: "POST",
@@ -109,6 +110,7 @@ export function useBorrowMoney() {
       target_wallet_id: number;
       amount: string;
       description?: string;
+      shop_debt_offset?: boolean;
     }) =>
       apiRequest<{ ok: boolean }>("/api/debts/borrow-money", {
         method: "POST",

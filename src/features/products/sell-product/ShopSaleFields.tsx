@@ -54,6 +54,8 @@ export function ShopPaymentFields({
   shopDebtDueDate,
   setShopDebtDueDate,
   shopDebt,
+  shopDebtOffset,
+  setShopDebtOffset,
   walletOptions,
 }: {
   shopPrepaymentEnabled: boolean;
@@ -71,6 +73,8 @@ export function ShopPaymentFields({
   shopDebtDueDate: string;
   setShopDebtDueDate: (value: string) => void;
   shopDebt: number;
+  shopDebtOffset: boolean;
+  setShopDebtOffset: (value: boolean) => void;
   walletOptions: ProductOption[];
 }) {
   const { t } = useTranslation();
@@ -129,17 +133,37 @@ export function ShopPaymentFields({
       ) : null}
 
       {shopDebt > 0 ? (
-        <AppFormField
-          label={t("sell.shopDebtDueDate")}
-          helper={t("sell.shopDebtDueDateHelper")}
-        >
-          <DatePicker
-            value={shopDebtDueDate}
-            onChange={setShopDebtDueDate}
-            placeholder={t("common.selectDate")}
-            className="h-11 w-full"
-          />
-        </AppFormField>
+        <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+          <label className="flex cursor-pointer items-start gap-3 select-none">
+            <Checkbox
+              checked={shopDebtOffset}
+              onCheckedChange={(checked) =>
+                setShopDebtOffset(Boolean(checked))
+              }
+              className="mt-1 size-5"
+            />
+            <span>
+              <span className="block text-[13px] font-bold leading-5 text-foreground">
+                {t("sell.offsetOurDebt")}
+              </span>
+              <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
+                {t("sell.offsetOurDebtDescription")}
+              </span>
+            </span>
+          </label>
+
+          <AppFormField
+            label={t("sell.shopDebtDueDate")}
+            helper={t("sell.shopDebtDueDateHelper")}
+          >
+            <DatePicker
+              value={shopDebtDueDate}
+              onChange={setShopDebtDueDate}
+              placeholder={t("common.selectDate")}
+              className="h-11 w-full"
+            />
+          </AppFormField>
+        </div>
       ) : null}
     </div>
   );

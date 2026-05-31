@@ -97,6 +97,7 @@ export function ProductCreatePage() {
     [],
   );
   const [photos, setPhotos] = useState<File[]>([]);
+  const [shopDebtOffset, setShopDebtOffset] = useState(true);
   const [imeiError, setImeiError] = useState("");
   const [checkingImei, setCheckingImei] = useState(false);
   const [isPhotoMetadataScanning, setIsPhotoMetadataScanning] = useState(false);
@@ -147,17 +148,15 @@ export function ProductCreatePage() {
     });
   }, [options, paidNowEnabled, paymentWalletId, scenario]);
   const purchaseSourceOptions =
-    scenario === "supplier_debt"
-      ? options?.supplier_wallet_options ?? []
-      : options?.purchase_source_options ?? options?.supplier_wallet_options ?? [];
-  const purchaseSourcePlaceholder =
-    scenario === "supplier_debt"
-      ? t("products.selectSupplierOrPartner")
-      : t("products.selectPurchaseSource");
-  const purchaseSourceSearchPlaceholder =
-    scenario === "supplier_debt"
-      ? t("products.supplierSearch")
-      : t("products.purchaseSourceSearch");
+    options?.purchase_source_options ?? options?.supplier_wallet_options ?? [];
+  const selectedSource = useMemo(() => {
+    return (options?.purchase_source_options ?? []).find((opt) => opt.id === supplierId);
+  }, [options?.purchase_source_options, supplierId]);
+  const isShopOrSupplierSource = selectedSource && (selectedSource.type === "shop" || selectedSource.type === "debt");
+  const isOffsetMode = selectedSource?.type === "client_debt" || (isShopOrSupplierSource && shopDebtOffset);
+
+  const purchaseSourcePlaceholder = t("products.selectPurchaseSource");
+  const purchaseSourceSearchPlaceholder = t("products.purchaseSourceSearch");
   const QuickSourceContainer = isMobile ? Sheet : Dialog;
   const QuickSourceContent = isMobile ? SheetContent : DialogContent;
   const sourceTypeOptions = [
@@ -331,6 +330,9 @@ export function ProductCreatePage() {
       formData.append("wallet_id", paymentWalletId);
     if (scenario === "supplier_debt" && paidNowEnabled)
       formData.append("paid_now_amount", paidNowAmount);
+    if (scenario === "supplier_debt" && isShopOrSupplierSource) {
+      formData.append("shop_debt_offset", shopDebtOffset ? "true" : "false");
+    }
 
     if (splitEnabled) {
       formData.append("split_payment_enabled", "on");
@@ -670,15 +672,45 @@ export function ProductCreatePage() {
                 />
               </Field>
 
+              {scenario === "supplier_debt" && isShopOrSupplierSource && (
+                <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+                  <label className="flex cursor-pointer items-start gap-3 select-none">
+                    <Checkbox
+                      checked={shopDebtOffset}
+                      onCheckedChange={(checked) =>
+                        setShopDebtOffset(Boolean(checked))
+                      }
+                      className="mt-1 size-5"
+                    />
+                    <span>
+                      <span className="block text-[13px] font-bold leading-5 text-foreground">
+                        {t("debts.borrowOffset")}
+                      </span>
+                      <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
+                        {t("debts.borrowOffsetDescription")}
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              )}
+
               {scenario === "supplier_debt" ? (
                 <div className="min-w-0 space-y-4">
                   <InfoBox
                     color="red"
-                    title={t("products.supplierDebtInfoTitle")}
+                    title={
+                      isOffsetMode
+                        ? t("products.scenario.supplierDebt.clientTitle")
+                        : t("products.supplierDebtInfoTitle")
+                    }
                   >
-                    {paidNowEnabled
-                      ? t("products.partialSupplierDebtInfo")
-                      : t("products.supplierDebtInfo")}
+                    {isOffsetMode
+                      ? (paidNowEnabled
+                          ? t("products.scenario.supplierDebt.clientInfoPartial")
+                          : t("products.scenario.supplierDebt.clientInfo"))
+                      : (paidNowEnabled
+                          ? t("products.partialSupplierDebtInfo")
+                          : t("products.supplierDebtInfo"))}
                   </InfoBox>
 
                   <div className="min-w-0 space-y-4 rounded-lg border bg-muted/40 p-4">
@@ -990,7 +1022,11 @@ export function ProductCreatePage() {
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
                 label={t("sell.paymentQuestion")}
-                value={t(scenarioMeta[scenario].titleKey)}
+                value={
+                  scenario === "supplier_debt" && isOffsetMode
+                    ? t("products.scenario.supplierDebt.clientTitle")
+                    : t(scenarioMeta[scenario].titleKey)
+                }
               />
               <SummaryRow
                 label={t("products.buyPrice")}

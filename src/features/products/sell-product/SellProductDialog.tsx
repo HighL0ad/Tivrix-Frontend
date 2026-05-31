@@ -80,6 +80,7 @@ export function SellProductDialog({
   const [source, setSource] = useState("none");
   const [proofPhoto, setProofPhoto] = useState<File | null>(null);
   const [installmentTotalPrice, setInstallmentTotalPrice] = useState("");
+  const [shopDebtOffset, setShopDebtOffset] = useState(true);
 
   const error =
     sellMutation.error instanceof ApiError
@@ -104,6 +105,13 @@ export function SellProductDialog({
     sellMutation.isPending ||
     optionsQuery.isLoading ||
     (saleType === "shop" && shopDebt > 0 && !shopDebtDueDate);
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setShopDebtOffset(true);
+    }
+  }
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (
     event,
@@ -175,6 +183,7 @@ export function SellProductDialog({
       }
       if (shopDebt > 0) {
         payload.shop_debt_due_date = shopDebtDueDate;
+        payload.shop_debt_offset = shopDebtOffset;
       }
     }
 
@@ -197,7 +206,7 @@ export function SellProductDialog({
         queryClient.invalidateQueries({ queryKey: ["finance"] });
         queryClient.invalidateQueries({ queryKey: ["dashboard"] });
         onSold(soldProduct);
-        setOpen(false);
+        handleOpenChange(false);
         toast.success(t("sell.completed"));
       },
       onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -207,7 +216,7 @@ export function SellProductDialog({
   return (
     <ResponsiveModal
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       trigger={trigger ?? <Button type="button">{t("sell.trigger")}</Button>}
       title={t("sell.title")}
       description={t("sell.description")}
@@ -414,6 +423,8 @@ export function SellProductDialog({
                 shopDebtDueDate={shopDebtDueDate}
                 setShopDebtDueDate={setShopDebtDueDate}
                 shopDebt={shopDebt}
+                shopDebtOffset={shopDebtOffset}
+                setShopDebtOffset={setShopDebtOffset}
                 walletOptions={optionsQuery.data?.sale_wallet_options ?? []}
               />
             )}
