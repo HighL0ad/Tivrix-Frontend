@@ -1201,6 +1201,14 @@ function ProductActionsMenu({
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const deleteProduct = useDeleteProduct(product.id);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+
+  const handleOpenConfirmChange = (open: boolean) => {
+    setConfirmOpen(open);
+    if (!open) {
+      setDeleteConfirmName("");
+    }
+  };
 
   async function copyImei(value: string) {
     await navigator.clipboard.writeText(value);
@@ -1277,29 +1285,27 @@ function ProductActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent onClick={(event) => event.stopPropagation()}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("products.deleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("products.deleteDescription", { name: product.name })}
-              <span className="mt-2 block text-foreground">
-                {formatProductImei(product)}
-              </span>
-              {product.supplier_name ? (
-                <span className="mt-1 block text-foreground">
-                  {t("products.supplierWithColon", { name: product.supplier_name })}
-                </span>
-              ) : null}
-              <span className="mt-2 block">
-                {t("products.deleteWarning")}
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive/10 text-destructive hover:bg-destructive/20"
+      <ResponsiveModal
+        open={confirmOpen}
+        onOpenChange={handleOpenConfirmChange}
+        title={t("products.deleteTitle")}
+        className="md:max-w-md"
+        footer={
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end w-full" onClick={(event) => event.stopPropagation()}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenConfirmChange(false)}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={
+                deleteConfirmName.trim().toLowerCase() !== product.name.trim().toLowerCase() ||
+                deleteProduct.isPending
+              }
               onClick={() =>
                 deleteProduct.mutate(undefined, {
                   onSuccess: () => {
@@ -1313,10 +1319,43 @@ function ProductActionsMenu({
               }
             >
               {t("products.deleteAction")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4" onClick={(event) => event.stopPropagation()}>
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>
+              {t("products.deleteDescription", { name: product.name })}
+            </p>
+            <div className="border-l-2 border-border pl-3 space-y-1 my-2">
+              <span className="block text-xs font-semibold text-foreground">
+                {formatProductImei(product)}
+              </span>
+              {product.supplier_name ? (
+                <span className="block text-xs text-muted-foreground">
+                  {t("products.supplierWithColon", { name: product.supplier_name })}
+                </span>
+              ) : null}
+            </div>
+            <p className="text-xs text-destructive font-medium bg-destructive/5 p-2 rounded-lg border border-destructive/10">
+              {t("products.deleteWarning")}
+            </p>
+          </div>
+
+          <div className="space-y-1.5 text-left">
+            <label className="text-xs font-semibold text-muted-foreground">
+              {t("products.deleteConfirmPrompt")}{" "}
+              <span className="font-bold text-foreground select-all">{product.name}</span>
+            </label>
+            <Input
+              value={deleteConfirmName}
+              onChange={(e) => setDeleteConfirmName(e.target.value)}
+              placeholder={t("products.deleteConfirmPlaceholder")}
+            />
+          </div>
+        </div>
+      </ResponsiveModal>
     </>
   );
 }

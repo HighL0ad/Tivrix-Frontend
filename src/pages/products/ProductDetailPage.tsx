@@ -49,6 +49,7 @@ import { Button } from "@/shared/ui/button";
 import { BackActionButton } from "@/shared/ui/back-button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
+import { ResponsiveModal } from "@/shared/ui/app-form";
 import {
   Dialog,
   DialogContent,
@@ -283,35 +284,29 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                       {t("common.edit")}
                     </NavLink>
                   </Button>
-                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleOpenDeleteDialogChange}>
-                    <AlertDialogTrigger asChild>
+                  <ResponsiveModal
+                    open={isDeleteDialogOpen}
+                    onOpenChange={handleOpenDeleteDialogChange}
+                    trigger={
                       <Button type="button" variant="ghost" className="text-destructive">
                         <Trash2 aria-hidden="true" />
                         {t("products.deleteAction")}
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{t("products.deleteTitle")}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {t("products.deleteWarning")}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <div className="space-y-1.5 text-left">
-                        <label className="text-xs font-semibold text-muted-foreground">
-                          {t("products.deleteConfirmPrompt")}{" "}
-                          <span className="font-bold text-foreground select-all">{currentProduct.name}</span>
-                        </label>
-                        <Input
-                          value={deleteConfirmName}
-                          onChange={(e) => setDeleteConfirmName(e.target.value)}
-                          placeholder={t("products.deleteConfirmPlaceholder")}
-                        />
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-destructive/10 text-destructive hover:bg-destructive/20"
+                    }
+                    title={t("products.deleteTitle")}
+                    className="md:max-w-md"
+                    footer={
+                      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end w-full">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleOpenDeleteDialogChange(false)}
+                        >
+                          {t("common.cancel")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
                           disabled={
                             deleteConfirmName.trim().toLowerCase() !== currentProduct.name.trim().toLowerCase() ||
                             deleteProductMutation.isPending
@@ -329,10 +324,27 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                           }
                         >
                           {t("common.delete")}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                        </Button>
+                      </div>
+                    }
+                  >
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        {t("products.deleteWarning")}
+                      </p>
+                      <div className="space-y-1.5 text-left">
+                        <label className="text-xs font-semibold text-muted-foreground">
+                          {t("products.deleteConfirmPrompt")}{" "}
+                          <span className="font-bold text-foreground select-all">{currentProduct.name}</span>
+                        </label>
+                        <Input
+                          value={deleteConfirmName}
+                          onChange={(e) => setDeleteConfirmName(e.target.value)}
+                          placeholder={t("products.deleteConfirmPlaceholder")}
+                        />
+                      </div>
+                    </div>
+                  </ResponsiveModal>
                 </>
               ) : null}
             </div>
