@@ -299,7 +299,8 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                       </AlertDialogHeader>
                       <div className="space-y-1.5 text-left">
                         <label className="text-xs font-semibold text-muted-foreground">
-                          {t("products.deleteConfirmPrompt", { name: currentProduct.name })}
+                          {t("products.deleteConfirmPrompt")}{" "}
+                          <span className="font-bold text-foreground select-all">{currentProduct.name}</span>
                         </label>
                         <Input
                           value={deleteConfirmName}
@@ -311,7 +312,10 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                         <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                           className="bg-destructive/10 text-destructive hover:bg-destructive/20"
-                          disabled={deleteConfirmName !== currentProduct.name || deleteProductMutation.isPending}
+                          disabled={
+                            deleteConfirmName.trim().toLowerCase() !== currentProduct.name.trim().toLowerCase() ||
+                            deleteProductMutation.isPending
+                          }
                           onClick={() =>
                             deleteProductMutation.mutate(undefined, {
                               onSuccess: () => {
