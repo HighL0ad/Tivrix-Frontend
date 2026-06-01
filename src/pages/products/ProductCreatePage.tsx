@@ -113,7 +113,7 @@ export function ProductCreatePage() {
   const [quickSourceName, setQuickSourceName] = useState("");
   const [quickSourcePhone, setQuickSourcePhone] = useState("");
   const [quickSourceType, setQuickSourceType] =
-    useState<"debt" | "shop">("debt");
+    useState<"client_debt" | "debt" | "shop">("client_debt");
 
   const options = optionsQuery.data;
   const buyPriceNumber = Number(buyPrice || 0);
@@ -161,13 +161,23 @@ export function ProductCreatePage() {
     return (options?.purchase_source_options ?? []).find((opt) => opt.id === supplierId);
   }, [options?.purchase_source_options, supplierId]);
   const isShopOrSupplierSource = selectedSource && (selectedSource.type === "shop" || selectedSource.type === "debt");
-  const isOffsetMode = isShopOrSupplierSource && shopDebtOffset;
+  const isOffsetMode = selectedSource?.type === "client_debt" || (isShopOrSupplierSource && shopDebtOffset);
 
   const purchaseSourcePlaceholder = t("products.selectPurchaseSource");
   const purchaseSourceSearchPlaceholder = t("products.purchaseSourceSearch");
   const QuickSourceContainer = isMobile ? Sheet : Dialog;
   const QuickSourceContent = isMobile ? SheetContent : DialogContent;
   const sourceTypeOptions = [
+    ...(scenario !== "supplier_debt"
+      ? [
+          {
+            value: "client_debt" as const,
+            label: t("products.sourceTypeClient"),
+            hint: t("products.sourceTypeClientHint"),
+            icon: UserRound,
+          },
+        ]
+      : []),
     {
       value: "debt" as const,
       label: t("products.sourceTypeSupplier"),
@@ -384,7 +394,7 @@ export function ProductCreatePage() {
   function openQuickSourceDialog(query: string) {
     setQuickSourceName(query);
     setQuickSourcePhone("");
-    setQuickSourceType("debt");
+    setQuickSourceType(scenario === "supplier_debt" ? "debt" : "client_debt");
     setQuickSourceOpen(true);
   }
 
@@ -394,12 +404,26 @@ export function ProductCreatePage() {
     if (!trimmedName) return;
 
     try {
-      const wallet = await createWalletMutation.mutateAsync({
-        name: trimmedName,
-        wallet_type: quickSourceType,
-      });
-      setSupplierId(String(wallet.id));
-      await optionsQuery.refetch();
+      if (quickSourceType === "client_debt") {
+        const client = await createClientMutation.mutateAsync({
+          name: trimmedName,
+          phone: quickSourcePhone.trim() || undefined,
+        });
+        const refreshed = await optionsQuery.refetch();
+        const createdOption = refreshed.data?.purchase_source_options.find(
+          (option) =>
+            option.type === "client_debt" &&
+            option.name.replace(/^[^:]+:\s*/, "").trim() === client.name,
+        );
+        if (createdOption) setSupplierId(createdOption.id);
+      } else {
+        const wallet = await createWalletMutation.mutateAsync({
+          name: trimmedName,
+          wallet_type: quickSourceType,
+        });
+        setSupplierId(String(wallet.id));
+        await optionsQuery.refetch();
+      }
 
       setQuickSourceOpen(false);
       setQuickSourceName("");
@@ -1083,7 +1107,7 @@ export function ProductCreatePage() {
               value={quickSourceType}
               onValueChange={setQuickSourceType}
               options={sourceTypeOptions}
-              columns={2}
+              columns={scenario === "supplier_debt" ? 2 : 3}
             />
           </AppFormField>
 
@@ -1100,6 +1124,22 @@ export function ProductCreatePage() {
                 />
               </div>
             </AppFormField>
+
+            {quickSourceType === "client_debt" ? (
+              <AppFormField label={t("products.phone")}>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                  <Input
+                    value={quickSourcePhone}
+                    onChange={(event) =>
+                      setQuickSourcePhone(formatPhoneInput(event.target.value))
+                    }
+                    placeholder="+994..."
+                    className="pl-9"
+                  />
+                </div>
+              </AppFormField>
+            ) : null}
           </div>
         </form>
       </ResponsiveModal>
