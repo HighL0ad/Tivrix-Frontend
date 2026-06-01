@@ -104,8 +104,8 @@ export function ProductCreatePage() {
     [],
   );
   const [photos, setPhotos] = useState<File[]>([]);
-  const [ocrEnabled, setOcrEnabled] = useState(true);
-  const [shopDebtOffset, setShopDebtOffset] = useState(true);
+  const [ocrEnabled, setOcrEnabled] = useState(false);
+  const [shopDebtOffset, setShopDebtOffset] = useState(false);
   const [imeiError, setImeiError] = useState("");
   const [checkingImei, setCheckingImei] = useState(false);
   const [isPhotoMetadataScanning, setIsPhotoMetadataScanning] = useState(false);
@@ -168,16 +168,12 @@ export function ProductCreatePage() {
   const QuickSourceContainer = isMobile ? Sheet : Dialog;
   const QuickSourceContent = isMobile ? SheetContent : DialogContent;
   const sourceTypeOptions = [
-    ...(scenario !== "supplier_debt"
-      ? [
-          {
-            value: "client_debt" as const,
-            label: t("products.sourceTypeClient"),
-            hint: t("products.sourceTypeClientHint"),
-            icon: UserRound,
-          },
-        ]
-      : []),
+    {
+      value: "client_debt" as const,
+      label: t("products.sourceTypeClient"),
+      hint: t("products.sourceTypeClientHint"),
+      icon: UserRound,
+    },
     {
       value: "debt" as const,
       label: t("products.sourceTypeSupplier"),
@@ -1107,7 +1103,7 @@ export function ProductCreatePage() {
               value={quickSourceType}
               onValueChange={setQuickSourceType}
               options={sourceTypeOptions}
-              columns={scenario === "supplier_debt" ? 2 : 3}
+              columns={3}
             />
           </AppFormField>
 
