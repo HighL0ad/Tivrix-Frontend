@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
-const CURRENT_VERSION = "0.1.2-alpha.1";
+const CURRENT_VERSION = "0.1.2-alpha.2";
 const STORAGE_KEY = "ferdi.lastReadVersion";
 
 type ChangelogItem = {
@@ -23,6 +23,21 @@ type ChangelogItem = {
 };
 
 const changelogItems: ChangelogItem[] = [
+  {
+    type: "new",
+    titleKey: "changelog.items.safeDelete.title",
+    descKey: "changelog.items.safeDelete.desc",
+  },
+  {
+    type: "new",
+    titleKey: "changelog.items.imeiGroup3.title",
+    descKey: "changelog.items.imeiGroup3.desc",
+  },
+  {
+    type: "new",
+    titleKey: "changelog.items.purchaseSuppliers.title",
+    descKey: "changelog.items.purchaseSuppliers.desc",
+  },
   {
     type: "new",
     titleKey: "changelog.items.imeiScanner.title",
