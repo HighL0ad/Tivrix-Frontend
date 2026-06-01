@@ -38,26 +38,6 @@ const changelogItems: ChangelogItem[] = [
     titleKey: "changelog.items.purchaseSuppliers.title",
     descKey: "changelog.items.purchaseSuppliers.desc",
   },
-  {
-    type: "new",
-    titleKey: "changelog.items.imeiScanner.title",
-    descKey: "changelog.items.imeiScanner.desc",
-  },
-  {
-    type: "new",
-    titleKey: "changelog.items.debtOffsets.title",
-    descKey: "changelog.items.debtOffsets.desc",
-  },
-  {
-    type: "update",
-    titleKey: "changelog.items.quickCounterparties.title",
-    descKey: "changelog.items.quickCounterparties.desc",
-  },
-  {
-    type: "update",
-    titleKey: "changelog.items.mobileForms.title",
-    descKey: "changelog.items.mobileForms.desc",
-  },
 ];
 
 export function ChangelogDialog() {
