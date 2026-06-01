@@ -2,7 +2,7 @@ import { Copy, ChevronDown, CalendarDays, AlertCircle, CalendarClock, HandCoins,
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import type { ReactNode } from "react";
 
 import {
@@ -42,6 +42,7 @@ const debtsTabValues = ["debts", "installments"] as const;
 
 export function DebtsPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [{ action, tab }, setDebtsParams] = useQueryStates({
     action: parseAsStringLiteral(debtsActionValues),
     tab: parseAsStringLiteral(debtsTabValues).withDefault("debts"),
@@ -89,6 +90,7 @@ export function DebtsPage() {
   const maxMonthlyForecast = fData
     ? Math.max(...fData.attention.monthly_forecast.map((item) => Number(item.amount)), 1)
     : 1;
+  const returnTo = `${location.pathname}${location.search}`;
 
   return (
     <section className="space-y-5">
@@ -376,6 +378,7 @@ export function DebtsPage() {
                                 <div className="min-w-0">
                                   <NavLink
                                     to={`/clients/${item.client_id}`}
+                                    state={{ from: returnTo }}
                                     className="inline-block font-bold text-slate-900 hover:text-sky-600 transition-all duration-200 hover:translate-x-0.5 truncate max-w-full"
                                   >
                                     {item.client_name}
@@ -427,7 +430,9 @@ export function DebtsPage() {
                           return (
                             <div key={item.month} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
                               <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                                <span className="uppercase tracking-wider">{formatForecastMonth(item.month)}</span>
+                                <span className="uppercase tracking-wider">
+                                  {formatForecastMonth(item.month, t)}
+                                </span>
                                 <span className="font-mono text-slate-400 text-[11px]">
                                   {t("finance.paymentsCount", { count: String(item.count) })}
                                 </span>
@@ -436,7 +441,9 @@ export function DebtsPage() {
                                 <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width }} />
                               </div>
                               <div className="flex items-center justify-between mt-0.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">План сборов</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                  {t("finance.collectionPlan")}
+                                </span>
                                 <span className="text-sm font-black text-slate-900 font-sans">{money(item.amount)}</span>
                               </div>
                             </div>
@@ -863,10 +870,14 @@ function renderDuePill(daysUntilDue: number, t: any) {
   );
 }
 
-function formatForecastMonth(value: string) {
+function formatForecastMonth(value: string, t: (key: string) => string) {
   const [year, month] = value.split("-");
   if (!year || !month) return value;
-  return `${month}.${year.slice(-2)}`;
+  const monthNumber = Number(month);
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return value;
+  }
+  return `${t(`finance.month.${monthNumber}`)} ${year}`;
 }
 
 function InstallmentsSkeleton() {
