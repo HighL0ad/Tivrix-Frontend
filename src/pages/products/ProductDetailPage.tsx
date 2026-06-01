@@ -48,6 +48,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { BackActionButton } from "@/shared/ui/back-button";
 import { Card, CardContent } from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -94,6 +95,15 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
   const isLegacyInstallment = isLegacyInstallmentProduct(currentProduct);
   const undoSaleMutation = useUndoProductSale(currentProduct.id);
   const deleteProductMutation = useDeleteProduct(currentProduct.id);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+
+  const handleOpenDeleteDialogChange = (open: boolean) => {
+    setIsDeleteDialogOpen(open);
+    if (!open) {
+      setDeleteConfirmName("");
+    }
+  };
   const registrationLabel = useMemo(
     () =>
       currentProduct.registration_statuses.length
@@ -273,7 +283,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                       {t("common.edit")}
                     </NavLink>
                   </Button>
-                  <AlertDialog>
+                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleOpenDeleteDialogChange}>
                     <AlertDialogTrigger asChild>
                       <Button type="button" variant="ghost" className="text-destructive">
                         <Trash2 aria-hidden="true" />
@@ -287,10 +297,21 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                           {t("products.deleteWarning")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
+                      <div className="space-y-1.5 text-left">
+                        <label className="text-xs font-semibold text-muted-foreground">
+                          {t("products.deleteConfirmPrompt", { name: currentProduct.name })}
+                        </label>
+                        <Input
+                          value={deleteConfirmName}
+                          onChange={(e) => setDeleteConfirmName(e.target.value)}
+                          placeholder={t("products.deleteConfirmPlaceholder")}
+                        />
+                      </div>
                       <AlertDialogFooter>
                         <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                           className="bg-destructive/10 text-destructive hover:bg-destructive/20"
+                          disabled={deleteConfirmName !== currentProduct.name || deleteProductMutation.isPending}
                           onClick={() =>
                             deleteProductMutation.mutate(undefined, {
                               onSuccess: () => {
