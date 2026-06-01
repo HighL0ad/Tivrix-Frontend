@@ -1,5 +1,5 @@
 import { type ComponentProps, type ReactNode, useId, useState } from "react";
-import { Building2, Check, Store, UserRound, X } from "lucide-react";
+import { Building2, ChevronLeft, Phone, Store, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -8,24 +8,21 @@ import {
   useCreateDebtWallet,
   useLendMoney,
 } from "@/entities/debts/api/use-debts";
+import { useCreateClient } from "@/entities/clients/api/use-clients";
 import type { Wallet, WalletType } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
-import { ResponsiveModal } from "@/shared/ui/app-form";
-import { Button } from "@/shared/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+  AppCheckboxPanel,
+  AppChoiceCards,
+  AppModalActions,
+  ResponsiveModal,
+} from "@/shared/ui/app-form";
+import { Button } from "@/shared/ui/button";
 import { FormError, FormField } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 import { WalletSelect } from "@/features/debts/WalletSelect";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { Sheet, SheetContent } from "@/shared/ui/sheet";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
-import { cn } from "@/shared/lib/utils";
+import { formatPhoneInput } from "@/shared/lib/input-formatters";
 
 type CounterpartyType = Extract<WalletType, "client_debt" | "debt" | "shop">;
 
@@ -51,6 +48,7 @@ export function MoneyFlowDialog({
   const lend = useLendMoney();
   const borrow = useBorrowMoney();
   const createWallet = useCreateDebtWallet();
+  const createClient = useCreateClient();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -60,8 +58,9 @@ export function MoneyFlowDialog({
   const [description, setDescription] = useState("");
   const [shopDebtOffset, setShopDebtOffset] = useState(true);
   const [createdCounterparty, setCreatedCounterparty] = useState<Wallet | null>(null);
-  const [quickCounterpartyOpen, setQuickCounterpartyOpen] = useState(false);
+  const [showQuickForm, setShowQuickForm] = useState(false);
   const [quickCounterpartyName, setQuickCounterpartyName] = useState("");
+  const [quickCounterpartyPhone, setQuickCounterpartyPhone] = useState("");
   const [quickCounterpartyType, setQuickCounterpartyType] = useState<CounterpartyType>(
     mode === "lend" ? "client_debt" : "debt",
   );
@@ -76,8 +75,7 @@ export function MoneyFlowDialog({
     mode === "lend" && createdCounterparty
       ? mergeWallets(targetWallets, createdCounterparty)
       : targetWallets;
-  const QuickCounterpartyContainer = isMobile ? Sheet : Dialog;
-  const QuickCounterpartyContent = isMobile ? SheetContent : DialogContent;
+
   const counterpartyTypeOptions: Array<{
     value: CounterpartyType;
     label: string;
@@ -123,40 +121,54 @@ export function MoneyFlowDialog({
       setDescription("");
       setShopDebtOffset(true);
       setCreatedCounterparty(null);
-      setQuickCounterpartyOpen(false);
       setQuickCounterpartyName("");
+      setQuickCounterpartyPhone("");
       setQuickCounterpartyType(mode === "lend" ? "client_debt" : "debt");
+      setShowQuickForm(false);
     }
   }
 
   function openQuickCounterpartyDialog(name: string) {
     setQuickCounterpartyName(name);
+    setQuickCounterpartyPhone("");
     setQuickCounterpartyType(mode === "lend" ? "client_debt" : "debt");
-    setQuickCounterpartyOpen(true);
+    setShowQuickForm(true);
   }
 
-  const handleQuickCounterpartySubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (event) => {
+  const handleQuickCounterpartySubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = async (event) => {
     event.preventDefault();
     const name = quickCounterpartyName.trim();
     if (!name) return;
 
-    createWallet.mutate(
-      { name, wallet_type: quickCounterpartyType },
-      {
-        onSuccess: (wallet) => {
-          setCreatedCounterparty(wallet);
-          if (mode === "lend") {
-            setTargetId(String(wallet.id));
-          } else {
-            setSourceId(String(wallet.id));
-          }
-          setQuickCounterpartyOpen(false);
-          setQuickCounterpartyName("");
-          toast.success(t("debts.counterpartyAdded"));
+    try {
+      if (quickCounterpartyType === "client_debt") {
+        await createClient.mutateAsync({
+          name,
+          phone: quickCounterpartyPhone.trim() || undefined,
+        });
+      }
+
+      createWallet.mutate(
+        { name, wallet_type: quickCounterpartyType },
+        {
+          onSuccess: (wallet) => {
+            setCreatedCounterparty(wallet);
+            if (mode === "lend") {
+              setTargetId(String(wallet.id));
+            } else {
+              setSourceId(String(wallet.id));
+            }
+            setShowQuickForm(false);
+            setQuickCounterpartyName("");
+            setQuickCounterpartyPhone("");
+            toast.success(t("debts.counterpartyAdded"));
+          },
+          onError: (error) => toast.error(getApiErrorMessage(error)),
         },
-        onError: (error) => toast.error(getApiErrorMessage(error)),
-      },
-    );
+      );
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
   };
 
   return (
@@ -164,22 +176,108 @@ export function MoneyFlowDialog({
       <ResponsiveModal
         open={open}
         onOpenChange={handleOpenChange}
-        title={title}
+        title={
+          showQuickForm ? (
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowQuickForm(false)}
+                className="-ml-2 size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft className="size-5" />
+              </Button>
+              <span>{t("debts.quickCounterpartyTitle")}</span>
+            </div>
+          ) : (
+            title
+          )
+        }
+        description={showQuickForm ? t("debts.quickCounterpartyDescription") : undefined}
         trigger={
           <Button type="button" variant="outline">
             {trigger}
           </Button>
         }
         footer={
-          <Button
-            type="submit"
-            form={formId}
-            disabled={!sourceId || !targetId || !amount || pending}
-          >
-            {t("common.save")}
-          </Button>
+          showQuickForm ? (
+            <AppModalActions
+              submitForm="quick-counterparty-form"
+              submitLabel={t("common.save")}
+              pendingLabel={t("common.saving")}
+              pending={createWallet.isPending || createClient.isPending}
+              disabled={!quickCounterpartyName.trim()}
+              onCancel={() => setShowQuickForm(false)}
+              cancelLabel={t("common.cancel")}
+            />
+          ) : (
+            <Button
+              type="submit"
+              form={formId}
+              disabled={!sourceId || !targetId || !amount || pending}
+            >
+              {t("common.save")}
+            </Button>
+          )
         }
       >
+        {showQuickForm ? (
+          <form
+            id="quick-counterparty-form"
+            className="space-y-5"
+            onSubmit={handleQuickCounterpartySubmit}
+          >
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t("products.sourceType")}
+              </label>
+              <AppChoiceCards
+                value={quickCounterpartyType}
+                onValueChange={setQuickCounterpartyType}
+                options={counterpartyTypeOptions}
+                columns={mode === "lend" ? 3 : 2}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {t("common.name")} <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <UserRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                  <Input
+                    value={quickCounterpartyName}
+                    onChange={(event) => setQuickCounterpartyName(event.target.value)}
+                    required
+                    autoFocus={!isMobile}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {quickCounterpartyType === "client_debt" ? (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t("products.phone")}
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                    <Input
+                      value={quickCounterpartyPhone}
+                      onChange={(event) =>
+                        setQuickCounterpartyPhone(formatPhoneInput(event.target.value))
+                      }
+                      placeholder="+994..."
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </form>
+        ) : (
           <form
             id={formId}
             className="space-y-3"
@@ -224,25 +322,12 @@ export function MoneyFlowDialog({
             />
 
             {mode === "borrow" && isShopOrSupplierSource && (
-              <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
-                <label className="flex cursor-pointer items-start gap-3 select-none">
-                  <Checkbox
-                    checked={shopDebtOffset}
-                    onCheckedChange={(checked) =>
-                      setShopDebtOffset(Boolean(checked))
-                    }
-                    className="mt-1 size-5"
-                  />
-                  <span>
-                    <span className="block text-[13px] font-bold leading-5 text-foreground">
-                      {t("debts.borrowOffset")}
-                    </span>
-                    <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
-                      {t("debts.borrowOffsetDescription")}
-                    </span>
-                  </span>
-                </label>
-              </div>
+              <AppCheckboxPanel
+                checked={shopDebtOffset}
+                onCheckedChange={setShopDebtOffset}
+                title={t("debts.borrowOffset")}
+                description={t("debts.borrowOffsetDescription")}
+              />
             )}
             <WalletSelect
               label={mode === "lend" ? t("debts.lendTo") : t("debts.target")}
@@ -253,25 +338,12 @@ export function MoneyFlowDialog({
             />
 
             {mode === "lend" && isShopOrSupplierTarget && (
-              <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
-                <label className="flex cursor-pointer items-start gap-3 select-none">
-                  <Checkbox
-                    checked={shopDebtOffset}
-                    onCheckedChange={(checked) =>
-                      setShopDebtOffset(Boolean(checked))
-                    }
-                    className="mt-1 size-5"
-                  />
-                  <span>
-                    <span className="block text-[13px] font-bold leading-5 text-foreground">
-                      {t("debts.offsetOurDebt")}
-                    </span>
-                    <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
-                      {t("debts.offsetOurDebtDescription")}
-                    </span>
-                  </span>
-                </label>
-              </div>
+              <AppCheckboxPanel
+                checked={shopDebtOffset}
+                onCheckedChange={setShopDebtOffset}
+                title={t("debts.offsetOurDebt")}
+                description={t("debts.offsetOurDebtDescription")}
+              />
             )}
 
             <FormField label={t("debts.amount")}>
@@ -302,133 +374,11 @@ export function MoneyFlowDialog({
               />
             ) : null}
           </form>
+        )}
       </ResponsiveModal>
-
-      <QuickCounterpartyContainer
-        open={quickCounterpartyOpen}
-        onOpenChange={setQuickCounterpartyOpen}
-      >
-        <QuickCounterpartyContent
-          className={
-            isMobile
-              ? "rounded-t-2xl border-border bg-card p-0"
-              : "sm:max-w-[540px] overflow-hidden p-0"
-          }
-        >
-          <div className="border-b bg-muted/30 px-5 py-4">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold">
-                {t("debts.quickCounterpartyTitle")}
-              </DialogTitle>
-              <p className="text-[13px] leading-5 text-muted-foreground">
-                {t("debts.quickCounterpartyDescription")}
-              </p>
-            </DialogHeader>
-          </div>
-
-          <form className="space-y-5 px-5 py-4" onSubmit={handleQuickCounterpartySubmit}>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t("products.sourceType")}
-              </label>
-              <RadioGroup
-                value={quickCounterpartyType}
-                onValueChange={(value) =>
-                  setQuickCounterpartyType(value as CounterpartyType)
-                }
-                className={cn(
-                  "grid gap-3",
-                  mode === "lend" ? "sm:grid-cols-3" : "sm:grid-cols-2",
-                )}
-              >
-                {counterpartyTypeOptions.map((option) => {
-                  const selected = quickCounterpartyType === option.value;
-                  const Icon = option.icon;
-                  return (
-                    <label
-                      key={option.value}
-                      className={cn(
-                        "relative flex flex-col items-center justify-between text-center cursor-pointer gap-2 rounded-xl border p-4 transition-all duration-200 select-none shadow-sm hover:shadow",
-                        selected
-                          ? "border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20 scale-[1.02]"
-                          : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",
-                      )}
-                    >
-                      <RadioGroupItem value={option.value} className="sr-only" />
-                      {selected && (
-                        <div className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-primary-foreground">
-                          <Check className="size-3 stroke-[3px]" />
-                        </div>
-                      )}
-                      <div
-                        className={cn(
-                          "rounded-full p-2.5 transition-colors duration-200",
-                          selected
-                            ? "bg-primary/10 text-primary"
-                            : "bg-muted text-muted-foreground",
-                        )}
-                      >
-                        <Icon className="size-5 shrink-0" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="block text-sm font-semibold tracking-tight">
-                          {option.label}
-                        </span>
-                        <span className="mt-1 block text-[10px] leading-3 text-muted-foreground/80 font-medium">
-                          {option.hint}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                })}
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t("common.name")} <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <UserRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
-                <Input
-                  value={quickCounterpartyName}
-                  onChange={(event) => setQuickCounterpartyName(event.target.value)}
-                  required
-                  autoFocus={!isMobile}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setQuickCounterpartyOpen(false)}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button type="submit" disabled={createWallet.isPending}>
-                {createWallet.isPending ? t("common.saving") : t("common.save")}
-              </Button>
-            </div>
-          </form>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setQuickCounterpartyOpen(false)}
-            className="absolute right-3 top-3 size-8 rounded-md text-primary hover:bg-primary/10 hover:text-primary"
-            aria-label={t("common.cancel")}
-          >
-            <X className="size-4" />
-          </Button>
-        </QuickCounterpartyContent>
-      </QuickCounterpartyContainer>
     </>
   );
 }
-
 
 function mergeWallets(wallets: Wallet[], wallet: Wallet) {
   return wallets.some((current) => current.id === wallet.id)

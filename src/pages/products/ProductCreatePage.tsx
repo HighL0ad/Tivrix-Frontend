@@ -14,7 +14,14 @@ import { useCreateWallet } from "@/entities/catalogs/api/use-catalogs";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { ApiError } from "@/shared/api/http";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
-import { AppFileUpload } from "@/shared/ui/app-form";
+import {
+  AppCheckboxPanel,
+  AppChoiceCards,
+  AppFileUpload,
+  AppModalActions,
+  AppFormField,
+  ResponsiveModal,
+} from "@/shared/ui/app-form";
 import { BackActionButton } from "@/shared/ui/back-button";
 import { Button } from "@/shared/ui/button";
 import {
@@ -673,25 +680,12 @@ export function ProductCreatePage() {
               </Field>
 
               {scenario === "supplier_debt" && isShopOrSupplierSource && (
-                <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
-                  <label className="flex cursor-pointer items-start gap-3 select-none">
-                    <Checkbox
-                      checked={shopDebtOffset}
-                      onCheckedChange={(checked) =>
-                        setShopDebtOffset(Boolean(checked))
-                      }
-                      className="mt-1 size-5"
-                    />
-                    <span>
-                      <span className="block text-[13px] font-bold leading-5 text-foreground">
-                        {t("debts.borrowOffset")}
-                      </span>
-                      <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
-                        {t("debts.borrowOffsetDescription")}
-                      </span>
-                    </span>
-                  </label>
-                </div>
+                <AppCheckboxPanel
+                  checked={shopDebtOffset}
+                  onCheckedChange={setShopDebtOffset}
+                  title={t("debts.borrowOffset")}
+                  description={t("debts.borrowOffsetDescription")}
+                />
               )}
 
               {scenario === "supplier_debt" ? (
@@ -1070,138 +1064,67 @@ export function ProductCreatePage() {
         </aside>
       </form>
 
-      <QuickSourceContainer
+      <ResponsiveModal
         open={quickSourceOpen}
         onOpenChange={setQuickSourceOpen}
+        title={t("products.createPurchaseSource")}
+        description={t("products.createPurchaseSourceDescription")}
+        footer={
+          <AppModalActions
+            submitForm="quick-source-form"
+            submitLabel={t("common.save")}
+            pendingLabel={t("common.saving")}
+            pending={
+              createWalletMutation.isPending || createClientMutation.isPending
+            }
+            disabled={!quickSourceName.trim()}
+            onCancel={() => setQuickSourceOpen(false)}
+            cancelLabel={t("common.cancel")}
+          />
+        }
       >
-        <QuickSourceContent
-          className={
-            isMobile
-              ? "rounded-t-2xl border-border bg-card p-0"
-              : "sm:max-w-[540px] overflow-hidden p-0"
-          }
-        >
-          <div className="border-b bg-muted/30 px-5 py-4">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold">
-                {t("products.createPurchaseSource")}
-              </DialogTitle>
-              <p className="text-[13px] leading-5 text-muted-foreground">
-                {t("products.createPurchaseSourceDescription")}
-              </p>
-            </DialogHeader>
-          </div>
+        <form id="quick-source-form" className="space-y-5" onSubmit={handleQuickSourceSubmit}>
+          <AppFormField label={t("products.sourceType")}>
+            <AppChoiceCards
+              value={quickSourceType}
+              onValueChange={setQuickSourceType}
+              options={sourceTypeOptions}
+              columns={3}
+            />
+          </AppFormField>
 
-          <form className="space-y-5 px-5 py-4" onSubmit={handleQuickSourceSubmit}>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t("products.sourceType")}
-              </label>
-              <RadioGroup
-                value={quickSourceType}
-                onValueChange={(value) =>
-                  setQuickSourceType(value as "client_debt" | "debt" | "shop")
-                }
-                className="grid gap-3 sm:grid-cols-3"
-              >
-                {sourceTypeOptions.map((option) => {
-                  const selected = quickSourceType === option.value;
-                  const Icon = option.icon;
-                  return (
-                    <label
-                      key={option.value}
-                      className={cn(
-                        "relative flex flex-col items-center justify-between text-center cursor-pointer gap-2 rounded-xl border p-4 transition-all duration-200 select-none shadow-sm hover:shadow",
-                        selected
-                          ? "border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20 scale-[1.02]"
-                          : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",
-                      )}
-                    >
-                      <RadioGroupItem value={option.value} className="sr-only" />
-                      {selected && (
-                        <div className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-primary-foreground">
-                          <Check className="size-3 stroke-[3px]" />
-                        </div>
-                      )}
-                      <div className={cn(
-                        "rounded-full p-2.5 transition-colors duration-200",
-                        selected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                      )}>
-                        <Icon className="size-5 shrink-0" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="block text-sm font-semibold tracking-tight">
-                          {option.label}
-                        </span>
-                        <span className="mt-1 block text-[10px] leading-3 text-muted-foreground/80 font-medium">
-                          {option.hint}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                })}
-              </RadioGroup>
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <AppFormField label={t("common.name")}>
+              <div className="relative">
+                <UserRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                <Input
+                  value={quickSourceName}
+                  onChange={(event) => setQuickSourceName(event.target.value)}
+                  required
+                  autoFocus={!isMobile}
+                  className="pl-9"
+                />
+              </div>
+            </AppFormField>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {t("common.name")} <span className="text-rose-500">*</span>
-                </label>
+            {quickSourceType === "client_debt" ? (
+              <AppFormField label={t("products.phone")}>
                 <div className="relative">
-                  <UserRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
+                  <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
                   <Input
-                    value={quickSourceName}
-                    onChange={(event) => setQuickSourceName(event.target.value)}
-                    required
-                    autoFocus={!isMobile}
+                    value={quickSourcePhone}
+                    onChange={(event) =>
+                      setQuickSourcePhone(formatPhoneInput(event.target.value))
+                    }
+                    placeholder="+994..."
                     className="pl-9"
                   />
                 </div>
-              </div>
-
-              {quickSourceType === "client_debt" ? (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    {t("products.phone")}
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
-                    <Input
-                      value={quickSourcePhone}
-                      onChange={(event) =>
-                        setQuickSourcePhone(formatPhoneInput(event.target.value))
-                      }
-                      placeholder="+994..."
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setQuickSourceOpen(false)}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  createWalletMutation.isPending || createClientMutation.isPending
-                }
-              >
-                {createWalletMutation.isPending || createClientMutation.isPending
-                  ? t("common.saving")
-                  : t("common.save")}
-              </Button>
-            </div>
-          </form>
-        </QuickSourceContent>
-      </QuickSourceContainer>
+              </AppFormField>
+            ) : null}
+          </div>
+        </form>
+      </ResponsiveModal>
     </section>
   );
 }

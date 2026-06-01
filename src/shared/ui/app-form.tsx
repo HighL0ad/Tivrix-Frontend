@@ -24,6 +24,7 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { Label } from "@/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { Separator } from "@/shared/ui/separator";
 import {
   Select,
@@ -39,6 +40,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/ui/sheet";
+import { Checkbox } from "@/shared/ui/checkbox";
 
 export type AppOption = {
   id: string;
@@ -450,7 +452,7 @@ export function ResponsiveModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  trigger: ReactNode;
+  trigger?: ReactNode;
   title: ReactNode;
   description?: string;
   children: ReactNode;
@@ -467,7 +469,7 @@ export function ResponsiveModal({
 
   return (
     <Root open={open} onOpenChange={onOpenChange}>
-      <Trigger asChild>{trigger}</Trigger>
+      {trigger ? <Trigger asChild>{trigger}</Trigger> : null}
       <Content
         className={cn(
           "grid max-h-[90dvh] grid-rows-[auto_1fr_auto] gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 text-card-foreground shadow-2xl md:max-w-xl",
@@ -526,6 +528,144 @@ export function AppRadioCards<TValue extends string>({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export function AppChoiceCards<TValue extends string>({
+  value,
+  onValueChange,
+  options,
+  columns = 3,
+}: {
+  value: TValue;
+  onValueChange: (value: TValue) => void;
+  options: Array<{
+    value: TValue;
+    label: string;
+    hint: string;
+    icon: (props: { className?: string }) => ReactNode;
+  }>;
+  columns?: 2 | 3;
+}) {
+  return (
+    <RadioGroup
+      value={value}
+      onValueChange={(nextValue) => onValueChange(nextValue as TValue)}
+      className={cn(
+        "grid grid-cols-1 gap-3",
+        columns === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3",
+      )}
+    >
+      {options.map((option) => {
+        const selected = option.value === value;
+        const Icon = option.icon;
+        return (
+          <label
+            key={option.value}
+            className={cn(
+              "relative flex cursor-pointer select-none flex-col items-center justify-between gap-2 rounded-xl border p-4 text-center shadow-sm transition-all duration-200 hover:shadow",
+              selected
+                ? "scale-[1.02] border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20"
+                : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",
+            )}
+          >
+            <RadioGroupItem value={option.value} className="sr-only" />
+            {selected ? (
+              <div className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-primary-foreground">
+                <Check className="size-3 stroke-[3px]" />
+              </div>
+            ) : null}
+            <div
+              className={cn(
+                "rounded-full p-2.5 transition-colors duration-200",
+                selected
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              <Icon className="size-5 shrink-0" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-sm font-semibold tracking-tight">
+                {option.label}
+              </span>
+              <span className="mt-1 block text-[10px] font-medium leading-3 text-muted-foreground/80">
+                {option.hint}
+              </span>
+            </div>
+          </label>
+        );
+      })}
+    </RadioGroup>
+  );
+}
+
+export function AppCheckboxPanel({
+  checked,
+  onCheckedChange,
+  title,
+  description,
+  children,
+}: {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  title: string;
+  description: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+      <label className="flex cursor-pointer select-none items-start gap-3">
+        <Checkbox
+          checked={checked}
+          onCheckedChange={(nextChecked) => onCheckedChange(Boolean(nextChecked))}
+          className="mt-1 size-5"
+        />
+        <span>
+          <span className="block text-[13px] font-bold leading-5 text-foreground">
+            {title}
+          </span>
+          <span className="mt-1 block text-xs font-medium leading-4 text-muted-foreground">
+            {description}
+          </span>
+        </span>
+      </label>
+      {children}
+    </div>
+  );
+}
+
+export function AppModalActions({
+  submitForm,
+  submitLabel,
+  pendingLabel,
+  pending,
+  disabled,
+  onCancel,
+  cancelLabel,
+}: {
+  submitForm?: string;
+  submitLabel: string;
+  pendingLabel?: string;
+  pending?: boolean;
+  disabled?: boolean;
+  onCancel: () => void;
+  cancelLabel: string;
+}) {
+  return (
+    <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(112px,auto)] gap-2">
+      <Button type="button" variant="outline" onClick={onCancel} className="min-w-0">
+        {cancelLabel}
+      </Button>
+      <Button
+        type="submit"
+        form={submitForm}
+        disabled={disabled || pending}
+        className="min-w-0 px-3"
+      >
+        {pending ? pendingLabel ?? submitLabel : submitLabel}
+      </Button>
     </div>
   );
 }

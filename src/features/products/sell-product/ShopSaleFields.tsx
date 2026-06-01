@@ -1,5 +1,5 @@
 import { Checkbox } from "@/shared/ui/checkbox";
-import { AppFormField } from "@/shared/ui/app-form";
+import { AppCheckboxPanel, AppFormField } from "@/shared/ui/app-form";
 import { DatePicker } from "@/shared/ui/date-picker";
 import { Input } from "@/shared/ui/input";
 import { useTranslation } from "react-i18next";
@@ -133,25 +133,12 @@ export function ShopPaymentFields({
       ) : null}
 
       {shopDebt > 0 ? (
-        <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
-          <label className="flex cursor-pointer items-start gap-3 select-none">
-            <Checkbox
-              checked={shopDebtOffset}
-              onCheckedChange={(checked) =>
-                setShopDebtOffset(Boolean(checked))
-              }
-              className="mt-1 size-5"
-            />
-            <span>
-              <span className="block text-[13px] font-bold leading-5 text-foreground">
-                {t("sell.offsetOurDebt")}
-              </span>
-              <span className="mt-1 block text-xs leading-4 text-gray-500 font-medium">
-                {t("sell.offsetOurDebtDescription")}
-              </span>
-            </span>
-          </label>
-
+        <AppCheckboxPanel
+          checked={shopDebtOffset}
+          onCheckedChange={setShopDebtOffset}
+          title={t("sell.offsetOurDebt")}
+          description={t("sell.offsetOurDebtDescription")}
+        >
           <AppFormField
             label={t("sell.shopDebtDueDate")}
             helper={t("sell.shopDebtDueDateHelper")}
@@ -163,7 +150,7 @@ export function ShopPaymentFields({
               className="h-11 w-full"
             />
           </AppFormField>
-        </div>
+        </AppCheckboxPanel>
       ) : null}
     </div>
   );

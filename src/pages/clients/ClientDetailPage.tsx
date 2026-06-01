@@ -22,7 +22,7 @@ import { useCatalogs } from "@/entities/catalogs/api/use-catalogs";
 import { useRepayDebt } from "@/entities/debts/api/use-debts";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { money, shortDate } from "@/shared/lib/format";
-import { AppSelect } from "@/shared/ui/app-form";
+import { AppSelect, AppFormField, AppModalActions, ResponsiveModal } from "@/shared/ui/app-form";
 import { BackButton } from "@/shared/ui/back-button";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -642,8 +642,12 @@ function LegacyInstallmentDialog({ clientId }: { clientId: number }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      title={t("clients.importInstallment")}
+      description={t("clients.importInstallmentDescription")}
+      trigger={
         <Button
           variant="outline"
           className="w-full justify-center whitespace-normal text-center leading-tight sm:w-auto sm:whitespace-nowrap"
@@ -651,98 +655,88 @@ function LegacyInstallmentDialog({ clientId }: { clientId: number }) {
           <CalendarPlus className="size-4" />
           {t("clients.importInstallment")}
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[520px]">
-        <DialogHeader>
-          <DialogTitle>{t("clients.importInstallment")}</DialogTitle>
-          <DialogDescription>
-            {t("clients.importInstallmentDescription")}
-          </DialogDescription>
-        </DialogHeader>
-        <form
-          className="space-y-4 pt-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!nextDueDate) {
-              toast.error(t("clients.nextPaymentDate"));
-              return;
-            }
-            importInstallment.mutate(
-              {
-                product_name: productName.trim(),
-                cash_price: cashPrice,
-                credit_price: creditPrice,
-                already_paid: alreadyPaid || "0",
-                remaining_months: Number(remainingMonths),
-                next_due_date: nextDueDate,
+      }
+      footer={
+        <AppModalActions
+          submitForm="import-installment-form"
+          submitLabel={t("common.save")}
+          pendingLabel={t("common.saving")}
+          pending={importInstallment.isPending}
+          onCancel={() => setOpen(false)}
+          cancelLabel={t("common.cancel")}
+        />
+      }
+    >
+      <form
+        id="import-installment-form"
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!nextDueDate) {
+            toast.error(t("clients.nextPaymentDate"));
+            return;
+          }
+          importInstallment.mutate(
+            {
+              product_name: productName.trim(),
+              cash_price: cashPrice,
+              credit_price: creditPrice,
+              already_paid: alreadyPaid || "0",
+              remaining_months: Number(remainingMonths),
+              next_due_date: nextDueDate,
+            },
+            {
+              onSuccess: () => {
+                toast.success(t("clients.installmentImported"));
+                reset();
+                setOpen(false);
               },
-              {
-                onSuccess: () => {
-                  toast.success(t("clients.installmentImported"));
-                  reset();
-                  setOpen(false);
-                },
-                onError: (error) => toast.error(getApiErrorMessage(error)),
-              },
-            );
-          }}
-        >
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {t("sell.product")}
-            </label>
-            <Input
-              value={productName}
-              onChange={(event) => setProductName(event.target.value)}
-              placeholder="iPhone 15 Pro 256GB"
-              required
-            />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <NumberField
-              label={t("sell.baseSalePrice")}
-              value={cashPrice}
-              onChange={setCashPrice}
-            />
-            <NumberField
-              label={t("sell.installmentTotalPrice")}
-              value={creditPrice}
-              onChange={setCreditPrice}
-            />
-            <NumberField
-              label={t("clients.alreadyPaid")}
-              value={alreadyPaid}
-              onChange={setAlreadyPaid}
-            />
-            <NumberField
-              label={t("clients.remainingMonths")}
-              value={remainingMonths}
-              onChange={setRemainingMonths}
-              step="1"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {t("clients.nextPaymentDate")}
-            </label>
-            <DatePicker
-              value={nextDueDate}
-              onChange={setNextDueDate}
-              placeholder={t("clients.nextPaymentDate")}
-              className="w-full"
-            />
-          </div>
-          <DialogFooter className="pt-1">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={importInstallment.isPending}>
-              {importInstallment.isPending ? t("common.saving") : t("common.save")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              onError: (error) => toast.error(getApiErrorMessage(error)),
+            },
+          );
+        }}
+      >
+        <AppFormField label={t("sell.product")}>
+          <Input
+            value={productName}
+            onChange={(event) => setProductName(event.target.value)}
+            placeholder="iPhone 15 Pro 256GB"
+            required
+          />
+        </AppFormField>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <NumberField
+            label={t("sell.baseSalePrice")}
+            value={cashPrice}
+            onChange={setCashPrice}
+          />
+          <NumberField
+            label={t("sell.installmentTotalPrice")}
+            value={creditPrice}
+            onChange={setCreditPrice}
+          />
+          <NumberField
+            label={t("clients.alreadyPaid")}
+            value={alreadyPaid}
+            onChange={setAlreadyPaid}
+          />
+          <NumberField
+            label={t("clients.remainingMonths")}
+            value={remainingMonths}
+            onChange={setRemainingMonths}
+            step="1"
+          />
+        </div>
+        <AppFormField label={t("clients.nextPaymentDate")}>
+          <DatePicker
+            value={nextDueDate}
+            onChange={setNextDueDate}
+            placeholder={t("clients.nextPaymentDate")}
+            className="w-full"
+          />
+        </AppFormField>
+      </form>
+    </ResponsiveModal>
   );
 }
 
@@ -866,75 +860,57 @@ function RepayDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle>{t("debts.pay")}</DialogTitle>
-          {productName && (
-            <DialogDescription>
-              {t("sell.product")}: <strong>{productName}</strong>
-            </DialogDescription>
-          )}
-        </DialogHeader>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("debts.pay")}
+      description={productName ? `${t("sell.product")}: ${productName}` : undefined}
+      footer={
+        <AppModalActions
+          submitForm="client-repay-debt-form"
+          submitLabel={t("debts.pay")}
+          pendingLabel={t("common.saving")}
+          pending={repayDebt.isPending}
+          onCancel={() => onOpenChange(false)}
+          cancelLabel={t("common.cancel")}
+        />
+      }
+    >
+      <form id="client-repay-debt-form" onSubmit={handleSubmit} className="space-y-4">
+        {/* Target debt wallet */}
+        <AppFormField label={t("clients.debtWallets")}>
+          <AppSelect
+            value={targetWalletId}
+            onValueChange={setTargetWalletId}
+            options={targetWalletOptions}
+            placeholder={t("catalogs.walletSelect")}
+          />
+        </AppFormField>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          {/* Target debt wallet */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {t("clients.debtWallets")}
-            </label>
-            <AppSelect
-              value={targetWalletId}
-              onValueChange={setTargetWalletId}
-              options={targetWalletOptions}
-              placeholder={t("catalogs.walletSelect")}
-            />
-          </div>
+        {/* Cash source */}
+        <AppFormField label={t("finance.route")}>
+          <AppSelect
+            value={sourceWalletId}
+            onValueChange={setSourceWalletId}
+            options={sourceWalletOptions}
+            placeholder={t("catalogs.walletSelect")}
+          />
+        </AppFormField>
 
-          {/* Cash source */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {t("finance.route")}
-            </label>
-            <AppSelect
-              value={sourceWalletId}
-              onValueChange={setSourceWalletId}
-              options={sourceWalletOptions}
-              placeholder={t("catalogs.walletSelect")}
-            />
-          </div>
-
-          {/* Amount */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {t("finance.amount")}
-            </label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              required
-            />
-          </div>
-
-          <DialogFooter className="pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={repayDebt.isPending}>
-              {repayDebt.isPending ? t("common.saving") : t("debts.pay")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        {/* Amount */}
+        <AppFormField label={t("finance.amount")}>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            required
+          />
+        </AppFormField>
+      </form>
+    </ResponsiveModal>
   );
 }
 
@@ -1064,8 +1040,11 @@ function ClientEditDialog({
   }, [client, open]);
 
   return (
-      <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      title={t("clients.edit")}
+      trigger={
         <Button
           type="button"
           variant="outline"
@@ -1074,91 +1053,71 @@ function ClientEditDialog({
           <Edit className="size-4" />
           {t("common.edit")}
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[440px]">
-        <DialogHeader>
-          <DialogTitle>{t("clients.edit")}</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-4 pt-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            updateClient.mutate(
-              {
-                name,
-                phone: phone || undefined,
-                backup_phone: backupPhone || undefined,
-                description: description || undefined,
+      }
+      footer={
+        <AppModalActions
+          submitForm="client-edit-form"
+          submitLabel={t("common.save")}
+          pendingLabel={t("common.saving")}
+          pending={updateClient.isPending}
+          disabled={!name.trim()}
+          onCancel={() => setOpen(false)}
+          cancelLabel={t("common.cancel")}
+        />
+      }
+    >
+      <form
+        id="client-edit-form"
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          updateClient.mutate(
+            {
+              name,
+              phone: phone || undefined,
+              backup_phone: backupPhone || undefined,
+              description: description || undefined,
+            },
+            {
+              onSuccess: () => {
+                setOpen(false);
+                toast.success(t("clients.updated"));
               },
-              {
-                onSuccess: () => {
-                  setOpen(false);
-                  toast.success(t("clients.updated"));
-                },
-                onError: (error) => toast.error(getApiErrorMessage(error)),
-              },
-            );
-          }}
-        >
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t("common.name")}{" "}
-                <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {t("products.phone")}
-                </label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {t("clients.backupPhone")}
-                </label>
-                <Input
-                  value={backupPhone}
-                  onChange={(e) => setBackupPhone(formatPhoneInput(e.target.value))}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t("common.details")}
-              </label>
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Дополнительная информация"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={updateClient.isPending}>
-              {updateClient.isPending ? t("common.saving") : t("common.save")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+              onError: (error) => toast.error(getApiErrorMessage(error)),
+            },
+          );
+        }}
+      >
+        <AppFormField label={t("common.name")}>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </AppFormField>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <AppFormField label={t("products.phone")}>
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+            />
+          </AppFormField>
+          <AppFormField label={t("clients.backupPhone")}>
+            <Input
+              value={backupPhone}
+              onChange={(e) => setBackupPhone(formatPhoneInput(e.target.value))}
+            />
+          </AppFormField>
+        </div>
+        <AppFormField label={t("common.details")}>
+          <Input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Дополнительная информация"
+          />
+        </AppFormField>
+      </form>
+    </ResponsiveModal>
   );
 }
 

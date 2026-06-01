@@ -358,6 +358,8 @@ function useDebouncedValue(value: string, delay: number) {
   return debouncedValue;
 }
 
+import { AppFormField, AppModalActions, ResponsiveModal } from "@/shared/ui/app-form";
+
 function ClientCreateDialog() {
   const { t } = useTranslation();
   const createClient = useCreateClient();
@@ -366,92 +368,77 @@ function ClientCreateDialog() {
   const [phone, setPhone] = useState("");
   const [backupPhone, setBackupPhone] = useState("");
 
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    createClient.mutate(
+      {
+        name,
+        phone: phone || undefined,
+        backup_phone: backupPhone || undefined,
+      },
+      {
+        onSuccess: () => {
+          setName("");
+          setPhone("");
+          setBackupPhone("");
+          setOpen(false);
+          toast.success(t("clients.created"));
+        },
+        onError: (error) => toast.error(getApiErrorMessage(error)),
+      },
+    );
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={setOpen}
+      title={t("clients.add")}
+      trigger={
         <Button>
           <UserPlus className="size-4" />
           {t("clients.add")}
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[440px]">
-        <DialogHeader>
-          <DialogTitle>{t("clients.add")}</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-4 pt-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            createClient.mutate(
-              {
-                name,
-                phone: phone || undefined,
-                backup_phone: backupPhone || undefined,
-              },
-              {
-                onSuccess: () => {
-                  setName("");
-                  setPhone("");
-                  setBackupPhone("");
-                  setOpen(false);
-                  toast.success(t("clients.created"));
-                },
-                onError: (error) => toast.error(getApiErrorMessage(error)),
-              },
-            );
-          }}
-        >
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                {t("common.name")} <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Əli Məmmədov"
-                required
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  {t("products.phone")}
-                </label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-                  placeholder="+994 (50) 123-45-67"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  {t("clients.backupPhone")}
-                </label>
-                <Input
-                  value={backupPhone}
-                  onChange={(e) => setBackupPhone(formatPhoneInput(e.target.value))}
-                  placeholder="+994 (70) 123-45-67"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={createClient.isPending}>
-              {createClient.isPending ? t("common.saving") : t("common.save")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      }
+      footer={
+        <AppModalActions
+          submitForm="client-create-form"
+          submitLabel={t("common.save")}
+          pendingLabel={t("common.saving")}
+          pending={createClient.isPending}
+          disabled={!name.trim()}
+          onCancel={() => setOpen(false)}
+          cancelLabel={t("common.cancel")}
+        />
+      }
+    >
+      <form id="client-create-form" className="space-y-4" onSubmit={handleSubmit}>
+        <AppFormField label={t("common.name")} error={null}>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Əli Məmmədov"
+            required
+          />
+        </AppFormField>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <AppFormField label={t("products.phone")}>
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+              placeholder="+994 (50) 123-45-67"
+            />
+          </AppFormField>
+          <AppFormField label={t("clients.backupPhone")}>
+            <Input
+              value={backupPhone}
+              onChange={(e) => setBackupPhone(formatPhoneInput(e.target.value))}
+              placeholder="+994 (70) 123-45-67"
+            />
+          </AppFormField>
+        </div>
+      </form>
+    </ResponsiveModal>
   );
 }
 
