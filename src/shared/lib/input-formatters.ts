@@ -61,8 +61,8 @@ export function formatImeiInput(value: string): string {
   if (!digits) return "";
   
   const chunks: string[] = [];
-  for (let i = 0; i < digits.length; i += 4) {
-    chunks.push(digits.slice(i, i + 4));
+  for (let i = 0; i < digits.length; i += 3) {
+    chunks.push(digits.slice(i, i + 3));
   }
   return chunks.join("-");
 }
