@@ -9,6 +9,8 @@ import {
   Store,
   Trash2,
   Undo2,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -320,15 +322,66 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
             <DialogDescription>{t("products.photoPreviewDescription")}</DialogDescription>
           </DialogHeader>
           {lightboxImage ? (
-            <img
-              src={lightboxImage}
-              alt=""
-              className="max-h-[90vh] w-full object-contain"
-            />
+            <LightboxImage src={lightboxImage} />
           ) : null}
         </DialogContent>
       </Dialog>
     </section>
+  );
+}
+
+function LightboxImage({ src }: { src: string }) {
+  const { t } = useTranslation();
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isZoomed) return;
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setPosition({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setIsZoomed(false);
+  };
+
+  return (
+    <div
+      className="relative select-none overflow-hidden rounded-lg bg-black/5"
+      style={{ cursor: isZoomed ? "zoom-out" : "zoom-in" }}
+      onClick={() => setIsZoomed(!isZoomed)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Zoom hint pill */}
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-slate-950/65 px-3 py-1.5 text-xs font-bold text-white shadow-md backdrop-blur-md transition-all">
+        {isZoomed ? (
+          <>
+            <ZoomOut className="size-3.5 text-sky-400" />
+            <span>{t("products.zoomClickToReset")}</span>
+          </>
+        ) : (
+          <>
+            <ZoomIn className="size-3.5 text-sky-400" />
+            <span>{t("products.zoomClickToMagnify")}</span>
+          </>
+        )}
+      </div>
+
+      <div className="flex max-h-[85vh] min-h-[50vh] w-full items-center justify-center overflow-hidden">
+        <img
+          src={src}
+          alt=""
+          className="max-h-[85vh] w-full object-contain transition-transform duration-150 ease-out pointer-events-none"
+          style={{
+            transform: isZoomed ? "scale(2.5)" : "scale(1)",
+            transformOrigin: isZoomed ? `${position.x}% ${position.y}%` : "center",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
