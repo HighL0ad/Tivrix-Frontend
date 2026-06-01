@@ -56,6 +56,8 @@ export type ProductDetail = Omit<
 export type ProductOption = {
   id: string;
   name: string;
+  client_id?: number;
+  balance?: number;
 };
 
 export type ProductWalletOption = ProductOption & {

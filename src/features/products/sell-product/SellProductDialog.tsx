@@ -160,6 +160,7 @@ export function SellProductDialog({
       }
       if (effectiveSaleMode !== "full_payment") {
         payload.client_debt_wallet_id = toOptionalNumber(clientDebtWalletId);
+        payload.shop_debt_offset = shopDebtOffset;
       }
       if (registrationFeeEnabled) {
         payload.registration_fee_enabled = true;
@@ -450,6 +451,10 @@ export function SellProductDialog({
                 setRegistrationFeeEnabled={setRegistrationFeeEnabled}
                 registrationFeeAmount={registrationFeeAmount}
                 setRegistrationFeeAmount={setRegistrationFeeAmount}
+                shopDebtOffset={shopDebtOffset}
+                setShopDebtOffset={setShopDebtOffset}
+                clientId={clientId}
+                saleClientDebtOptions={optionsQuery.data?.sale_client_debt_options ?? []}
               />
             ) : (
               <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">

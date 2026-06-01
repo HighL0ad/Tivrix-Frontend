@@ -1,5 +1,5 @@
 import { Checkbox } from "@/shared/ui/checkbox";
-import { AppFormField, AppRadioCards } from "@/shared/ui/app-form";
+import { AppCheckboxPanel, AppFormField, AppRadioCards } from "@/shared/ui/app-form";
 import { Input } from "@/shared/ui/input";
 import { useTranslation } from "react-i18next";
 import type { ProductOption } from "@/entities/products/model/types";
@@ -96,6 +96,10 @@ export function ClientDebtFields({
   setRegistrationFeeEnabled,
   registrationFeeAmount,
   setRegistrationFeeAmount,
+  shopDebtOffset,
+  setShopDebtOffset,
+  clientId,
+  saleClientDebtOptions = [],
 }: {
   saleMode: "full_payment" | "partial_debt" | "installment";
   paidNowAmount: string;
@@ -112,12 +116,21 @@ export function ClientDebtFields({
   setRegistrationFeeEnabled: (value: boolean) => void;
   registrationFeeAmount: string;
   setRegistrationFeeAmount: (value: string) => void;
+  shopDebtOffset: boolean;
+  setShopDebtOffset: (value: boolean) => void;
+  clientId: string;
+  saleClientDebtOptions?: ProductOption[];
 }) {
   const { t } = useTranslation();
 
   if (saleMode === "full_payment" && !registrationFeeAvailable) {
     return null;
   }
+
+  const clientDebtWallet = clientId
+    ? saleClientDebtOptions.find((w) => w.client_id === Number(clientId))
+    : undefined;
+  const hasNegativeBalance = clientDebtWallet && (clientDebtWallet.balance ?? 0) < 0;
 
   return (
     <div className="space-y-4">
@@ -193,6 +206,15 @@ export function ClientDebtFields({
             />
           </AppFormField>
         </div>
+      ) : null}
+
+      {saleMode !== "full_payment" && hasNegativeBalance ? (
+        <AppCheckboxPanel
+          checked={shopDebtOffset}
+          onCheckedChange={setShopDebtOffset}
+          title={t("sell.offsetOurDebt")}
+          description={t("sell.offsetOurDebtDescription")}
+        />
       ) : null}
 
       {saleMode !== "full_payment" && clientSelected ? (
