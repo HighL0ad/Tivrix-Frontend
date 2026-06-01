@@ -8,6 +8,7 @@ import {
   useCreateDebtWallet,
   useLendMoney,
 } from "@/entities/debts/api/use-debts";
+import { DatePicker } from "@/shared/ui/date-picker";
 import { useCreateClient } from "@/entities/clients/api/use-clients";
 import type { Wallet, WalletType } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
@@ -57,6 +58,7 @@ export function MoneyFlowDialog({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [shopDebtOffset, setShopDebtOffset] = useState(true);
+  const [dueDate, setDueDate] = useState("");
   const [createdCounterparty, setCreatedCounterparty] = useState<Wallet | null>(null);
   const [showQuickForm, setShowQuickForm] = useState(false);
   const [quickCounterpartyName, setQuickCounterpartyName] = useState("");
@@ -120,6 +122,7 @@ export function MoneyFlowDialog({
       setAmount("");
       setDescription("");
       setShopDebtOffset(true);
+      setDueDate("");
       setCreatedCounterparty(null);
       setQuickCounterpartyName("");
       setQuickCounterpartyPhone("");
@@ -296,6 +299,7 @@ export function MoneyFlowDialog({
                     amount,
                     description: description.trim() || undefined,
                     shop_debt_offset: isShopOrSupplierTarget ? shopDebtOffset : undefined,
+                    due_date: dueDate || undefined,
                   },
                   { onSuccess, onError },
                 );
@@ -366,6 +370,16 @@ export function MoneyFlowDialog({
                 onChange={(event) => setDescription(event.target.value)}
               />
             </FormField>
+            {mode === "lend" && (
+              <FormField label={t("debts.dueDate")}>
+                <DatePicker
+                  value={dueDate}
+                  onChange={setDueDate}
+                  placeholder={t("debts.dueDatePlaceholder")}
+                  className="w-full"
+                />
+              </FormField>
+            )}
             {lend.isError || borrow.isError ? (
               <FormError
                 message={getApiErrorMessage(

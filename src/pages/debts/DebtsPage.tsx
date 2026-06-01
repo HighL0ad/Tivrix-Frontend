@@ -758,6 +758,19 @@ function WalletRows({
                 <div className="mt-0.5 text-xs text-muted-foreground">
                   {shortDate(debtCreatedAt[String(wallet.id)])}
                 </div>
+                {wallet.due_date && (
+                  <div
+                    className={cn(
+                      "mt-1 flex items-center gap-1 text-xs font-medium",
+                      new Date(wallet.due_date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
+                        ? "text-rose-600 font-semibold animate-pulse"
+                        : "text-amber-600"
+                    )}
+                  >
+                    <CalendarDays className="size-3.5 shrink-0" />
+                    {t("debts.dueDate")}: {relativeDate(wallet.due_date, t)}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">

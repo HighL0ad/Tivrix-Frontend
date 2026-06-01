@@ -8,6 +8,7 @@ export type Wallet = {
   name: string;
   type: WalletType;
   balance: string;
+  due_date?: string | null;
 };
 
 export type WalletType =

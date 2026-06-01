@@ -89,6 +89,7 @@ export function useLendMoney() {
       amount: string;
       description?: string;
       shop_debt_offset?: boolean;
+      due_date?: string;
     }) =>
       apiRequest<{ ok: boolean }>("/api/debts/lend-money", {
         method: "POST",

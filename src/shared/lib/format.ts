@@ -36,8 +36,8 @@ export function relativeDate(value: string | null | undefined, t: (key: string) 
   if (diffDays === 1) return t("common.tomorrow");
   if (diffDays === -1) return t("common.yesterday");
   
-  if (diffDays > 1 && diffDays < 7) return t("common.inNDays").replace("{n}", String(diffDays));
-  if (diffDays < -1 && diffDays > -7) return t("common.nDaysAgo").replace("{n}", String(Math.abs(diffDays)));
+  if (diffDays > 1 && diffDays < 7) return t("common.inNDays").replace("{{n}}", String(diffDays));
+  if (diffDays < -1 && diffDays > -7) return t("common.nDaysAgo").replace("{{n}}", String(Math.abs(diffDays)));
 
   return new Intl.DateTimeFormat("ru-RU", {
     day: "2-digit",
