@@ -161,7 +161,7 @@ export function ProductCreatePage() {
     return (options?.purchase_source_options ?? []).find((opt) => opt.id === supplierId);
   }, [options?.purchase_source_options, supplierId]);
   const isShopOrSupplierSource = selectedSource && (selectedSource.type === "shop" || selectedSource.type === "debt");
-  const isOffsetMode = selectedSource?.type === "client_debt" || (isShopOrSupplierSource && shopDebtOffset);
+  const isOffsetMode = selectedSource && (selectedSource.type === "client_debt" || isShopOrSupplierSource) && shopDebtOffset;
 
   const purchaseSourcePlaceholder = t("products.selectPurchaseSource");
   const purchaseSourceSearchPlaceholder = t("products.purchaseSourceSearch");
@@ -697,7 +697,7 @@ export function ProductCreatePage() {
                 />
               </Field>
 
-              {scenario === "supplier_debt" && isShopOrSupplierSource && (
+              {scenario === "supplier_debt" && selectedSource && (
                 <AppCheckboxPanel
                   checked={shopDebtOffset}
                   onCheckedChange={setShopDebtOffset}
