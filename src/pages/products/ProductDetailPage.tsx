@@ -329,9 +329,25 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
                     }
                   >
                     <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground">
-                        {t("products.deleteWarning")}
-                      </p>
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        <p>
+                          {t("products.deleteDescription", { name: currentProduct.name })}
+                        </p>
+                        <div className="border-l-2 border-border pl-3 space-y-1 my-2">
+                          <span className="block text-xs font-semibold text-foreground">
+                            {formatProductImei(currentProduct)}
+                          </span>
+                          {currentProduct.supplier_name ? (
+                            <span className="block text-xs text-muted-foreground">
+                              {t("products.supplierWithColon", { name: formatProductSupplier(currentProduct) })}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="text-xs text-destructive font-medium bg-destructive/5 p-2 rounded-lg border border-destructive/10">
+                          {t("products.deleteWarning")}
+                        </p>
+                      </div>
+
                       <div className="space-y-1.5 text-left">
                         <label className="text-xs font-semibold text-muted-foreground">
                           {t("products.deleteConfirmPrompt")}{" "}
