@@ -61,6 +61,7 @@ export function DashboardPage() {
     (total, alert) => total + Number(alert.remaining_amount),
     0,
   );
+  const debtLoad = Math.abs(Number(data.they_owe) - Number(data.we_owe));
 
   return (
     <section className="space-y-5">
@@ -91,35 +92,16 @@ export function DashboardPage() {
           tone={Number(data.profit_today) >= 0 ? "good" : "bad"}
           icon={<TrendingUp className="size-4" />}
         />
-        <Card
-          size="sm"
-          className="relative border-gray-200 bg-white shadow-none before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-amber-400 before:to-orange-500"
-        >
-          <CardContent className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold uppercase tracking-wide text-gray-500">
-                {t("dashboard.debtLoad")}
-              </div>
-              <div className="mt-2 space-y-0.5">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-black uppercase text-gray-500 w-14 shrink-0">{t("dashboard.toUs", { amount: "" })}</span>
-                  <span className="text-base font-black text-emerald-700 leading-tight">
-                    <Money value={data.they_owe} />
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-black uppercase text-gray-500 w-14 shrink-0">{t("dashboard.fromUs", { amount: "" })}</span>
-                  <span className="text-base font-black text-rose-700 leading-tight">
-                    <Money value={data.we_owe} />
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-lg border border-white/80 bg-amber-50 p-2 text-amber-600 shadow-xs">
-              <HandCoins className="size-4" />
-            </div>
-          </CardContent>
-        </Card>
+        <MetricCard
+          title={t("dashboard.debtLoad")}
+          value={<Money value={debtLoad} />}
+          hint={t("dashboard.debtLoadHint", {
+            toUs: t("dashboard.toUs", { amount: money(data.they_owe) }),
+            fromUs: t("dashboard.fromUs", { amount: money(data.we_owe) }),
+          })}
+          tone="warning"
+          icon={<HandCoins className="size-4" />}
+        />
       </div>
 
 

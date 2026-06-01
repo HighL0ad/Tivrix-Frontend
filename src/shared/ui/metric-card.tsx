@@ -66,7 +66,11 @@ export function MetricCard({
           >
             {value}
           </div>
-          {hint ? <div className="mt-1 text-xs text-gray-500">{hint}</div> : null}
+          {hint ? (
+            <div className="mt-1 truncate whitespace-nowrap text-xs text-gray-500">
+              {hint}
+            </div>
+          ) : null}
         </div>
         {icon ? (
           <div className={cn("rounded-lg border border-white/80 p-2 shadow-sm", toneStyle.icon)}>
