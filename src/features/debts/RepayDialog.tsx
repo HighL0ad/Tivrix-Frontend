@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { type RepaymentOperationType, useRepayDebt } from "@/entities/debts/api/use-debts";
+import { type DebtEntry, type RepaymentOperationType, useRepayDebt } from "@/entities/debts/api/use-debts";
 import type { Wallet } from "@/entities/finance/api/use-finance";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { ResponsiveModal } from "@/shared/ui/app-form";
@@ -16,20 +16,22 @@ export function RepayDialog({
   myWallets,
   operationType,
   tone,
+  debtEntry,
 }: {
   wallet: Wallet;
   myWallets: Wallet[];
   operationType: RepaymentOperationType;
   tone?: "bad" | "blue" | "good";
+  debtEntry?: DebtEntry;
 }) {
   const { t } = useTranslation();
   const repay = useRepayDebt();
   const [open, setOpen] = useState(false);
   const [sourceWalletId, setSourceWalletId] = useState("");
   const [amount, setAmount] = useState("");
-  const formId = `repay-${wallet.id}-${operationType}`;
+  const formId = `repay-${wallet.id}-${operationType}-${debtEntry?.id ?? "wallet"}`;
   const isPayment = operationType === "pay_supplier";
-  const payableBalance = Math.abs(Number(wallet.balance));
+  const payableBalance = Math.abs(Number(debtEntry?.remaining_amount ?? wallet.balance));
   const buttonTone = tone ?? (isPayment ? "bad" : "good");
   const triggerClass = {
     bad: "h-8 rounded-full bg-rose-100 px-3 text-xs font-bold text-rose-700 shadow-none hover:bg-rose-200 hover:text-rose-800",
@@ -47,7 +49,7 @@ export function RepayDialog({
     <ResponsiveModal
       open={open}
       onOpenChange={handleOpenChange}
-      title={wallet.name}
+      title={debtEntry?.description ? `${wallet.name}: ${debtEntry.description}` : wallet.name}
       trigger={
         <Button
           type="button"
@@ -80,6 +82,7 @@ export function RepayDialog({
                 source_wallet_id: Number(sourceWalletId),
                 amount,
                 operation_type: operationType,
+                debt_entry_id: debtEntry?.id,
               },
               {
                 onSuccess: () => {

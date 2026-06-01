@@ -21,10 +21,31 @@ export type Payable = {
   due_at: string | null;
 };
 
+export type DebtEntry = {
+  id: number;
+  wallet_id: number;
+  counterparty_id: number;
+  sale_id: number | null;
+  transaction_id: number | null;
+  kind: string;
+  source: string | null;
+  description: string | null;
+  amount: string;
+  paid_amount: string;
+  remaining_amount: string;
+  status: string;
+  due_date: string | null;
+  created_at: string | null;
+};
+
+export type DebtWallet = Wallet & {
+  debt_entries?: DebtEntry[];
+};
+
 export type DebtsData = {
-  we_owe: Wallet[];
-  shops_owe_us: Wallet[];
-  clients_owe_us: Wallet[];
+  we_owe: DebtWallet[];
+  shops_owe_us: DebtWallet[];
+  clients_owe_us: DebtWallet[];
   all_partners: Wallet[];
   lend_counterparties: Wallet[];
   unpaid_payables: Payable[];
@@ -65,6 +86,7 @@ export function useRepayDebt() {
       source_wallet_id: number;
       amount: string;
       operation_type: RepaymentOperationType;
+      debt_entry_id?: number;
       installment_id?: number;
       apply_installments?: boolean;
     }) =>

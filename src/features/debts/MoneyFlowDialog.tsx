@@ -57,7 +57,7 @@ export function MoneyFlowDialog({
   const [targetId, setTargetId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [shopDebtOffset, setShopDebtOffset] = useState(true);
+  const [shopDebtOffset, setShopDebtOffset] = useState(false);
   const [dueDate, setDueDate] = useState("");
   const [createdCounterparty, setCreatedCounterparty] = useState<Wallet | null>(null);
   const [showQuickForm, setShowQuickForm] = useState(false);
@@ -121,7 +121,7 @@ export function MoneyFlowDialog({
       setTargetId("");
       setAmount("");
       setDescription("");
-      setShopDebtOffset(true);
+      setShopDebtOffset(false);
       setDueDate("");
       setCreatedCounterparty(null);
       setQuickCounterpartyName("");

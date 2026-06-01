@@ -6,6 +6,7 @@ import { NavLink } from "react-router";
 import type { ReactNode } from "react";
 
 import {
+  type DebtWallet,
   type RepaymentOperationType,
   type Payable,
   useDebts,
@@ -549,7 +550,7 @@ function PayableRows({
 
                 {payable.due_at ? (
                   <div
-                    className={`mt-1 flex items-center gap-1.5 text-xs font-medium ${
+                    className={`mt-1 flex items-center gap-1.5 whitespace-nowrap text-xs font-medium ${
                       isOverdue
                         ? "text-rose-600"
                         : isDueSoon
@@ -557,7 +558,7 @@ function PayableRows({
                           : "text-muted-foreground"
                     }`}
                   >
-                    <CalendarDays className="size-3.5" />
+                    <CalendarDays className="size-3.5 shrink-0" />
                     <span>
                       {isOverdue ? t("debts.overdue") : t("debts.dueDate")}:{" "}
                       {relativeDate(payable.due_at, t)}
@@ -670,7 +671,7 @@ function DebtGroupBlock({
   tone,
 }: {
   title: string;
-  wallets: Wallet[];
+  wallets: DebtWallet[];
   myWallets: Wallet[];
   debtCreatedAt: Record<string, string>;
   operationType: RepaymentOperationType;
@@ -723,7 +724,7 @@ function WalletRows({
   operationType,
   tone,
 }: {
-  wallets: Wallet[];
+  wallets: DebtWallet[];
   myWallets: Wallet[];
   debtCreatedAt: Record<string, string>;
   operationType: RepaymentOperationType;
@@ -743,49 +744,78 @@ function WalletRows({
 
   return (
     <div>
-      {wallets.length ? wallets.map((wallet) => (
+      {wallets.length ? wallets.map((wallet) => {
+        const entries = wallet.debt_entries ?? [];
+        return (
           <div
             key={wallet.id}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
+            className="border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
           >
-            <div className="flex min-w-0 items-center gap-3">
-              <div
-                className={`size-2.5 shrink-0 rounded-full animate-pulse ${dotClass}`}
-                aria-hidden="true"
-              />
-              <div className="min-w-0">
-                <div className="break-words font-semibold">{wallet.name}</div>
-                <div className="mt-0.5 text-xs text-muted-foreground">
-                  {shortDate(debtCreatedAt[String(wallet.id)])}
-                </div>
-                {wallet.due_date && (
-                  <div
-                    className={cn(
-                      "mt-1 flex items-center gap-1 text-xs font-medium",
-                      new Date(wallet.due_date).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
-                        ? "text-rose-600 font-semibold animate-pulse"
-                        : "text-amber-600"
-                    )}
-                  >
-                    <CalendarDays className="size-3.5 shrink-0" />
-                    {t("debts.dueDate")}: {relativeDate(wallet.due_date, t)}
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div
+                  className={`size-2.5 shrink-0 rounded-full animate-pulse ${dotClass}`}
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <div className="break-words font-semibold">{wallet.name}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    {shortDate(debtCreatedAt[String(wallet.id)])}
                   </div>
-                )}
+                  {wallet.due_date && entries.length === 0 && (
+                    <DebtDueDateLine dueDate={wallet.due_date} />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`whitespace-nowrap font-bold ${amountClass}`}>
+                  {money(wallet.balance)}
+                </span>
+                <RepayDialog
+                  wallet={wallet}
+                  myWallets={myWallets}
+                  operationType={operationType}
+                  tone={tone}
+                />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`whitespace-nowrap font-bold ${amountClass}`}>
-                {money(wallet.balance)}
-              </span>
-              <RepayDialog
-                wallet={wallet}
-                myWallets={myWallets}
-                operationType={operationType}
-                tone={tone}
-              />
-            </div>
+            {entries.length > 0 && (
+              <div className="mt-3 space-y-2 pl-5">
+                {entries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-md border bg-background px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <div className="break-words text-xs font-semibold">
+                        {entry.description || "Долг"}
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                        {shortDate(entry.created_at)}
+                      </div>
+                      {entry.due_date && <DebtDueDateLine dueDate={entry.due_date} compact />}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`whitespace-nowrap text-xs font-bold ${amountClass}`}>
+                        {money(entry.remaining_amount)}
+                      </span>
+                      {entry.id > 0 && (
+                        <RepayDialog
+                          wallet={wallet}
+                          myWallets={myWallets}
+                          operationType={operationType}
+                          tone={tone}
+                          debtEntry={entry}
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )) : (
+        );
+      }) : (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             {operationType === "pay_supplier"
               ? t("catalogs.suppliersEmptyTitle")
@@ -794,6 +824,26 @@ function WalletRows({
                 : t("catalogs.clientsEmptyTitle")}
           </div>
         )}
+    </div>
+  );
+}
+
+function DebtDueDateLine({ dueDate, compact = false }: { dueDate: string; compact?: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className={cn(
+        "mt-1 flex min-w-0 items-center gap-1 whitespace-nowrap font-medium",
+        compact ? "text-[11px]" : "text-xs",
+        new Date(dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
+          ? "text-rose-600 font-semibold animate-pulse"
+          : "text-amber-600"
+      )}
+    >
+      <CalendarDays className="size-3.5 shrink-0" />
+      <span className="min-w-0 truncate">
+        {t("debts.dueDate")}: {relativeDate(dueDate, t)}
+      </span>
     </div>
   );
 }

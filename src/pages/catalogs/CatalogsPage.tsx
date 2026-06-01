@@ -13,7 +13,7 @@ import {
   useDeleteClientSource,
   useUpdateClientSource,
 } from "@/entities/catalogs/api/use-catalogs";
-import type { WalletType } from "@/entities/finance/api/use-finance";
+import type { Wallet, WalletType } from "@/entities/finance/api/use-finance";
 import { DeleteWalletButton } from "@/features/catalogs/DeleteWalletButton";
 import { WalletEditDialog } from "@/features/catalogs/WalletEditDialog";
 import { AdjustWalletDialog } from "@/features/finance/AdjustWalletDialog";
@@ -74,7 +74,9 @@ export function CatalogsPage() {
   const groupedWallets = {
     wallets: filteredWallets.filter((wallet) => walletGroups.wallets.includes(wallet.type)),
     clients: filteredWallets.filter((wallet) => walletGroups.clients.includes(wallet.type)),
-    suppliers: filteredWallets.filter((wallet) => walletGroups.suppliers.includes(wallet.type)),
+    suppliers: groupCounterpartyWallets(
+      filteredWallets.filter((wallet) => walletGroups.suppliers.includes(wallet.type)),
+    ),
     advanced: filteredWallets.filter(
       (wallet) =>
         ![...walletGroups.wallets, ...walletGroups.clients, ...walletGroups.suppliers].includes(wallet.type),
@@ -228,6 +230,35 @@ export function CatalogsPage() {
       </Card>
     </section>
   );
+}
+
+type CatalogWallet = Wallet & {
+  grouped_wallet_ids?: number[];
+};
+
+function groupCounterpartyWallets(wallets: Wallet[]): CatalogWallet[] {
+  const groups = new Map<string, Wallet[]>();
+  for (const wallet of wallets) {
+    const key = wallet.counterparty_id
+      ? `counterparty:${wallet.counterparty_id}`
+      : `wallet:${wallet.type}:${wallet.name.trim().toLowerCase()}`;
+    groups.set(key, [...(groups.get(key) ?? []), wallet]);
+  }
+
+  return Array.from(groups.values()).map((group) => {
+    if (group.length === 1) return group[0];
+    const [primary] = group;
+    const balance = group.reduce((sum, wallet) => sum + Number(wallet.balance), 0);
+    return {
+      ...primary,
+      balance: balance.toFixed(2),
+      grouped_wallet_ids: group.map((wallet) => wallet.id),
+    };
+  });
+}
+
+function isGroupedWallet(wallet: CatalogWallet) {
+  return Boolean(wallet.grouped_wallet_ids && wallet.grouped_wallet_ids.length > 1);
 }
 
 function AdvancedRecordsBlock({
@@ -436,7 +467,7 @@ function AdvancedRecordsTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1.5">
-                    {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+                    {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
                       <>
                         <AdjustWalletDialog wallet={wallet} />
                         <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
@@ -583,7 +614,7 @@ function AdvancedRecordsTable({
                 {walletTypeLabel(wallet.type)}
               </span>
 
-              {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+              {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
                 <div className="flex items-center gap-1.5">
                   <AdjustWalletDialog wallet={wallet} />
                   <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
@@ -683,7 +714,7 @@ function WalletTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1.5">
-                    {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+                    {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
                       <>
                         <AdjustWalletDialog wallet={wallet} />
                         <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
@@ -728,7 +759,7 @@ function WalletTable({
                 {walletTypeLabel(wallet.type)}
               </span>
 
-              {canAdjustWallets && !isSystemWallet(wallet.type) ? (
+              {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
                 <div className="flex items-center gap-1.5">
                   <AdjustWalletDialog wallet={wallet} />
                   <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />

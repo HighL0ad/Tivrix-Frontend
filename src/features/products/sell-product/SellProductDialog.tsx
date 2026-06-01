@@ -80,7 +80,7 @@ export function SellProductDialog({
   const [source, setSource] = useState("none");
   const [proofPhoto, setProofPhoto] = useState<File | null>(null);
   const [installmentTotalPrice, setInstallmentTotalPrice] = useState("");
-  const [shopDebtOffset, setShopDebtOffset] = useState(true);
+  const [shopDebtOffset, setShopDebtOffset] = useState(false);
 
   const error =
     sellMutation.error instanceof ApiError
@@ -109,7 +109,7 @@ export function SellProductDialog({
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setShopDebtOffset(true);
+      setShopDebtOffset(false);
     }
   }
 
