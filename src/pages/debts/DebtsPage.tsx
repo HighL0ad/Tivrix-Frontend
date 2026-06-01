@@ -2,7 +2,7 @@ import { Copy, ChevronDown, CalendarDays, AlertCircle, CalendarClock, HandCoins,
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
-import { NavLink, useLocation } from "react-router";
+import { NavLink } from "react-router";
 import type { ReactNode } from "react";
 
 import {
@@ -42,7 +42,6 @@ const debtsTabValues = ["debts", "installments"] as const;
 
 export function DebtsPage() {
   const { t } = useTranslation();
-  const location = useLocation();
   const [{ action, tab }, setDebtsParams] = useQueryStates({
     action: parseAsStringLiteral(debtsActionValues),
     tab: parseAsStringLiteral(debtsTabValues).withDefault("debts"),
@@ -90,7 +89,7 @@ export function DebtsPage() {
   const maxMonthlyForecast = fData
     ? Math.max(...fData.attention.monthly_forecast.map((item) => Number(item.amount)), 1)
     : 1;
-  const returnTo = `${location.pathname}${location.search}`;
+  const installmentsReturnTo = "/debts?tab=installments";
 
   return (
     <section className="space-y-5">
@@ -378,7 +377,7 @@ export function DebtsPage() {
                                 <div className="min-w-0">
                                   <NavLink
                                     to={`/clients/${item.client_id}`}
-                                    state={{ from: returnTo }}
+                                    state={{ from: installmentsReturnTo }}
                                     className="inline-block font-bold text-slate-900 hover:text-sky-600 transition-all duration-200 hover:translate-x-0.5 truncate max-w-full"
                                   >
                                     {item.client_name}
