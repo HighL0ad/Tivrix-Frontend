@@ -788,7 +788,7 @@ function WalletRows({
                   >
                     <div className="min-w-0">
                       <div className="break-words text-xs font-semibold">
-                        {entry.description || "Долг"}
+                        {formatEntryDescription(entry.description, wallet.name)}
                       </div>
                       <div className="mt-0.5 text-[11px] text-muted-foreground">
                         {shortDate(entry.created_at)}
@@ -983,4 +983,35 @@ function InstallmentsSkeleton() {
       </div>
     </div>
   );
+}
+
+function formatEntryDescription(description: string | null | undefined, walletName: string) {
+  if (!description) return "Долг";
+  
+  if (description.startsWith("Отгрузка ")) {
+    const withoutArrow = description.split(" ->")[0];
+    return withoutArrow || description;
+  }
+  
+  if (description.startsWith("Закупка ")) {
+    const withoutParenthesis = description.split(" (")[0];
+    return withoutParenthesis || description;
+  }
+  
+  if (description.includes(":")) {
+    const parts = description.split(":");
+    const customComment = parts.slice(1).join(":").trim();
+    if (customComment) {
+      return customComment;
+    }
+    
+    if (description.startsWith("Одолжили") || description.startsWith("Выдача")) {
+      return "Выдача долга";
+    }
+    if (description.startsWith("Взяли") || description.startsWith("Получение")) {
+      return "Взяли в долг";
+    }
+  }
+  
+  return description;
 }
