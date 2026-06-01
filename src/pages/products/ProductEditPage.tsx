@@ -62,6 +62,7 @@ export function ProductEditPage() {
   const [replacePhotos, setReplacePhotos] = useState(false);
   const [removePhotoIds, setRemovePhotoIds] = useState<number[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [ocrEnabled, setOcrEnabled] = useState(true);
   const [isPhotoMetadataScanning, setIsPhotoMetadataScanning] = useState(false);
 
   useEffect(() => {
@@ -167,7 +168,7 @@ export function ProductEditPage() {
     setPhotos(nextPhotos);
 
     const photo = nextPhotos.find((file) => file.type.startsWith("image/"));
-    if (!photo) return;
+    if (!photo || !ocrEnabled) return;
 
     setIsPhotoMetadataScanning(true);
     try {
@@ -405,6 +406,23 @@ export function ProductEditPage() {
                 accept="image/*"
                 label={t("products.selectPhoto")}
               />
+              <div className="rounded-lg border bg-muted/40 p-4">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <Checkbox
+                    checked={ocrEnabled}
+                    onCheckedChange={(checked) => setOcrEnabled(Boolean(checked))}
+                    className="mt-1 size-5"
+                  />
+                  <span>
+                    <span className="block text-[13px] font-bold leading-5 text-foreground">
+                      {t("products.ocrEnabled")}
+                    </span>
+                    <span className="mt-1 block text-[13px] leading-5 text-gray-500">
+                      {t("products.ocrEnabledDescription")}
+                    </span>
+                  </span>
+                </label>
+              </div>
               {isPhotoMetadataScanning ? (
                 <PhotoMetadataScanStatus
                   text={

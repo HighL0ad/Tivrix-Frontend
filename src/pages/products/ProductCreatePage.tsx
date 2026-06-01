@@ -104,6 +104,7 @@ export function ProductCreatePage() {
     [],
   );
   const [photos, setPhotos] = useState<File[]>([]);
+  const [ocrEnabled, setOcrEnabled] = useState(true);
   const [shopDebtOffset, setShopDebtOffset] = useState(true);
   const [imeiError, setImeiError] = useState("");
   const [checkingImei, setCheckingImei] = useState(false);
@@ -238,7 +239,7 @@ export function ProductCreatePage() {
     setPhotos(nextPhotos);
 
     const photo = nextPhotos.find((file) => file.type.startsWith("image/"));
-    if (!photo) return;
+    if (!photo || !ocrEnabled) return;
 
     setIsPhotoMetadataScanning(true);
     try {
@@ -612,7 +613,7 @@ export function ProductCreatePage() {
                 {t("products.photoDescription")}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <AppFileUpload
                 value={photos}
                 onChange={handlePhotosChange}
@@ -620,6 +621,23 @@ export function ProductCreatePage() {
                 accept="image/*"
                 label={t("products.uploadProductPhoto")}
               />
+              <div className="rounded-lg border bg-muted/40 p-4">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <Checkbox
+                    checked={ocrEnabled}
+                    onCheckedChange={(checked) => setOcrEnabled(Boolean(checked))}
+                    className="mt-1 size-5"
+                  />
+                  <span>
+                    <span className="block text-[13px] font-bold leading-5 text-foreground">
+                      {t("products.ocrEnabled")}
+                    </span>
+                    <span className="mt-1 block text-[13px] leading-5 text-gray-500">
+                      {t("products.ocrEnabledDescription")}
+                    </span>
+                  </span>
+                </label>
+              </div>
               {isPhotoMetadataScanning ? (
                 <PhotoMetadataScanStatus
                   text={
