@@ -788,7 +788,7 @@ function WalletRows({
                   >
                     <div className="min-w-0">
                       <div className="break-words text-xs font-semibold">
-                        {formatEntryDescription(entry.description, wallet.name)}
+                        {formatEntryDescription(entry.description, wallet.name, t)}
                       </div>
                       <div className="mt-0.5 text-[11px] text-muted-foreground">
                         {shortDate(entry.created_at)}
@@ -985,17 +985,19 @@ function InstallmentsSkeleton() {
   );
 }
 
-function formatEntryDescription(description: string | null | undefined, walletName: string) {
-  if (!description) return "Долг";
+function formatEntryDescription(description: string | null | undefined, walletName: string, t: any) {
+  if (!description) return t("debts.description") || "Долг";
   
   if (description.startsWith("Отгрузка ")) {
     const withoutArrow = description.split(" ->")[0];
-    return withoutArrow || description;
+    const productPart = withoutArrow.replace("Отгрузка ", "").trim();
+    return `${t("debts.shipment")} ${productPart}`;
   }
   
   if (description.startsWith("Закупка ")) {
     const withoutParenthesis = description.split(" (")[0];
-    return withoutParenthesis || description;
+    const productPart = withoutParenthesis.replace("Закупка ", "").trim();
+    return `${t("debts.purchase")} ${productPart}`;
   }
   
   if (description.includes(":")) {
@@ -1006,10 +1008,10 @@ function formatEntryDescription(description: string | null | undefined, walletNa
     }
     
     if (description.startsWith("Одолжили") || description.startsWith("Выдача")) {
-      return "Выдача долга";
+      return t("debts.lent");
     }
     if (description.startsWith("Взяли") || description.startsWith("Получение")) {
-      return "Взяли в долг";
+      return t("debts.borrowed");
     }
   }
   
