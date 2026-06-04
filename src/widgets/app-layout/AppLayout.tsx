@@ -1,4 +1,4 @@
-import { type CSSProperties, type PointerEvent as ReactPointerEvent, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 import { Navigate, NavLink, Outlet } from "react-router";
 import {
   Banknote,
@@ -11,6 +11,8 @@ import {
   Menu,
   Plus,
   Users,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -65,6 +67,21 @@ export function AppLayout() {
   const uploadAvatar = useUploadAvatar();
   const [commandOpen, setCommandOpen] = useState(false);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const stored = window.localStorage.getItem("theme") as "light" | "dark" | null;
+    if (stored) return stored;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    window.localStorage.setItem("theme", theme);
+  }, [theme]);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const storedWidth = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
     return Number.isFinite(storedWidth)
@@ -197,6 +214,24 @@ export function AppLayout() {
                 <div className="border-t border-white/10" />
                 <button
                   type="button"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <div className="flex items-center gap-2">
+                    {theme === "dark" ? (
+                      <Sun className="size-4" aria-hidden="true" />
+                    ) : (
+                      <Moon className="size-4" aria-hidden="true" />
+                    )}
+                    <span>{theme === "dark" ? t("app.themeLight") : t("app.themeDark")}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 uppercase font-mono">
+                    {theme === "dark" ? "Dark" : "Light"}
+                  </span>
+                </button>
+                <div className="border-t border-white/10" />
+                <button
+                  type="button"
                   onClick={handleLogout}
                   className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-rose-500/10 hover:text-rose-200"
                 >
@@ -307,6 +342,8 @@ export function AppLayout() {
           <MobileMoreMenu
             items={visibleNavItems.slice(3)}
             onLogout={handleLogout}
+            theme={theme}
+            setTheme={setTheme}
           />
         </div>
       </nav>
@@ -381,9 +418,13 @@ function getInitials(value: string) {
 function MobileMoreMenu({
   items,
   onLogout,
+  theme,
+  setTheme,
 }: {
   items: typeof navItems;
   onLogout: () => void;
+  theme: "light" | "dark";
+  setTheme: (theme: "light" | "dark") => void;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -417,6 +458,24 @@ function MobileMoreMenu({
           ))}
           <div className="mt-2 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
             <LanguageRow />
+            <div className="border-t border-white/10" />
+            <button
+              type="button"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              <div className="flex items-center gap-2">
+                {theme === "dark" ? (
+                  <Sun className="size-4" aria-hidden="true" />
+                ) : (
+                  <Moon className="size-4" aria-hidden="true" />
+                )}
+                <span>{theme === "dark" ? t("app.themeLight") : t("app.themeDark")}</span>
+              </div>
+              <span className="text-[10px] text-slate-500 uppercase font-mono">
+                {theme === "dark" ? "Dark" : "Light"}
+              </span>
+            </button>
             <div className="border-t border-white/10" />
             <button
               type="button"
