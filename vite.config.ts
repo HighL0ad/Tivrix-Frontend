@@ -40,6 +40,8 @@ export default defineConfig({
           if (id.includes("@tanstack") || id.includes("nuqs")) return "vendor-data";
           if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
           if (id.includes("i18next") || id.includes("date-fns")) return "vendor-utils";
+          if (id.includes("tesseract.js")) return "vendor-ocr";
+          if (id.includes("@zxing")) return "vendor-scanner";
           return "vendor";
         },
       },
