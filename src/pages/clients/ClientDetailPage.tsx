@@ -582,7 +582,7 @@ export function ClientDetailPage() {
                             </NavLink>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-gray-500 align-top w-[200px] min-w-[200px]">
-                            {sale.product_imei}
+                            {formatClientSaleImei(sale, t)}
                           </TableCell>
                           <TableCell className="font-bold whitespace-nowrap align-top text-left">
                             {money(sale.total_price)}
@@ -1009,11 +1009,28 @@ function SaleCard({
         <span className="text-gray-600">{shortDate(sale.sold_at)}</span>
         <span className="font-semibold uppercase text-gray-400">IMEI</span>
         <span className="break-all font-mono text-gray-600">
-          {sale.product_imei || "—"}
+          {formatClientSaleImei(sale, t)}
         </span>
       </div>
     </div>
   );
+}
+
+const legacyInstallmentSource = "legacy_installment_import";
+const legacyCreditImeiPrefix = "LEGACY-CREDIT-";
+
+function formatClientSaleImei(
+  sale: NonNullable<ReturnType<typeof useClient>["data"]>["sales"][number],
+  t: ReturnType<typeof useTranslation>["t"],
+) {
+  if (
+    sale.sale_source === legacyInstallmentSource ||
+    sale.product_imei?.startsWith(legacyCreditImeiPrefix)
+  ) {
+    return t("products.legacyInstallmentServiceRecord");
+  }
+
+  return sale.product_imei || "—";
 }
 
 // ── Client edit dialog ────────────────────────────────────────────────────────
@@ -1132,8 +1149,8 @@ function getInitials(name: string) {
 function getAvatarColorStyle(id: number) {
   const hue = (id * 137) % 360;
   return {
-    backgroundColor: `hsl(${hue}, 70%, 92%)`,
-    color: `hsl(${hue}, 65%, 35%)`,
+    backgroundColor: `light-dark(hsl(${hue}, 70%, 92%), color-mix(in srgb, hsl(${hue}, 70%, 42%) 28%, var(--card)))`,
+    color: `light-dark(hsl(${hue}, 65%, 35%), hsl(${hue}, 78%, 78%))`,
   };
 }
 

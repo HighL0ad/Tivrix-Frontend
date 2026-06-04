@@ -38,7 +38,7 @@ import {
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
-import { PageLoading } from "@/shared/ui/page-state";
+import { AppShellLoading } from "@/shared/ui/page-state";
 
 const navItems = [
   { to: "/", labelKey: "app.nav.dashboard", icon: Gauge, resource: "dashboard" },
@@ -130,7 +130,7 @@ export function AppLayout() {
   }
 
   if (currentUserQuery.isLoading) {
-    return <PageLoading />;
+    return <AppShellLoading />;
   }
 
   if (!currentUser) {
@@ -167,8 +167,8 @@ export function AppLayout() {
                   buttonVariants({ variant: "ghost" }),
                   "h-10 justify-start gap-3 px-3 text-sm font-semibold shadow-none",
                   isActive
-                    ? "bg-indigo-500/15 text-indigo-100 ring-1 ring-indigo-400/20"
-                    : "text-slate-300 hover:bg-indigo-500/10 hover:text-white",
+                    ? "bg-sky-500/15 text-sky-100 ring-1 ring-sky-400/20"
+                    : "text-slate-300 hover:bg-sky-500/10 hover:text-white",
                 )
               }
             >
@@ -178,7 +178,7 @@ export function AppLayout() {
           ))}
 
           <div className="mt-3 border-t border-white/10 pt-3">
-            <Button asChild className="w-full bg-[#4f46e5] hover:bg-indigo-500">
+            <Button asChild className="w-full bg-sky-600 hover:bg-sky-500 text-white">
               <NavLink to="/products/new">
                 <Plus aria-hidden="true" />
                 {t("app.addProduct")}
@@ -215,19 +215,14 @@ export function AppLayout() {
                 <button
                   type="button"
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                 >
-                  <div className="flex items-center gap-2">
-                    {theme === "dark" ? (
-                      <Sun className="size-4" aria-hidden="true" />
-                    ) : (
-                      <Moon className="size-4" aria-hidden="true" />
-                    )}
-                    <span>{theme === "dark" ? t("app.themeLight") : t("app.themeDark")}</span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 uppercase font-mono">
-                    {theme === "dark" ? "Dark" : "Light"}
-                  </span>
+                  {theme === "dark" ? (
+                    <Sun className="size-4" aria-hidden="true" />
+                  ) : (
+                    <Moon className="size-4" aria-hidden="true" />
+                  )}
+                  <span>{theme === "dark" ? t("app.themeLight") : t("app.themeDark")}</span>
                 </button>
                 <div className="border-t border-white/10" />
                 <button
@@ -253,8 +248,8 @@ export function AppLayout() {
           aria-valuemax={MAX_SIDEBAR_WIDTH}
           aria-valuenow={sidebarWidth}
           className={cn(
-            "absolute right-0 top-0 h-full w-2 translate-x-1/2 cursor-col-resize touch-none rounded-none bg-transparent outline-none transition-colors hover:bg-indigo-400/35 focus-visible:bg-indigo-400/45",
-            isResizingSidebar ? "bg-indigo-400/45" : "",
+            "absolute right-0 top-0 h-full w-2 translate-x-1/2 cursor-col-resize touch-none rounded-none bg-transparent outline-none transition-colors hover:bg-sky-400/35 focus-visible:bg-sky-400/45",
+            isResizingSidebar ? "bg-sky-400/45" : "",
           )}
           onPointerDown={startSidebarResize}
           onDoubleClick={() => updateSidebarWidth(DEFAULT_SIDEBAR_WIDTH)}
@@ -266,14 +261,14 @@ export function AppLayout() {
         isResizingSidebar ? "duration-0" : "duration-300",
       )}>
         <div className="mx-auto max-w-md p-4 pb-24 md:max-w-7xl md:p-6 lg:p-8 md:pb-8">
-          <header className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white px-4 py-2.5 shadow-sm md:hidden">
-            <NavLink to="/" className="shrink-0 text-lg font-bold text-indigo-700">
+          <header className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-2.5 shadow-sm md:hidden">
+            <NavLink to="/" className="shrink-0 text-lg font-bold text-primary">
               {t("app.brand")}
             </NavLink>
             <div className="flex items-center gap-2">
               <CommandMenuTrigger 
                 onClick={() => setCommandOpen(true)} 
-                className="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" 
+                className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground" 
                 kbdClassName="hidden" 
                 showLabel={false}
               />
@@ -287,7 +282,7 @@ export function AppLayout() {
                     })
                   }
                   pending={uploadAvatar.isPending}
-                  className="border-indigo-100 bg-indigo-50 text-indigo-700"
+                  className="border-primary/20 bg-primary/10 text-primary"
                 />
               ) : null}
             </div>
@@ -307,7 +302,7 @@ export function AppLayout() {
               className={({ isActive }) =>
                 [
                   "flex w-full flex-col items-center justify-center text-[10px] font-medium",
-                  isActive ? "text-indigo-200" : "text-slate-400",
+                  isActive ? "text-sky-300" : "text-slate-400",
                 ].join(" ")
               }
             >
@@ -318,7 +313,7 @@ export function AppLayout() {
           <div className="relative -top-5 flex justify-center">
             <NavLink
               to="/products/new"
-              className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#4f46e5] text-white shadow-lg shadow-indigo-950/40 transition-transform hover:scale-105 hover:bg-indigo-500"
+              className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-600 text-white shadow-lg shadow-sky-950/40 transition-transform hover:scale-105 hover:bg-sky-500"
               aria-label={t("app.addProduct")}
             >
               <Plus className="h-8 w-8" aria-hidden="true" />
@@ -331,7 +326,7 @@ export function AppLayout() {
               className={({ isActive }) =>
                 [
                   "flex w-full flex-col items-center justify-center text-[10px] font-medium",
-                  isActive ? "text-indigo-200" : "text-slate-400",
+                  isActive ? "text-sky-300" : "text-slate-400",
                 ].join(" ")
               }
             >
@@ -462,19 +457,14 @@ function MobileMoreMenu({
             <button
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
             >
-              <div className="flex items-center gap-2">
-                {theme === "dark" ? (
-                  <Sun className="size-4" aria-hidden="true" />
-                ) : (
-                  <Moon className="size-4" aria-hidden="true" />
-                )}
-                <span>{theme === "dark" ? t("app.themeLight") : t("app.themeDark")}</span>
-              </div>
-              <span className="text-[10px] text-slate-500 uppercase font-mono">
-                {theme === "dark" ? "Dark" : "Light"}
-              </span>
+              {theme === "dark" ? (
+                <Sun className="size-4" aria-hidden="true" />
+              ) : (
+                <Moon className="size-4" aria-hidden="true" />
+              )}
+              <span>{theme === "dark" ? t("app.themeLight") : t("app.themeDark")}</span>
             </button>
             <div className="border-t border-white/10" />
             <button

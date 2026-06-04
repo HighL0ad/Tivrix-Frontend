@@ -492,7 +492,7 @@ export function ProductsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 rounded-md border-rose-200 bg-background px-3 text-[12px] font-semibold text-rose-700 shadow-none hover:bg-rose-50 hover:text-rose-800"
+                className="h-7 rounded-md border-rose-200 bg-background px-3 text-[12px] font-semibold text-rose-700 shadow-none hover:bg-rose-50 hover:text-rose-800 dark:border-rose-400/35 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/18 dark:hover:text-rose-100"
                 onClick={() => {
                   setSearchValue("");
                   setSupplierSearch("");

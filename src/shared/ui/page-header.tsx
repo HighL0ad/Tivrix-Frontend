@@ -25,11 +25,11 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-2xl font-black tracking-tight text-gray-950">
+          <h2 className="text-2xl font-black tracking-tight text-foreground">
             {title}
           </h2>
           {description ? (
-            <p className="mt-1 max-w-2xl text-[13px] leading-5 text-gray-500">
+            <p className="mt-1 max-w-2xl text-[13px] leading-5 text-muted-foreground">
               {description}
             </p>
           ) : null}

@@ -4,7 +4,7 @@ import { Navigate, Route, Routes } from "react-router";
 import { AppLayout } from "@/widgets/app-layout/AppLayout";
 import { Toaster } from "@/shared/ui/sonner";
 import { AccessGuard } from "@/app/AccessGuard";
-import { PageLoading } from "@/shared/ui/page-state";
+import { AppShellLoading } from "@/shared/ui/page-state";
 
 const DashboardPage = lazy(() =>
   import("@/pages/dashboard/DashboardPage").then((module) => ({
@@ -75,7 +75,7 @@ const UsersPage = lazy(() =>
 export function App() {
   return (
     <>
-      <Suspense fallback={<PageLoading />}>
+      <Suspense fallback={<AppShellLoading />}>
         <Routes>
           <Route path="login" element={<LoginPage />} />
           <Route path="set-password" element={<SetPasswordPage />} />

@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
-const CURRENT_VERSION = "0.1.2-alpha.4";
+const CURRENT_VERSION = "0.1.3-alpha.1";
 const STORAGE_KEY = "ferdi.lastReadVersion";
 
 type ChangelogItem = {
@@ -25,8 +25,8 @@ type ChangelogItem = {
 const changelogItems: ChangelogItem[] = [
   {
     type: "new",
-    titleKey: "changelog.items.debtCollapseDetails.title",
-    descKey: "changelog.items.debtCollapseDetails.desc",
+    titleKey: "changelog.items.darkThemeRedesign.title",
+    descKey: "changelog.items.darkThemeRedesign.desc",
   },
 ];
 
@@ -50,7 +50,7 @@ export function ChangelogDialog() {
     <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); }}>
       <DialogContent className="sm:max-w-[480px] p-5 gap-4 overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xl">
         <DialogHeader className="gap-1">
-          <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50/60 w-fit px-2.5 py-1 rounded-full text-xs font-bold border border-indigo-100 select-none">
+          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/20 w-fit px-2.5 py-1 rounded-full text-xs font-bold border border-sky-100 dark:border-sky-500/20 select-none">
             <Sparkles className="size-3.5 animate-pulse" />
             <span>{t("changelog.badge", { version: CURRENT_VERSION })}</span>
           </div>
@@ -69,15 +69,15 @@ export function ChangelogDialog() {
               return (
                 <div 
                   key={index} 
-                  className="flex items-start gap-3 rounded-lg border border-border/50 bg-slate-50/30 p-3 hover:bg-slate-50/70 transition-colors"
+                  className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/65 transition-colors p-3"
                 >
                   <div className="mt-0.5 shrink-0">
                     {isNew ? (
-                      <span className="inline-flex w-10 h-5 items-center justify-center rounded-md bg-emerald-100 text-[9px] font-black text-emerald-800 uppercase tracking-wide select-none">
+                      <span className="inline-flex w-10 h-5 items-center justify-center rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-[9px] font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wide select-none">
                         NEW
                       </span>
                     ) : (
-                      <span className="inline-flex w-10 h-5 items-center justify-center rounded-md bg-blue-100 text-[9px] font-black text-blue-800 uppercase tracking-wide select-none">
+                      <span className="inline-flex w-10 h-5 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-950/40 text-[9px] font-black text-blue-800 dark:text-blue-300 uppercase tracking-wide select-none">
                         UPD
                       </span>
                     )}
@@ -106,7 +106,7 @@ export function ChangelogDialog() {
           </div>
           <Button 
             onClick={handleClose}
-            className="w-full sm:w-auto h-9 font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm active:scale-95 transition-transform"
+            className="w-full sm:w-auto h-9 font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-sm active:scale-95 transition-transform"
           >
             <Check className="size-4 mr-1.5" />
             {t("changelog.closeButton")}

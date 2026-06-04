@@ -21,6 +21,7 @@ export type ClientSale = {
   product_id: number;
   product_name: string;
   product_imei: string;
+  sale_source: string | null;
   total_price: string;
   paid_now_amount: string | null;
   sale_mode: string;

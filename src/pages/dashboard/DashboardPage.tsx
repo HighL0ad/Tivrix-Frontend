@@ -1,6 +1,7 @@
 import {
   Area,
   AreaChart,
+  CartesianGrid,
   Tooltip,
   XAxis,
   YAxis,
@@ -10,6 +11,7 @@ import { AlertCircle, Banknote, Boxes, ChartNoAxesColumnIncreasing, ChevronDown,
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { cn } from "@/shared/lib/utils";
 import { useDashboard } from "@/entities/dashboard/api/use-dashboard";
 import { money, shortDate } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
@@ -75,7 +77,7 @@ export function DashboardPage() {
           title={t("dashboard.liveBalance")}
           value={<Money value={data.total_money} />}
           hint={t("dashboard.afterDebts", { amount: money(data.projected_balance) })}
-          tone="violet"
+          tone="info"
           icon={<Banknote className="size-4" />}
         />
         <MetricCard
@@ -292,28 +294,28 @@ export function DashboardPage() {
                 title={t("dashboard.netProfitFor", { period: periodLabel(profitPeriod, t) })}
                 value={<Money value={selectedProfitPeriod.profit_total} />}
                 hint={t("dashboard.saleMinusPurchase")}
-                className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-300 dark:border-emerald-500/25"
                 icon={<ChartNoAxesColumnIncreasing className="size-4" />}
               />
               <ColorMetric
                 title={t("dashboard.revenueFor", { period: periodLabel(profitPeriod, t) })}
                 value={<Money value={selectedProfitPeriod.revenue_total} />}
                 hint={t("dashboard.salesAmount")}
-                className="border-sky-200 bg-sky-50 text-sky-800"
+                className="border-sky-200 bg-sky-50 text-sky-800 dark:bg-sky-950/20 dark:text-sky-300 dark:border-sky-500/25"
                 icon={<Landmark className="size-4" />}
               />
               <ColorMetric
                 title={t("dashboard.soldInDebt")}
                 value={<Money value={selectedProfitPeriod.debt_sales_total} />}
                 hint={t("dashboard.clientsAndPartners")}
-                className="border-amber-200 bg-amber-50 text-amber-800"
+                className="border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-500/25"
                 icon={<HandCoins className="size-4" />}
               />
               <ColorMetric
                 title={t("dashboard.soldProducts")}
                 value={t("common.pcs", { count: selectedProfitPeriod.sales_count })}
                 hint={t("dashboard.closedSales")}
-                className="border-violet-200 bg-violet-50 text-violet-800"
+                className="border-violet-200 bg-violet-50 text-violet-800 dark:bg-violet-950/20 dark:text-violet-300 dark:border-violet-500/25"
                 icon={<ShoppingCart className="size-4" />}
               />
             </div>
@@ -327,27 +329,32 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recent_transactions.map((tx) => (
-              <div key={tx.id} className="rounded-lg border bg-white p-3 transition-colors hover:bg-sky-50/50">
+              <div key={tx.id} className="rounded-lg border bg-card p-3 transition-colors hover:bg-muted/50">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="break-words text-sm font-semibold">{tx.display_description}</div>
-                    <div className="mt-1 text-xs text-gray-500">{tx.operation_kind} · {tx.route_label}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{tx.operation_kind} · {tx.route_label}</div>
                     {tx.created_by_username ? (
-                      <div className="mt-1 text-xs text-gray-500">
+                      <div className="mt-1 text-xs text-muted-foreground">
                         {t("common.user")}: {tx.created_by_username}
                       </div>
                     ) : null}
                     {[tx.from_wallet_name, tx.to_wallet_name, tx.product_name].filter(Boolean).length ? (
-                      <div className="mt-1 text-xs text-gray-500">
+                      <div className="mt-1 text-xs text-muted-foreground">
                         {[tx.from_wallet_name, tx.to_wallet_name, tx.product_name].filter(Boolean).join(" · ")}
                       </div>
                     ) : null}
                   </div>
-                  <div className="shrink-0 whitespace-nowrap text-right text-sm font-bold">
+                  <div className={cn(
+                    "shrink-0 whitespace-nowrap text-right text-sm font-bold",
+                    Number(tx.amount) > 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-red-600 dark:text-red-400"
+                  )}>
                     <Money value={tx.amount} />
                   </div>
                 </div>
-                <div className="mt-2 text-xs text-gray-400">{shortDate(tx.created_at)}</div>
+                <div className="mt-2 text-xs text-muted-foreground/80">{shortDate(tx.created_at)}</div>
               </div>
             ))}
           </CardContent>
@@ -392,10 +399,10 @@ function ProfitChart({
   return (
     <div
       ref={wrapperRef}
-      className="mt-2 h-[220px] min-w-0 overflow-hidden sm:h-[280px]"
+      className="mt-2 h-[220px] min-w-0 overflow-hidden sm:h-[280px] text-muted-foreground/70"
     >
       {data.length > 0 && width > 0 ? (
-        <AreaChart
+         <AreaChart
           width={width}
           height={height}
           data={data}
@@ -403,34 +410,40 @@ function ProfitChart({
         >
           <defs>
             <linearGradient id="profit" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="5%" stopColor="#0369a1" stopOpacity={0.28} />
-              <stop offset="95%" stopColor="#0369a1" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--primary)" stopOpacity="var(--chart-fill-opacity)" />
+              <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
             </linearGradient>
           </defs>
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="currentColor"
+            opacity={0.1}
+            vertical={false}
+          />
           <XAxis
             dataKey="label"
             interval={period === "7d" ? 0 : "preserveStartEnd"}
             minTickGap={width < 640 ? 18 : 28}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 11, fill: "currentColor" }}
             tickLine={false}
             axisLine={false}
             padding={{ left: 8, right: 8 }}
           />
           <YAxis
             width={50}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 11, fill: "currentColor" }}
             tickLine={false}
             axisLine={false}
             tickFormatter={(value) => compactMoney(Number(value))}
           />
           <Tooltip
             content={<ProfitTooltip />}
-            cursor={{ stroke: "#0369a1", strokeOpacity: 0.18, strokeWidth: 2 }}
+            cursor={{ stroke: "var(--primary)", strokeOpacity: 0.18, strokeWidth: 2 }}
           />
           <Area
             type="monotone"
             dataKey="profit"
-            stroke="#0369a1"
+            stroke="var(--primary)"
             fill="url(#profit)"
             strokeWidth={2}
           />
@@ -467,11 +480,11 @@ function ProfitTooltip({ active, payload, label }: ProfitTooltipPayload) {
   }
 
   return (
-    <div className="rounded-lg border bg-white px-3 py-2 text-sm shadow-lg">
-      <div className="text-xs font-bold uppercase text-gray-500">
+    <div className="rounded-lg border bg-popover text-popover-foreground px-3 py-2 text-sm shadow-lg">
+      <div className="text-xs font-bold uppercase text-muted-foreground">
         {payload[0]?.payload?.tooltipLabel ?? label}
       </div>
-      <div className="mt-1 font-black text-sky-700">
+      <div className="mt-1 font-black text-sky-600 dark:text-sky-400">
         <Money value={Number(payload[0]?.value ?? 0)} />
       </div>
     </div>

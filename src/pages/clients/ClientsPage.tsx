@@ -43,40 +43,40 @@ function FilterCard({
 }) {
   const toneStyle = {
     neutral: {
-      card: "border-gray-200 before:from-gray-300 before:to-gray-500",
-      activeCard: "border-gray-400 bg-gray-50/50 before:from-gray-400 before:to-gray-600 ring-2 ring-gray-400/10",
-      icon: "text-gray-700 bg-gray-100",
-      activeIcon: "text-gray-900 bg-gray-200/80 border-gray-300",
+      card: "border-border before:from-gray-300 before:to-gray-500",
+      activeCard: "border-border bg-muted/50 before:from-gray-400 before:to-gray-600 ring-2 ring-ring/10",
+      icon: "border-border bg-muted text-foreground",
+      activeIcon: "border-border bg-muted text-foreground",
     },
     good: {
       card: "border-emerald-200 before:from-emerald-400 before:to-teal-500",
-      activeCard: "border-emerald-400 bg-emerald-50/30 before:from-emerald-400 before:to-teal-600 ring-2 ring-emerald-500/10",
-      icon: "text-emerald-700 bg-emerald-100",
-      activeIcon: "text-emerald-950 bg-emerald-200/80 border-emerald-300",
+      activeCard: "border-emerald-400 bg-emerald-50/30 dark:bg-emerald-500/10 before:from-emerald-400 before:to-teal-600 ring-2 ring-emerald-500/10",
+      icon: "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-400/45 dark:bg-emerald-400/16 dark:text-emerald-200",
+      activeIcon: "border-emerald-300 bg-emerald-200/80 text-emerald-950 dark:border-emerald-300/60 dark:bg-emerald-400/24 dark:text-emerald-100",
     },
     bad: {
       card: "border-rose-200 before:from-rose-400 before:to-red-500",
-      activeCard: "border-rose-400 bg-rose-50/30 before:from-rose-400 before:to-red-600 ring-2 ring-rose-500/10",
-      icon: "text-rose-700 bg-rose-100",
-      activeIcon: "text-rose-950 bg-rose-200/80 border-rose-300",
+      activeCard: "border-rose-400 bg-rose-50/30 dark:bg-rose-500/10 before:from-rose-400 before:to-red-600 ring-2 ring-rose-500/10",
+      icon: "border-rose-200 bg-rose-100 text-rose-700 dark:border-rose-400/45 dark:bg-rose-400/16 dark:text-rose-200",
+      activeIcon: "border-rose-300 bg-rose-200/80 text-rose-950 dark:border-rose-300/60 dark:bg-rose-400/24 dark:text-rose-100",
     },
     info: {
       card: "border-blue-200 before:from-blue-400 before:to-indigo-500",
-      activeCard: "border-blue-400 bg-blue-50/30 before:from-blue-400 before:to-indigo-600 ring-2 ring-blue-500/10",
-      icon: "text-indigo-700 bg-indigo-100",
-      activeIcon: "text-indigo-950 bg-indigo-200/80 border-indigo-300",
+      activeCard: "border-blue-400 bg-blue-50/30 dark:bg-sky-500/10 before:from-blue-400 before:to-indigo-600 ring-2 ring-blue-500/10",
+      icon: "border-sky-200 bg-indigo-100 text-indigo-700 dark:border-sky-400/45 dark:bg-sky-400/16 dark:text-sky-200",
+      activeIcon: "border-indigo-300 bg-indigo-200/80 text-indigo-950 dark:border-sky-300/60 dark:bg-sky-400/24 dark:text-sky-100",
     },
     warning: {
       card: "border-amber-200 before:from-amber-400 before:to-orange-500",
-      activeCard: "border-amber-400 bg-amber-50/30 before:from-amber-400 before:to-orange-600 ring-2 ring-amber-500/10",
-      icon: "text-amber-700 bg-amber-100",
-      activeIcon: "text-amber-950 bg-amber-200/80 border-amber-300",
+      activeCard: "border-amber-400 bg-amber-50/30 dark:bg-amber-500/10 before:from-amber-400 before:to-orange-600 ring-2 ring-amber-500/10",
+      icon: "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-400/45 dark:bg-amber-400/16 dark:text-amber-200",
+      activeIcon: "border-amber-300 bg-amber-200/80 text-amber-950 dark:border-amber-300/60 dark:bg-amber-400/24 dark:text-amber-100",
     },
     violet: {
       card: "border-violet-200 before:from-violet-400 before:to-fuchsia-500",
-      activeCard: "border-violet-400 bg-violet-50/30 before:from-violet-400 before:to-fuchsia-600 ring-2 ring-violet-500/10",
-      icon: "text-violet-700 bg-violet-100",
-      activeIcon: "text-violet-950 bg-violet-200/80 border-violet-300",
+      activeCard: "border-violet-400 bg-violet-50/30 dark:bg-violet-500/10 before:from-violet-400 before:to-fuchsia-600 ring-2 ring-violet-500/10",
+      icon: "border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-400/45 dark:bg-violet-400/16 dark:text-violet-200",
+      activeIcon: "border-violet-300 bg-violet-200/80 text-violet-950 dark:border-violet-300/60 dark:bg-violet-400/24 dark:text-violet-100",
     },
   }[tone];
 
@@ -85,22 +85,22 @@ function FilterCard({
       size="sm"
       className={cn(
         "relative cursor-pointer select-none transition-all duration-300 hover:scale-[1.015] active:scale-[0.985] before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r",
-        active ? cn("shadow-md", toneStyle.activeCard) : cn("bg-white hover:bg-gray-50/40 hover:shadow-xs", toneStyle.card)
+        active ? cn("shadow-md", toneStyle.activeCard) : cn("bg-card hover:bg-muted/40 hover:shadow-xs", toneStyle.card)
       )}
       onClick={onClick}
     >
       <CardContent className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs font-bold uppercase tracking-wide text-gray-500 transition-colors">
+          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground transition-colors">
             {title}
           </div>
-          <div className="mt-2 break-words font-black tracking-tight text-gray-950 text-xl leading-none">
+          <div className="mt-2 break-words font-black tracking-tight text-foreground text-xl leading-none">
             {value}
           </div>
-          {hint ? <div className="mt-1 text-xs text-gray-500">{hint}</div> : null}
+          {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
         </div>
         {icon ? (
-          <div className={cn("rounded-lg border border-white/80 p-2 shadow-sm transition-colors", active ? toneStyle.activeIcon : toneStyle.icon)}>
+          <div className={cn("rounded-lg border p-2 shadow-sm transition-colors [&_svg]:stroke-[2.6]", active ? toneStyle.activeIcon : toneStyle.icon)}>
             {icon}
           </div>
         ) : null}
@@ -193,7 +193,7 @@ export function ClientsPage() {
         <CardHeader className="gap-3">
           <CardTitle>{t("clients.list")}</CardTitle>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -222,7 +222,7 @@ export function ClientsPage() {
                       return (
                         <TableRow
                           key={client.id}
-                          className={hasDebt ? "cursor-pointer bg-rose-50/30 hover:bg-rose-50/60 transition-colors" : "cursor-pointer transition-colors hover:bg-gray-50/60"}
+                          className="cursor-pointer transition-colors hover:bg-muted/60"
                           onClick={() =>
                             navigate(`/clients/${client.id}`, {
                               state: { from: `/clients?page=${page}` },
@@ -240,20 +240,20 @@ export function ClientsPage() {
                               <span><HighlightText text={client.name} highlight={debouncedSearch} /></span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-gray-600">
+                          <TableCell className="text-muted-foreground">
                             <HighlightText text={client.phone} highlight={debouncedSearch} />
                           </TableCell>
                           <TableCell>
                             {hasDebt ? (
-                              <Badge variant="outline" className="border-rose-200 bg-rose-50 font-bold text-rose-700">
+                              <Badge variant="outline" className="border-rose-200 bg-rose-50 font-bold text-rose-700 dark:border-rose-500/35 dark:bg-rose-500/10 dark:text-rose-300">
                                 {money(client.total_debt)}
                               </Badge>
                             ) : (
-                              <span className="text-gray-400 text-sm">{money(client.total_debt)}</span>
+                              <span className="text-muted-foreground text-sm">{money(client.total_debt)}</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-gray-600">{client.purchases_count}</TableCell>
-                          <TableCell className="text-gray-500">{shortDate(client.last_purchase_at)}</TableCell>
+                          <TableCell className="text-muted-foreground">{client.purchases_count}</TableCell>
+                          <TableCell className="text-muted-foreground">{shortDate(client.last_purchase_at)}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -269,7 +269,7 @@ export function ClientsPage() {
                         key={client.id}
                         className={cn(
                           "rounded-xl border border-border p-4 shadow-sm space-y-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-95",
-                          hasDebt ? "bg-rose-50/20 border-rose-100" : "bg-card"
+                          hasDebt ? "bg-card border-border" : "bg-card"
                         )}
                         onClick={() =>
                           navigate(`/clients/${client.id}`, {
@@ -291,7 +291,7 @@ export function ClientsPage() {
                           </div>
                           <div>
                             {hasDebt ? (
-                              <Badge variant="outline" className="border-rose-200 bg-rose-50 font-bold text-rose-700">
+                              <Badge variant="outline" className="border-rose-200 bg-rose-50 font-bold text-rose-700 dark:border-rose-500/35 dark:bg-rose-500/10 dark:text-rose-300">
                                 {money(client.total_debt)}
                               </Badge>
                             ) : (
@@ -451,7 +451,7 @@ function getInitials(name: string) {
 function getAvatarColorStyle(id: number) {
   const hue = (id * 137) % 360;
   return {
-    backgroundColor: `hsl(${hue}, 70%, 92%)`,
-    color: `hsl(${hue}, 65%, 35%)`,
+    backgroundColor: `light-dark(hsl(${hue}, 70%, 92%), color-mix(in srgb, hsl(${hue}, 70%, 42%) 28%, var(--card)))`,
+    color: `light-dark(hsl(${hue}, 65%, 35%), hsl(${hue}, 78%, 78%))`,
   };
 }

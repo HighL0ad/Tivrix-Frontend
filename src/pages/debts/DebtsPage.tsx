@@ -316,27 +316,27 @@ export function DebtsPage() {
                   </div>
 
                   {/* Правая часть: Выделенный счётчик активных клиентов */}
-                  <div className="rounded-lg border border-slate-200/80 bg-linear-to-b from-white/95 to-slate-50/90 backdrop-blur-xs p-5 flex flex-col justify-between shadow-xs min-h-[180px]">
+                  <div className="rounded-lg border border-border bg-linear-to-b from-card to-muted/45 backdrop-blur-xs p-5 flex flex-col justify-between shadow-xs min-h-[180px]">
                     <div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         {t("finance.activeInstallmentClients")}
                       </div>
-                      <div className="mt-1 text-[11px] font-semibold text-slate-400 leading-tight">
+                      <div className="mt-1 text-[11px] font-semibold text-muted-foreground leading-tight">
                         {t("finance.clientsWithActiveInstallments")}
                       </div>
                     </div>
                     <div className="mt-4 flex items-baseline gap-1.5 md:gap-2">
-                      <span className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 font-sans leading-none">
+                      <span className="text-4xl md:text-6xl font-black tracking-tight text-foreground font-sans leading-none">
                         {fData.attention.active_installment_clients_count}
                       </span>
-                      <span className="text-xs md:text-sm font-bold text-slate-400 lowercase">{t("app.nav.clients")}</span>
+                      <span className="text-xs md:text-sm font-bold text-muted-foreground lowercase">{t("app.nav.clients")}</span>
                     </div>
-                    <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <div className="mt-4 border-t border-border pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       <div className="flex items-center gap-1.5">
-                        <UsersRound className="size-3.5 text-slate-400" />
+                        <UsersRound className="size-3.5 text-muted-foreground" />
                         <span>CRM Синхронизация</span>
                       </div>
-                      <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100/85">
+                      <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100/85 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
                         <span className="relative flex size-1.5">
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
@@ -351,9 +351,9 @@ export function DebtsPage() {
               {/* Раздел 3: Таблицы и графики (Полировка списков) */}
               <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
                 {/* Список предстоящих платежей с цветными аватарами и пилюльками */}
-                <Card className="py-0 gap-0 overflow-hidden bg-white border-slate-200">
-                  <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 bg-slate-50/50">
-                    <CardTitle className="text-sm font-bold text-slate-800">{t("finance.upcomingPayments")}</CardTitle>
+                <Card className="py-0 gap-0 overflow-hidden bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 bg-muted/35">
+                    <CardTitle className="text-sm font-bold text-card-foreground">{t("finance.upcomingPayments")}</CardTitle>
                     <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-xs font-bold text-sky-600 hover:text-sky-700">
                       <NavLink to="/clients">{t("app.nav.clients")}</NavLink>
                     </Button>
@@ -361,16 +361,16 @@ export function DebtsPage() {
                   <CardContent className="p-0">
                     {fData.attention.upcoming_installments.length ? (
                       <ScrollArea className="h-[27rem] min-h-[12rem]">
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-border">
                           {fData.attention.upcoming_installments.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-slate-50/50 transition-colors"
+                              className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-muted/50 transition-colors"
                             >
                               <div className="flex min-w-0 items-center">
                                 {/* Цветные аватары с инициалами */}
                                 <div
-                                  className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-black uppercase select-none mr-3 border border-white shadow-xs"
+                                  className="mr-3 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-black uppercase shadow-sm ring-1 ring-white/8 select-none"
                                   style={getAvatarColorStyle(item.client_id)}
                                 >
                                   {getInitials(item.client_name)}
@@ -379,12 +379,12 @@ export function DebtsPage() {
                                   <NavLink
                                     to={`/clients/${item.client_id}`}
                                     state={{ from: installmentsReturnTo }}
-                                    className="inline-block font-bold text-slate-900 hover:text-sky-600 transition-all duration-200 hover:translate-x-0.5 truncate max-w-full"
+                                    className="inline-block font-bold text-foreground hover:text-primary transition-all duration-200 hover:translate-x-0.5 truncate max-w-full"
                                   >
                                     {item.client_name}
                                   </NavLink>
                                   {item.product_name ? (
-                                    <span className="text-[11px] font-medium text-slate-400 block truncate">
+                                    <span className="text-[11px] font-medium text-muted-foreground block truncate">
                                       {item.product_name}
                                     </span>
                                   ) : null}
@@ -395,11 +395,11 @@ export function DebtsPage() {
                               <div className="flex items-center gap-4 shrink-0">
                                 <div className="flex flex-col items-end gap-0.5">
                                   {renderDuePill(item.days_until_due, t)}
-                                  <span className="text-[10px] font-bold text-slate-400 font-mono">
+                                  <span className="text-[10px] font-bold text-muted-foreground font-mono">
                                     {shortDate(item.due_date)}
                                   </span>
                                 </div>
-                                <div className="font-black text-right text-slate-900 font-sans text-sm min-w-[76px]">
+                                <div className="font-black text-right text-foreground font-sans text-sm min-w-[76px]">
                                   {money(item.remaining_amount)}
                                 </div>
                               </div>
@@ -416,35 +416,35 @@ export function DebtsPage() {
                 </Card>
 
                 {/* Прогноз сборов с тонкими барами */}
-                <Card className="py-0 gap-0 bg-white border-slate-200">
-                  <CardHeader className="border-b border-slate-100 px-4 py-3 bg-slate-50/50">
-                    <CardTitle className="text-sm font-bold text-slate-800">{t("finance.monthlyForecast")}</CardTitle>
+                <Card className="py-0 gap-0 bg-card border-border">
+                  <CardHeader className="border-b border-border px-4 py-3 bg-muted/35">
+                    <CardTitle className="text-sm font-bold text-card-foreground">{t("finance.monthlyForecast")}</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 space-y-1">
                     {fData.attention.monthly_forecast.length ? (
-                      <div className="divide-y divide-slate-50">
+                      <div className="divide-y divide-border">
                         {fData.attention.monthly_forecast.map((item) => {
                           const amount = Number(item.amount);
                           const width = `${Math.max((amount / maxMonthlyForecast) * 100, amount > 0 ? 8 : 0)}%`;
 
                           return (
                             <div key={item.month} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
-                              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+                              <div className="flex items-center justify-between text-xs font-bold text-muted-foreground">
                                 <span className="uppercase tracking-wider">
                                   {formatForecastMonth(item.month, t)}
                                 </span>
-                                <span className="font-mono text-slate-400 text-[11px]">
+                                <span className="font-mono text-muted-foreground text-[11px]">
                                   {t("finance.paymentsCount", { count: String(item.count) })}
                                 </span>
                               </div>
-                              <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                                 <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width }} />
                               </div>
                               <div className="flex items-center justify-between mt-0.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                                   {t("finance.collectionPlan")}
                                 </span>
-                                <span className="text-sm font-black text-slate-900 font-sans">{money(item.amount)}</span>
+                                <span className="text-sm font-black text-foreground font-sans">{money(item.amount)}</span>
                               </div>
                             </div>
                           );
@@ -480,7 +480,7 @@ function PayablesBlock({
     <Card className="gap-0 py-0 card-accent-amber">
       <CardHeader className="flex flex-row items-center justify-between gap-3 border-b px-4 py-3">
         <CardTitle className="min-w-0 text-sm">{t("debts.unpaidPayables")}</CardTitle>
-        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-300">
           {money(total)}
         </Badge>
       </CardHeader>
@@ -679,9 +679,9 @@ function DebtGroupBlock({
 }) {
   const total = sumWallets(wallets);
   const totalClass = {
-    bad: "border-rose-200 bg-rose-50 text-rose-700",
-    blue: "border-blue-200 bg-blue-50 text-blue-700",
-    good: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    bad: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/35 dark:bg-rose-500/10 dark:text-rose-300",
+    blue: "border-blue-200 bg-blue-50 text-blue-700 dark:border-sky-500/35 dark:bg-sky-500/10 dark:text-sky-300",
+    good: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/35 dark:bg-emerald-500/10 dark:text-emerald-300",
   }[tone];
   const cardClass = {
     bad: "gap-0 py-0 card-accent-rose",
@@ -689,7 +689,7 @@ function DebtGroupBlock({
     good: "gap-0 py-0 card-accent-emerald",
   }[tone];
   const headerClass = tone === "blue"
-    ? "flex flex-row items-center justify-between gap-3 border-b border-blue-200 bg-blue-50/50 px-4 py-3"
+    ? "flex flex-row items-center justify-between gap-3 border-b border-blue-200 bg-blue-50/50 px-4 py-3 dark:border-sky-500/25 dark:bg-sky-500/10"
     : "flex flex-row items-center justify-between gap-3 border-b px-4 py-3";
 
   return (
@@ -805,7 +805,7 @@ function WalletRow({
                         {parsed.title}
                       </div>
                       {parsed.comment && (
-                        <div className="mt-0.5 break-words text-[11px] font-medium text-slate-500">
+                        <div className="mt-0.5 break-words text-[11px] font-medium text-muted-foreground">
                           {parsed.comment}
                         </div>
                       )}
@@ -942,7 +942,7 @@ function AttentionMetric({
 }) {
   return (
     <div className={cn("flex items-center gap-3 rounded-lg border p-4 text-sm", className)}>
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/40">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/40 dark:bg-white/10">
         {icon}
       </span>
       <div className="min-w-0">
@@ -969,8 +969,9 @@ function getAvatarColorStyle(id: number) {
   const hues = [200, 260, 320, 45, 140, 15, 80, 290];
   const hue = hues[id % hues.length];
   return {
-    backgroundColor: `hsl(${hue}, 85%, 95%)`,
-    color: `hsl(${hue}, 90%, 35%)`,
+    backgroundColor: `light-dark(hsl(${hue}, 78%, 90%), color-mix(in srgb, hsl(${hue}, 72%, 46%) 52%, #0f172a))`,
+    borderColor: `light-dark(hsl(${hue}, 62%, 78%), color-mix(in srgb, hsl(${hue}, 80%, 72%) 56%, transparent))`,
+    color: `light-dark(hsl(${hue}, 72%, 28%), hsl(${hue}, 92%, 90%))`,
   };
 }
 

@@ -9,11 +9,11 @@ export const buttonVariants = cva(
         outline:
           "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-none hover:bg-teal-100 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground shadow-none hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "text-muted-foreground shadow-none hover:bg-secondary hover:text-primary aria-expanded:bg-secondary aria-expanded:text-primary",
         destructive:
-          "bg-red-50 text-red-600 shadow-none hover:bg-red-100 focus-visible:ring-destructive/20",
+          "bg-destructive/10 text-destructive shadow-none hover:bg-destructive/15 focus-visible:ring-destructive/20",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

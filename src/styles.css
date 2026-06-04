@@ -3,7 +3,7 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/jetbrains-mono";
 
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -58,6 +58,7 @@
   --border: oklch(0.928 0.006 264.531);
   --input: oklch(0.985 0.002 247.839);
   --ring: oklch(0.55 0.14 242);
+  --chart-fill-opacity: 0.28;
   font-family:
     var(--font-sans);
   color: var(--foreground);
@@ -66,24 +67,25 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.01 250);
-  --foreground: oklch(0.92 0.01 250);
-  --card: oklch(0.16 0.015 250);
-  --card-foreground: oklch(0.92 0.01 250);
-  --popover: oklch(0.16 0.015 250);
-  --popover-foreground: oklch(0.92 0.01 250);
-  --primary: oklch(0.6 0.14 242);
-  --primary-foreground: oklch(0.12 0.01 250);
-  --secondary: oklch(0.2 0.015 250);
-  --secondary-foreground: oklch(0.92 0.01 250);
-  --muted: oklch(0.18 0.01 250);
-  --muted-foreground: oklch(0.6 0.01 250);
-  --accent: oklch(0.22 0.02 155);
-  --accent-foreground: oklch(0.85 0.06 155);
-  --destructive: oklch(0.48 0.18 27);
-  --border: oklch(0.2 0.015 250);
-  --input: oklch(0.18 0.015 250);
-  --ring: oklch(0.6 0.14 242);
+  --background: #0b1120;
+  --foreground: #e5e7eb;
+  --card: #111827;
+  --card-foreground: #e5e7eb;
+  --popover: #111827;
+  --popover-foreground: #e5e7eb;
+  --primary: #0ea5e9;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #9ca3af;
+  --accent: #172033;
+  --accent-foreground: #f8fafc;
+  --destructive: #ef4444;
+  --border: #2b384d;
+  --input: #1e293b;
+  --ring: #0ea5e9;
+  --chart-fill-opacity: 0.19;
   color-scheme: dark;
 }
 
@@ -111,6 +113,222 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+@layer utilities {
+  .dark .bg-white,
+  .dark .bg-gray-50,
+  .dark .bg-slate-50,
+  .dark .bg-slate-100 {
+    background-color: var(--card) !important;
+  }
+
+  .dark .bg-gray-50\/40,
+  .dark .bg-gray-50\/50,
+  .dark .bg-gray-50\/60,
+  .dark .bg-slate-50\/30,
+  .dark .bg-slate-50\/50,
+  .dark .bg-slate-50\/70,
+  .dark .bg-white\/95,
+  .dark .from-white\/95,
+  .dark .to-slate-50\/90 {
+    --tw-gradient-from: color-mix(in srgb, var(--card) 92%, white 8%) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: color-mix(in srgb, var(--card) 88%, white 12%) var(--tw-gradient-to-position) !important;
+    background-color: color-mix(in srgb, var(--card) 92%, white 8%) !important;
+  }
+
+  .dark .bg-muted,
+  .dark .bg-background {
+    border-color: var(--border);
+  }
+
+  .dark .bg-gray-100,
+  .dark .bg-gray-200\/80,
+  .dark .bg-slate-100 {
+    background-color: var(--muted) !important;
+  }
+
+  .dark .bg-sky-50,
+  .dark .bg-sky-50\/50,
+  .dark .bg-sky-100,
+  .dark .bg-sky-100\/70,
+  .dark .bg-blue-50,
+  .dark .bg-blue-100,
+  .dark .bg-blue-100\/70 {
+    background-color: color-mix(in srgb, #0ea5e9 16%, transparent) !important;
+    color: #bae6fd !important;
+    border-color: color-mix(in srgb, #0ea5e9 34%, transparent) !important;
+  }
+
+  .dark .bg-emerald-50,
+  .dark .bg-emerald-50\/20,
+  .dark .bg-emerald-50\/30,
+  .dark .bg-emerald-50\/50,
+  .dark .bg-emerald-100,
+  .dark .bg-emerald-100\/70,
+  .dark .bg-teal-50 {
+    background-color: color-mix(in srgb, #10b981 15%, transparent) !important;
+    color: #a7f3d0 !important;
+    border-color: color-mix(in srgb, #10b981 32%, transparent) !important;
+  }
+
+  .dark .bg-rose-50,
+  .dark .bg-rose-50\/20,
+  .dark .bg-rose-50\/30,
+  .dark .bg-rose-50\/50,
+  .dark .bg-rose-50\/60,
+  .dark .bg-rose-100,
+  .dark .bg-red-50,
+  .dark .bg-red-100,
+  .dark .bg-red-50\/50,
+  .dark .bg-orange-50 {
+    background-color: color-mix(in srgb, #ef4444 15%, transparent) !important;
+    color: #fecdd3 !important;
+    border-color: color-mix(in srgb, #ef4444 32%, transparent) !important;
+  }
+
+  .dark .bg-amber-50,
+  .dark .bg-amber-50\/30,
+  .dark .bg-amber-50\/50,
+  .dark .bg-amber-100,
+  .dark .bg-amber-100\/70 {
+    background-color: color-mix(in srgb, #f59e0b 16%, transparent) !important;
+    color: #fde68a !important;
+    border-color: color-mix(in srgb, #f59e0b 34%, transparent) !important;
+  }
+
+  .dark .bg-violet-50,
+  .dark .bg-violet-50\/30,
+  .dark .bg-violet-100,
+  .dark .bg-violet-100\/70,
+  .dark .bg-indigo-50,
+  .dark .bg-indigo-100 {
+    background-color: color-mix(in srgb, #8b5cf6 16%, transparent) !important;
+    color: #ddd6fe !important;
+    border-color: color-mix(in srgb, #8b5cf6 34%, transparent) !important;
+  }
+
+  .dark .text-gray-300,
+  .dark .text-gray-400,
+  .dark .text-gray-500,
+  .dark .text-gray-600,
+  .dark .text-slate-400,
+  .dark .text-slate-500 {
+    color: var(--muted-foreground) !important;
+  }
+
+  .dark .text-gray-700,
+  .dark .text-gray-800,
+  .dark .text-gray-900,
+  .dark .text-gray-950,
+  .dark .text-slate-700,
+  .dark .text-slate-800,
+  .dark .text-slate-900 {
+    color: var(--foreground) !important;
+  }
+
+  .dark .text-sky-600,
+  .dark .text-sky-700,
+  .dark .text-sky-800,
+  .dark .text-blue-700 {
+    color: #7dd3fc !important;
+  }
+
+  .dark .text-emerald-600,
+  .dark .text-emerald-700,
+  .dark .text-emerald-800,
+  .dark .text-emerald-900,
+  .dark .text-emerald-950 {
+    color: #6ee7b7 !important;
+  }
+
+  .dark .text-rose-600,
+  .dark .text-rose-700,
+  .dark .text-rose-800,
+  .dark .text-red-600 {
+    color: #fda4af !important;
+  }
+
+  .dark .text-amber-600,
+  .dark .text-amber-700,
+  .dark .text-amber-800,
+  .dark .text-amber-900,
+  .dark .text-amber-950 {
+    color: #fcd34d !important;
+  }
+
+  .dark .text-violet-700,
+  .dark .text-violet-800,
+  .dark .text-violet-950,
+  .dark .text-indigo-700,
+  .dark .text-indigo-800 {
+    color: #c4b5fd !important;
+  }
+
+  .dark .text-orange-700,
+  .dark .text-red-700 {
+    color: #fca5a5 !important;
+  }
+
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-gray-300,
+  .dark .border-gray-400,
+  .dark .border-slate-100,
+  .dark .border-slate-200,
+  .dark .border-slate-200\/80 {
+    border-color: var(--border) !important;
+  }
+
+  .dark .divide-slate-50 > :not(:last-child),
+  .dark .divide-slate-100 > :not(:last-child) {
+    border-color: var(--border) !important;
+  }
+
+  .dark .bg-slate-900 {
+    background-color: color-mix(in srgb, var(--card) 70%, black 30%) !important;
+  }
+
+  .dark .bg-slate-100,
+  .dark .bg-gray-200 {
+    background-color: var(--muted) !important;
+  }
+
+  .dark .hover\:bg-gray-50\/40:hover,
+  .dark .hover\:bg-gray-50\/60:hover,
+  .dark .hover\:bg-slate-50\/50:hover {
+    background-color: var(--muted) !important;
+  }
+
+  .dark .ring-gray-200,
+  .dark .ring-sky-200,
+  .dark .ring-emerald-200,
+  .dark .ring-rose-200,
+  .dark .ring-amber-200,
+  .dark .ring-violet-200 {
+    --tw-ring-color: color-mix(in srgb, var(--ring) 34%, transparent) !important;
+  }
+
+  .dark .border-sky-100,
+  .dark .border-sky-200,
+  .dark .border-blue-100,
+  .dark .border-blue-200,
+  .dark .border-indigo-100,
+  .dark .border-indigo-200,
+  .dark .border-violet-100,
+  .dark .border-violet-200,
+  .dark .border-emerald-100,
+  .dark .border-emerald-200,
+  .dark .border-rose-100,
+  .dark .border-rose-200,
+  .dark .border-red-100,
+  .dark .border-red-200,
+  .dark .border-orange-100,
+  .dark .border-orange-200,
+  .dark .border-amber-100,
+  .dark .border-amber-200 {
+    border-color: color-mix(in srgb, currentColor 24%, var(--border)) !important;
+  }
 }
 
 /* Custom premium UI utilities for ERP */
@@ -264,4 +482,3 @@ table, tr, td, th, .tabular-nums, [data-slot="card-content"], [data-slot="card-t
   font-variant-numeric: tabular-nums !important;
   font-feature-settings: "tnum" 1 !important;
 }
-
