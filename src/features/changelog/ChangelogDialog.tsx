@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
-const CURRENT_VERSION = "0.1.2-alpha.3";
+const CURRENT_VERSION = "0.1.2-alpha.4";
 const STORAGE_KEY = "ferdi.lastReadVersion";
 
 type ChangelogItem = {
@@ -25,8 +25,8 @@ type ChangelogItem = {
 const changelogItems: ChangelogItem[] = [
   {
     type: "new",
-    titleKey: "changelog.items.clientDebtOffset.title",
-    descKey: "changelog.items.clientDebtOffset.desc",
+    titleKey: "changelog.items.debtCollapseDetails.title",
+    descKey: "changelog.items.debtCollapseDetails.desc",
   },
 ];
 

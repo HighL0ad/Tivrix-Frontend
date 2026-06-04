@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { NavLink } from "react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import {
   type DebtWallet,
@@ -717,6 +717,128 @@ function DebtGroupBlock({
   );
 }
 
+function WalletRow({
+  wallet,
+  myWallets,
+  debtCreatedAt,
+  operationType,
+  tone,
+  dotClass,
+  amountClass,
+}: {
+  wallet: DebtWallet;
+  myWallets: Wallet[];
+  debtCreatedAt: Record<string, string>;
+  operationType: RepaymentOperationType;
+  tone: DebtTone;
+  dotClass: string;
+  amountClass: string;
+}) {
+  const { t } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const entries = wallet.debt_entries ?? [];
+
+  return (
+    <div className="border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50">
+      <div
+        className={cn(
+          "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3",
+          entries.length > 0 && "cursor-pointer select-none"
+        )}
+        onClick={entries.length > 0 ? () => setIsExpanded(!isExpanded) : undefined}
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <div
+            className={`size-2.5 shrink-0 rounded-full animate-pulse ${dotClass}`}
+            aria-hidden="true"
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <div className="break-words font-semibold">{wallet.name}</div>
+              {entries.length > 0 && (
+                <ChevronDown
+                  className={cn(
+                    "size-4 shrink-0 text-muted-foreground/70 transition-transform duration-200",
+                    isExpanded && "rotate-180"
+                  )}
+                />
+              )}
+            </div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {shortDate(debtCreatedAt[String(wallet.id)])}
+            </div>
+            {wallet.due_date && entries.length === 0 && (
+              <DebtDueDateLine dueDate={wallet.due_date} />
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <span className={`whitespace-nowrap font-bold ${amountClass}`}>
+            {money(wallet.balance)}
+          </span>
+          <RepayDialog
+            wallet={wallet}
+            myWallets={myWallets}
+            operationType={operationType}
+            tone={tone}
+          />
+        </div>
+      </div>
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-in-out",
+          isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="overflow-hidden">
+          {entries.length > 0 && (
+            <div className="pt-3 space-y-2 pl-5 pb-0.5">
+              {entries.map((entry) => {
+                const parsed = parseDebtEntryDescription(entry.description, t);
+                return (
+                  <div
+                    key={entry.id}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-md border bg-background px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <div className="break-words text-xs font-semibold">
+                        {parsed.title}
+                      </div>
+                      {parsed.comment && (
+                        <div className="mt-0.5 break-words text-[11px] font-medium text-slate-500">
+                          {parsed.comment}
+                        </div>
+                      )}
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                        {shortDate(entry.created_at)}
+                      </div>
+                      {entry.due_date && <DebtDueDateLine dueDate={entry.due_date} compact />}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`whitespace-nowrap text-xs font-bold ${amountClass}`}>
+                        {money(entry.remaining_amount)}
+                      </span>
+                      {entry.id > 0 && (
+                        <RepayDialog
+                          wallet={wallet}
+                          myWallets={myWallets}
+                          operationType={operationType}
+                          tone={tone}
+                          debtEntry={entry}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function WalletRows({
   wallets,
   myWallets,
@@ -744,86 +866,28 @@ function WalletRows({
 
   return (
     <div>
-      {wallets.length ? wallets.map((wallet) => {
-        const entries = wallet.debt_entries ?? [];
-        return (
-          <div
+      {wallets.length ? (
+        wallets.map((wallet) => (
+          <WalletRow
             key={wallet.id}
-            className="border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50"
-          >
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className={`size-2.5 shrink-0 rounded-full animate-pulse ${dotClass}`}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0">
-                  <div className="break-words font-semibold">{wallet.name}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    {shortDate(debtCreatedAt[String(wallet.id)])}
-                  </div>
-                  {wallet.due_date && entries.length === 0 && (
-                    <DebtDueDateLine dueDate={wallet.due_date} />
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`whitespace-nowrap font-bold ${amountClass}`}>
-                  {money(wallet.balance)}
-                </span>
-                <RepayDialog
-                  wallet={wallet}
-                  myWallets={myWallets}
-                  operationType={operationType}
-                  tone={tone}
-                />
-              </div>
-            </div>
-            {entries.length > 0 && (
-              <div className="mt-3 space-y-2 pl-5">
-                {entries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-md border bg-background px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <div className="break-words text-xs font-semibold">
-                        {formatEntryDescription(entry.description, wallet.name, t)}
-                      </div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">
-                        {shortDate(entry.created_at)}
-                      </div>
-                      {entry.due_date && <DebtDueDateLine dueDate={entry.due_date} compact />}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`whitespace-nowrap text-xs font-bold ${amountClass}`}>
-                        {money(entry.remaining_amount)}
-                      </span>
-                      {entry.id > 0 && (
-                        <RepayDialog
-                          wallet={wallet}
-                          myWallets={myWallets}
-                          operationType={operationType}
-                          tone={tone}
-                          debtEntry={entry}
-                        />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      }) : (
-          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-            {operationType === "pay_supplier"
-              ? t("catalogs.suppliersEmptyTitle")
-              : operationType === "receive_partner"
-                ? t("catalogs.shopsEmptyTitle")
-                : t("catalogs.clientsEmptyTitle")}
-          </div>
-        )}
+            wallet={wallet}
+            myWallets={myWallets}
+            debtCreatedAt={debtCreatedAt}
+            operationType={operationType}
+            tone={tone}
+            dotClass={dotClass}
+            amountClass={amountClass}
+          />
+        ))
+      ) : (
+        <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+          {operationType === "pay_supplier"
+            ? t("catalogs.suppliersEmptyTitle")
+            : operationType === "receive_partner"
+              ? t("catalogs.shopsEmptyTitle")
+              : t("catalogs.clientsEmptyTitle")}
+        </div>
+      )}
     </div>
   );
 }
@@ -985,35 +1049,65 @@ function InstallmentsSkeleton() {
   );
 }
 
-function formatEntryDescription(description: string | null | undefined, walletName: string, t: any) {
-  if (!description) return t("debts.description") || "Долг";
-  
+function parseDebtEntryDescription(
+  description: string | null | undefined,
+  t: any
+): { title: string; comment?: string | null } {
+  if (!description) {
+    return { title: t("debts.description") || "Долг" };
+  }
+
+  // 1. Shipments
   if (description.startsWith("Отгрузка ")) {
     const withoutArrow = description.split(" ->")[0];
     const productPart = withoutArrow.replace("Отгрузка ", "").trim();
-    return `${t("debts.shipment")} ${productPart}`;
+    const title = `${t("debts.shipment")} ${productPart}`;
+    
+    let comment: string | null = null;
+    const arrowParts = description.split(" ->");
+    if (arrowParts.length > 1) {
+      const rest = arrowParts[1].trim();
+      const parenMatch = rest.match(/\(([^)]+)\)/);
+      if (parenMatch) {
+        comment = parenMatch[1];
+      }
+    }
+    return { title, comment };
   }
-  
+
+  // 2. Purchases
   if (description.startsWith("Закупка ")) {
     const withoutParenthesis = description.split(" (")[0];
     const productPart = withoutParenthesis.replace("Закупка ", "").trim();
-    return `${t("debts.purchase")} ${productPart}`;
+    const title = `${t("debts.purchase")} ${productPart}`;
+    
+    let comment: string | null = null;
+    const parenMatch = description.match(/\(([^)]+)\)/);
+    if (parenMatch) {
+      comment = parenMatch[1];
+    }
+    return { title, comment };
   }
-  
+
+  // 3. Manual loans
   if (description.includes(":")) {
     const parts = description.split(":");
     const customComment = parts.slice(1).join(":").trim();
-    if (customComment) {
-      return customComment;
+    
+    let title = description;
+    if (description.startsWith("Одолжили") || description.startsWith("Выдача")) {
+      title = t("debts.lent");
+    } else if (description.startsWith("Взяли") || description.startsWith("Получение")) {
+      title = t("debts.borrowed");
+    } else {
+      title = parts[0].trim();
     }
     
-    if (description.startsWith("Одолжили") || description.startsWith("Выдача")) {
-      return t("debts.lent");
-    }
-    if (description.startsWith("Взяли") || description.startsWith("Получение")) {
-      return t("debts.borrowed");
-    }
+    return {
+      title,
+      comment: customComment || null
+    };
   }
-  
-  return description;
+
+  return { title: description };
 }
