@@ -42,7 +42,7 @@ const debtsActionValues = ["lend", "borrow"] as const;
 const debtsTabValues = ["debts", "installments"] as const;
 
 export function DebtsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [{ action, tab }, setDebtsParams] = useQueryStates({
     action: parseAsStringLiteral(debtsActionValues),
     tab: parseAsStringLiteral(debtsTabValues).withDefault("debts"),
@@ -334,14 +334,16 @@ export function DebtsPage() {
                     <div className="mt-4 border-t border-border pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <UsersRound className="size-3.5 text-muted-foreground" />
-                        <span>CRM Синхронизация</span>
+                        <span>{t("finance.crmSync")}</span>
                       </div>
                       <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100/85 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
                         <span className="relative flex size-1.5">
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
                         </span>
-                        <span className="text-[9px] font-extrabold tracking-normal">активен</span>
+                        <span className="text-[9px] font-extrabold tracking-normal">
+                          {t("common.active").toLocaleLowerCase(i18n.resolvedLanguage)}
+                        </span>
                       </div>
                     </div>
                   </div>
