@@ -21,10 +21,12 @@ const resourceLabelKeys: Partial<Record<AppResourceKey, string>> = {
 export function AccessGuard({
   resource,
   adminOnly,
+  superAdminOnly,
   children,
 }: {
   resource?: AppResourceKey;
   adminOnly?: boolean;
+  superAdminOnly?: boolean;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
@@ -39,11 +41,13 @@ export function AccessGuard({
     return <Navigate to="/login" replace />;
   }
 
-  const allowed = adminOnly
-    ? currentUser.is_admin
-    : resource
-      ? currentUser.permissions[resource]
-      : true;
+  const allowed = superAdminOnly
+    ? currentUser.role === "super_admin"
+    : adminOnly
+      ? currentUser.is_admin
+      : resource
+        ? currentUser.permissions[resource]
+        : true;
 
   if (!allowed) {
     const fallbackRoute = currentUser.first_accessible_route ?? "/";

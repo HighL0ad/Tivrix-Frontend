@@ -13,6 +13,7 @@ import {
   Users,
   Sun,
   Moon,
+  Settings,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -48,6 +49,7 @@ const navItems = [
   { to: "/clients", labelKey: "app.nav.clients", icon: ContactRound, resource: "clients" },
   { to: "/catalogs", labelKey: "app.nav.catalogs", icon: Database, resource: "catalogs" },
   { to: "/users", labelKey: "app.nav.users", icon: Users, adminOnly: true },
+  { to: "/settings", labelKey: "app.nav.settings", icon: Settings, superAdminOnly: true },
 ];
 
 const mobileNavLabelClass = "text-[10px] font-medium leading-none";
@@ -68,7 +70,7 @@ export function AppLayout() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
+  const [theme, setTheme] = useState<"light" | "dark">(( ) => {
     const stored = window.localStorage.getItem("theme") as "light" | "dark" | null;
     if (stored) return stored;
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -89,6 +91,7 @@ export function AppLayout() {
       : DEFAULT_SIDEBAR_WIDTH;
   });
   const visibleNavItems = navItems.filter((item) => {
+    if (item.superAdminOnly) return currentUser?.role === "super_admin";
     if (item.adminOnly) return currentUser?.is_admin;
     if (!item.resource) return true;
     return currentUser?.permissions[item.resource as keyof CurrentUser["permissions"]];

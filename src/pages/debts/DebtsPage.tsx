@@ -5,6 +5,7 @@ import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { NavLink } from "react-router";
 import { type ReactNode, useState } from "react";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import {
   type DebtWallet,
   type RepaymentOperationType,
@@ -47,6 +48,10 @@ export function DebtsPage() {
     action: parseAsStringLiteral(debtsActionValues),
     tab: parseAsStringLiteral(debtsTabValues).withDefault("debts"),
   });
+  const currentUserQuery = useCurrentUser();
+  const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
+  const activeTab = tab === "installments" && !isCreditEnabled ? "debts" : tab;
+
   const debtsQuery = useDebts();
   const financeQuery = useFinance({ page: 1 });
   const dashboardQuery = useDashboard();
@@ -98,7 +103,7 @@ export function DebtsPage() {
         title={t("app.nav.debts")}
         description={t("debts.description")}
         actions={
-          tab === "debts" ? (
+          activeTab === "debts" ? (
             <>
               <MoneyFlowDialog
                 title={t("debts.lend")}
@@ -124,14 +129,16 @@ export function DebtsPage() {
       />
 
       <Tabs
-        value={tab}
+        value={activeTab}
         onValueChange={(value) =>
           setDebtsParams({ tab: value as "debts" | "installments" })
         }
       >
         <TabsList>
           <TabsTrigger value="debts">{t("finance.overview")}</TabsTrigger>
-          <TabsTrigger value="installments">{t("dashboard.creditSystem")}</TabsTrigger>
+          {isCreditEnabled && (
+            <TabsTrigger value="installments">{t("dashboard.creditSystem")}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="debts" className="mt-4 space-y-5">
