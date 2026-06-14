@@ -41,10 +41,13 @@ export function ClientPaymentFields({
   const currentUserQuery = useCurrentUser();
   const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
 
-  const modeOptions = [
+  const modeOptions: {
+    value: "full_payment" | "partial_debt" | "installment";
+    label: string;
+  }[] = [
     { value: "full_payment", label: t("sell.fullPayment") },
     { value: "partial_debt", label: t("sell.partialDebt") },
-    ...(isCreditEnabled ? [{ value: "installment", label: t("sell.installment") }] : []),
+    ...(isCreditEnabled ? [{ value: "installment" as const, label: t("sell.installment") }] : []),
   ];
 
   return (
