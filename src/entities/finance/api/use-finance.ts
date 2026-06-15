@@ -8,6 +8,9 @@ export type Wallet = {
   name: string;
   type: WalletType;
   balance: string;
+  client_id?: number | null;
+  client_phone?: string | null;
+  client_backup_phone?: string | null;
   counterparty_id?: number | null;
   due_date?: string | null;
 };
