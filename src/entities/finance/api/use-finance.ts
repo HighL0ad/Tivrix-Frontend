@@ -131,6 +131,12 @@ export type ProfitAggregate = {
 };
 
 export type ExpensesData = {
+  today: ExpenseAggregate;
+  week: ExpenseAggregate;
+  month: ExpenseAggregate;
+  all_time: ExpenseAggregate;
+  selected_period: ExpenseAggregate;
+  avg_expense: string;
   items: Array<{
     id: number;
     amount: string;
@@ -144,6 +150,11 @@ export type ExpensesData = {
   limit: number;
   total_count: number;
   total_pages: number;
+};
+
+export type ExpenseAggregate = {
+  total: string;
+  count: number;
 };
 
 export function useFinance(params: { q?: string; page: number }) {

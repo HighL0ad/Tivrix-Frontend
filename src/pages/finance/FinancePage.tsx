@@ -924,9 +924,17 @@ function ExpensesCard({
       <CardContent className="space-y-3">
         {data ? (
           <>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InlineMetric title={t("finance.totalExpenses")} value={money(data.total)} />
-              <InlineMetric title={t("finance.operations")} value={String(data.total_count)} />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <InlineMetric title={t("finance.today")} value={money(data.today.total)} />
+              <InlineMetric title={t("finance.week")} value={money(data.week.total)} />
+              <InlineMetric title={t("finance.month")} value={money(data.month.total)} />
+              <InlineMetric title={t("finance.total")} value={money(data.all_time.total)} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <InlineMetric title={t("finance.totalExpenses")} value={money(data.selected_period.total)} />
+              <InlineMetric title={t("finance.operations")} value={String(data.selected_period.count)} />
+              <InlineMetric title={t("finance.averageExpense")} value={money(data.avg_expense)} />
+              <InlineMetric title={t("finance.totalOperations")} value={String(data.all_time.count)} />
             </div>
             <div className={`space-y-2 ${isFetching ? "opacity-60 transition-opacity duration-200" : "transition-opacity duration-200"}`}>
               {/* Desktop view */}
