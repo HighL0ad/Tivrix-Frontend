@@ -28,11 +28,6 @@ const changelogItems: ChangelogItem[] = [
     titleKey: "changelog.items.expensesAnalytics.title",
     descKey: "changelog.items.expensesAnalytics.desc",
   },
-  {
-    type: "new",
-    titleKey: "changelog.items.darkThemeRedesign.title",
-    descKey: "changelog.items.darkThemeRedesign.desc",
-  },
 ];
 
 export function ChangelogDialog() {

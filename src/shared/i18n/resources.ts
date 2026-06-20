@@ -744,10 +744,6 @@ export const resources = {
       "changelog.closeButton": "Отлично, поехали!",
       "changelog.items.expensesAnalytics.title": "Карточки аналитики расходов",
       "changelog.items.expensesAnalytics.desc": "Раздел расходов получил такие же сводные карточки, как прибыль: сегодня, неделя, месяц, всё время, выбранный период, средний расход и количество операций.",
-      "changelog.items.darkThemeRedesign.title": "Добавлена премиальная темная тема 🌗",
-      "changelog.items.darkThemeRedesign.desc": "Добавили полноценную поддержку темной темы в стиле premium SaaS dashboard: стильная палитра navy/slate, мягкие контрастные границы, читаемые шрифты, динамические графики прибыли и отсутствие утомляющих кислотных цветов.",
-      "changelog.items.debtCollapseDetails.title": "Сворачивание деталей и комментарии 📝",
-      "changelog.items.debtCollapseDetails.desc": "Теперь вы можете сворачивать и разворачивать детальные строки долгов кликом по строке. Внутри детальных строк выводятся не только действия, но и примечания (комментарии), оставленные при создании долга.",
     },
   },
   az: {
@@ -1476,10 +1472,6 @@ export const resources = {
       "changelog.closeButton": "Əla, başlayaq!",
       "changelog.items.expensesAnalytics.title": "Xərc analitikası kartları",
       "changelog.items.expensesAnalytics.desc": "Xərclər bölməsinə mənfəətdə olduğu kimi xülasə kartları əlavə edildi: bugün, həftə, ay, bütün dövr, seçilmiş dövr, orta xərc və əməliyyat sayı.",
-      "changelog.items.darkThemeRedesign.title": "Premium qaranlıq mövzu əlavə edildi 🌗",
-      "changelog.items.darkThemeRedesign.desc": "Premium SaaS idarəetmə paneli üslubunda tam qaranlıq mövzu dəstəyi əlavə edildi: navy/slate palitrası, yumşaq çərçivələr, oxunaqlı mətnlər və dinamik qrafiklər.",
-      "changelog.items.debtCollapseDetails.title": "Detalların bükülməsi və şərhlər 📝",
-      "changelog.items.debtCollapseDetails.desc": "İndi sətirə klikləməklə borcların detallı sətirlərini büküb-aça bilərsiniz. Detallı sətirlərin daxilində yalnız əməliyyatın adı deyil, həm də borc yaradılarkən qeyd olunmuş şərhlər göstərilir.",
     },
   },
 } as const;
