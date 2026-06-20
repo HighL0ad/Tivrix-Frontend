@@ -12,37 +12,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import {
+  CURRENT_CHANGELOG_VERSION,
+  getChangelogLocale,
+  getCurrentChangelogItems,
+} from "@/features/changelog/changelog-data";
 
-const CURRENT_VERSION = "0.1.4-alpha.1";
 const STORAGE_KEY = "ferdi.lastReadVersion";
 
-type ChangelogItem = {
-  type: "new" | "update";
-  titleKey: string;
-  descKey: string;
-};
-
-const changelogItems: ChangelogItem[] = [
-  {
-    type: "update",
-    titleKey: "changelog.items.expensesAnalytics.title",
-    descKey: "changelog.items.expensesAnalytics.desc",
-  },
-];
-
 export function ChangelogDialog() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const locale = getChangelogLocale(i18n.language);
+  const activeItems = getCurrentChangelogItems();
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored !== CURRENT_VERSION) {
+    if (stored !== CURRENT_CHANGELOG_VERSION && activeItems.length > 0) {
       setOpen(true);
     }
-  }, []);
+  }, [activeItems.length]);
 
   const handleClose = () => {
-    window.localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
+    window.localStorage.setItem(STORAGE_KEY, CURRENT_CHANGELOG_VERSION);
     setOpen(false);
   };
 
@@ -52,7 +44,7 @@ export function ChangelogDialog() {
         <DialogHeader className="gap-1">
           <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/20 w-fit px-2.5 py-1 rounded-full text-xs font-bold border border-sky-100 dark:border-sky-500/20 select-none">
             <Sparkles className="size-3.5 animate-pulse" />
-            <span>{t("changelog.badge", { version: CURRENT_VERSION })}</span>
+            <span>{t("changelog.badge", { version: CURRENT_CHANGELOG_VERSION })}</span>
           </div>
           <DialogTitle className="text-xl font-black tracking-tight text-foreground mt-2 leading-tight">
             {t("changelog.title")}
@@ -64,7 +56,7 @@ export function ChangelogDialog() {
 
         <ScrollArea className="h-[300px] pr-2.5" type="scroll">
           <div className="space-y-3 pr-1.5 pb-1">
-            {changelogItems.map((item, index) => {
+            {activeItems.map((item, index) => {
               const isNew = item.type === "new";
               return (
                 <div 
@@ -84,10 +76,10 @@ export function ChangelogDialog() {
                   </div>
                   <div className="min-w-0 space-y-0.5">
                     <h4 className="text-xs font-bold text-foreground leading-snug">
-                      {t(item.titleKey)}
+                      {item.title[locale]}
                     </h4>
                     <p className="text-[11px] leading-relaxed text-muted-foreground">
-                      {t(item.descKey)}
+                      {item.description[locale]}
                     </p>
                   </div>
                 </div>
@@ -102,7 +94,7 @@ export function ChangelogDialog() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/80 opacity-75"></span>
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
             </span>
-            <span>Ferdi Telefon ERP · v{CURRENT_VERSION}</span>
+            <span>Ferdi Telefon ERP · v{CURRENT_CHANGELOG_VERSION}</span>
           </div>
           <Button 
             onClick={handleClose}
