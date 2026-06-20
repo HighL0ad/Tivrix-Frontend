@@ -742,8 +742,6 @@ export const resources = {
       "changelog.title": "Обновление системы! 🚀",
       "changelog.subtitle": "Основные изменения и улучшения в этом выпуске:",
       "changelog.closeButton": "Отлично, поехали!",
-      "changelog.items.expensesAnalytics.title": "Карточки аналитики расходов",
-      "changelog.items.expensesAnalytics.desc": "Раздел расходов получил такие же сводные карточки, как прибыль: сегодня, неделя, месяц, всё время, выбранный период, средний расход и количество операций.",
     },
   },
   az: {
@@ -1470,8 +1468,6 @@ export const resources = {
       "changelog.title": "Sistem Yenilikləri! 🚀",
       "changelog.subtitle": "Bu buraxılışdakı əsas dəyişikliklər və təkmilləşdirmələr:",
       "changelog.closeButton": "Əla, başlayaq!",
-      "changelog.items.expensesAnalytics.title": "Xərc analitikası kartları",
-      "changelog.items.expensesAnalytics.desc": "Xərclər bölməsinə mənfəətdə olduğu kimi xülasə kartları əlavə edildi: bugün, həftə, ay, bütün dövr, seçilmiş dövr, orta xərc və əməliyyat sayı.",
     },
   },
 } as const;
