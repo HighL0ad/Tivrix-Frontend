@@ -92,6 +92,11 @@ import {
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
+import {
   Table,
   TableBody,
   TableCell,
@@ -807,9 +812,7 @@ function ProductsTable({
         header: () => t("sell.product"),
         cell: ({ row }) => (
           <TableCellContent>
-            <div className="font-medium text-foreground">
-              <HighlightText text={row.original.name} highlight={q ?? ""} />
-            </div>
+            <ProductNameWithTooltip name={row.original.name} highlight={q ?? ""} />
             <div className="mt-1 font-mono text-xs text-muted-foreground">
               <HighlightText text={formatProductImei(row.original)} highlight={q ?? ""} />
             </div>
@@ -926,7 +929,7 @@ function ProductsTable({
         ),
       },
     ],
-    [navigate, returnTo, t],
+    [navigate, q, returnTo, t],
   );
   const table = useReactTable({
     data: products,
@@ -1043,9 +1046,10 @@ function ProductsTable({
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-semibold text-foreground text-sm leading-snug">
-                    {prod.name}
-                  </div>
+                  <ProductNameWithTooltip
+                    name={prod.name}
+                    className="text-sm font-semibold leading-snug"
+                  />
                   <div className="text-[11px] font-mono text-muted-foreground mt-1">
                     {formatProductImei(prod)}
                   </div>
@@ -1427,7 +1431,35 @@ function ProductsCardListSkeleton() {
 }
 
 function TableCellContent({ children }: { children: ReactNode }) {
-  return <div className="min-w-72">{children}</div>;
+  return <div className="w-72 min-w-0">{children}</div>;
+}
+
+function ProductNameWithTooltip({
+  name,
+  highlight = "",
+  className,
+}: {
+  name: string;
+  highlight?: string;
+  className?: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className={[
+            "min-w-0 truncate font-medium text-foreground",
+            className,
+          ].filter(Boolean).join(" ")}
+        >
+          <HighlightText text={name} highlight={highlight} />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-80 whitespace-normal break-words">
+        {name}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 function useDebouncedValue(value: string, delay: number) {

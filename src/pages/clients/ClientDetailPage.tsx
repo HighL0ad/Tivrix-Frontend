@@ -54,6 +54,11 @@ import {
 } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
 import { ScrollArea } from "@/shared/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 
 export function ClientDetailPage() {
   const { t } = useTranslation();
@@ -346,7 +351,7 @@ export function ClientDetailPage() {
                         />
 
                         {/* Left: amount + status + due date */}
-                        <div className="min-w-0 space-y-1">
+                        <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-sm font-bold text-gray-900">
                               {money(installment.amount)}
@@ -379,11 +384,20 @@ export function ClientDetailPage() {
                                 <>
                                   <span className="text-gray-300">·</span>
                                   <NavLink
-                                    className="font-semibold text-sky-600 hover:underline"
+                                    className="block max-w-full truncate font-semibold text-sky-600 hover:underline"
                                     to={`/products/${installment.product_id}`}
                                     state={{ from: currentPath }}
                                   >
-                                    {installment.product_name}
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="block max-w-full truncate">
+                                          {installment.product_name}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-80 whitespace-normal break-words">
+                                        {installment.product_name}
+                                      </TooltipContent>
+                                    </Tooltip>
                                   </NavLink>
                                 </>
                               )}
