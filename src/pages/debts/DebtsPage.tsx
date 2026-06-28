@@ -35,6 +35,11 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -369,7 +374,7 @@ export function DebtsPage() {
                               key={item.id}
                               className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-muted/50 transition-colors"
                             >
-                              <div className="flex min-w-0 items-center">
+                              <div className="flex min-w-0 flex-1 items-center">
                                 {/* Цветные аватары с инициалами */}
                                 <div
                                   className="mr-3 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-black uppercase shadow-sm ring-1 ring-white/8 select-none"
@@ -377,7 +382,7 @@ export function DebtsPage() {
                                 >
                                   {getInitials(item.client_name)}
                                 </div>
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                   <NavLink
                                     to={`/clients/${item.client_id}`}
                                     state={{ from: installmentsReturnTo }}
@@ -386,9 +391,16 @@ export function DebtsPage() {
                                     {item.client_name}
                                   </NavLink>
                                   {item.product_name ? (
-                                    <span className="text-[11px] font-medium text-muted-foreground block truncate">
-                                      {item.product_name}
-                                    </span>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="block max-w-full truncate text-[11px] font-medium text-muted-foreground">
+                                          {item.product_name}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-80 whitespace-normal break-words">
+                                        {item.product_name}
+                                      </TooltipContent>
+                                    </Tooltip>
                                   ) : null}
                                 </div>
                               </div>

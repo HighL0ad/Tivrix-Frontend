@@ -2,6 +2,11 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/shared/lib/utils";
 import { Card, CardContent } from "@/shared/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 
 export function MetricCard({
   title,
@@ -55,9 +60,16 @@ export function MetricCard({
     >
       <CardContent className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="min-h-12 text-xs font-bold uppercase leading-4 tracking-wide text-muted-foreground">
-            {title}
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="min-h-12 text-xs font-bold uppercase leading-4 tracking-wide text-muted-foreground">
+                {title}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-72 whitespace-normal break-words">
+              {title}
+            </TooltipContent>
+          </Tooltip>
           <div
             className={cn(
               "mt-1 whitespace-nowrap font-black leading-none tracking-tight text-foreground",
@@ -67,9 +79,16 @@ export function MetricCard({
             {value}
           </div>
           {hint ? (
-            <div className="mt-1 truncate whitespace-nowrap text-xs text-muted-foreground">
-              {hint}
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="mt-1 truncate whitespace-nowrap text-xs text-muted-foreground">
+                  {hint}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-72 whitespace-normal break-words">
+                {hint}
+              </TooltipContent>
+            </Tooltip>
           ) : null}
         </div>
         {icon ? (
