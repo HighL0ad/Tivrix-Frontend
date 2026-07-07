@@ -1,6 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Banknote, Building2, CreditCard, Handshake, Landmark, Pencil, Search, Tags, Trash2, UserRound, X } from "lucide-react";
-import { useSearchParams } from "react-router";
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from "nuqs";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -28,9 +33,13 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { PaginationBar } from "@/shared/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ScrollArea } from "@/shared/ui/scroll-area";
+
+const CATALOGS_PAGE_LIMIT = 25;
+const catalogTabValues = ["wallets", "clients", "suppliers", "advanced"] as const;
 
 const walletGroups = {
   wallets: ["cash", "card", "bank_account"],
@@ -40,21 +49,22 @@ const walletGroups = {
 
 export function CatalogsPage() {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+  const [{ search, tab, page }, setCatalogParams] = useQueryStates(
+    {
+      search: parseAsString.withDefault(""),
+      tab: parseAsStringLiteral(catalogTabValues).withDefault("wallets"),
+      page: parseAsInteger.withDefault(1),
+    },
+    { scroll: false },
+  );
   const catalogsQuery = useCatalogs();
   const createWallet = useCreateWallet();
   const createClientSource = useCreateClientSource();
   const currentUser = useCurrentUser().data;
   const [name, setName] = useState("");
   const [recordType, setRecordType] = useState<WalletType | "client_source">("card");
-  const [search, setSearch] = useState(searchParams.get("search") ?? "");
-  const [activeTab, setActiveTab] = useState(getCatalogTab(searchParams.get("tab")));
   const nameInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setSearch(searchParams.get("search") ?? "");
-    setActiveTab(getCatalogTab(searchParams.get("tab")));
-  }, [searchParams]);
+  const activeTab = getCatalogTab(tab);
 
   if (catalogsQuery.isLoading) {
     return <PageLoading />;
@@ -85,6 +95,27 @@ export function CatalogsPage() {
   const canAdjustWallets = Boolean(
     currentUser?.operation_permissions.can_adjust_wallets,
   );
+  const filteredClientSources = catalogsQuery.data.client_sources.filter((source) =>
+    source.name.toLowerCase().includes(search.toLowerCase().trim()),
+  );
+  const pageTotals = {
+    wallets: groupedWallets.wallets.length,
+    clients: groupedWallets.clients.length,
+    suppliers: groupedWallets.suppliers.length,
+    advanced: groupedWallets.advanced.length + filteredClientSources.length,
+  };
+  const totalPages = Math.max(1, Math.ceil(pageTotals[activeTab] / CATALOGS_PAGE_LIMIT));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const paginatedWallets = {
+    wallets: paginate(groupedWallets.wallets, activeTab === "wallets" ? currentPage : 1),
+    clients: paginate(groupedWallets.clients, activeTab === "clients" ? currentPage : 1),
+    suppliers: paginate(groupedWallets.suppliers, activeTab === "suppliers" ? currentPage : 1),
+  };
+  const paginatedAdvanced = paginateAdvancedRecords(
+    filteredClientSources,
+    groupedWallets.advanced,
+    activeTab === "advanced" ? currentPage : 1,
+  );
 
   return (
     <section className="space-y-5">
@@ -111,7 +142,7 @@ export function CatalogsPage() {
                   {
                     onSuccess: () => {
                       setName("");
-                      setActiveTab("advanced");
+                      setCatalogParams({ tab: "advanced", page: 1 });
                       toast.success(t("catalogs.clientSourceCreated"));
                     },
                     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -163,7 +194,7 @@ export function CatalogsPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
               <Input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => setCatalogParams({ search: event.target.value, page: 1 })}
                 className="pl-9"
                 placeholder={t("catalogs.searchByName")}
               />
@@ -171,7 +202,7 @@ export function CatalogsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(getCatalogTab(value))}>
+          <Tabs value={activeTab} onValueChange={(value) => setCatalogParams({ tab: getCatalogTab(value), page: 1 })}>
             <TabsList className="mb-4">
               <TabsTrigger value="wallets">{t("catalogs.wallets")}</TabsTrigger>
               <TabsTrigger value="clients">{t("catalogs.clients")}</TabsTrigger>
@@ -182,47 +213,57 @@ export function CatalogsPage() {
               <WalletTable
                 tableLabel={t("catalogs.walletsTable")}
                 tableIcon={<Banknote className="size-4" aria-hidden="true" />}
-                wallets={groupedWallets.wallets}
+                wallets={paginatedWallets.wallets}
                 walletTypes={catalogsQuery.data.wallet_types}
                 emptyTitle={t("catalogs.walletsEmptyTitle")}
                 emptyDescription={t("catalogs.walletsEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
+                page={currentPage}
+                total={groupedWallets.wallets.length}
+                onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
             <TabsContent value="clients">
               <WalletTable
                 tableLabel={t("catalogs.clientsTable")}
                 tableIcon={<UserRound className="size-4" aria-hidden="true" />}
-                wallets={groupedWallets.clients}
+                wallets={paginatedWallets.clients}
                 walletTypes={catalogsQuery.data.wallet_types}
                 emptyTitle={t("catalogs.clientsEmptyTitle")}
                 emptyDescription={t("catalogs.clientsEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
+                page={currentPage}
+                total={groupedWallets.clients.length}
+                onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
             <TabsContent value="suppliers">
               <WalletTable
                 tableLabel={t("catalogs.suppliersTable")}
                 tableIcon={<Handshake className="size-4" aria-hidden="true" />}
-                wallets={groupedWallets.suppliers}
+                wallets={paginatedWallets.suppliers}
                 walletTypes={catalogsQuery.data.wallet_types}
                 emptyTitle={t("catalogs.suppliersEmptyTitle")}
                 emptyDescription={t("catalogs.suppliersEmptyDescription")}
                 onCreateClick={() => nameInputRef.current?.focus()}
                 canAdjustWallets={canAdjustWallets}
+                page={currentPage}
+                total={groupedWallets.suppliers.length}
+                onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
             <TabsContent value="advanced">
               <AdvancedRecordsBlock
-                sources={catalogsQuery.data.client_sources.filter((source) =>
-                  source.name.toLowerCase().includes(search.toLowerCase().trim()),
-                )}
-                wallets={groupedWallets.advanced}
+                sources={paginatedAdvanced.sources}
+                wallets={paginatedAdvanced.wallets}
                 walletTypes={catalogsQuery.data.wallet_types}
                 canAdjustWallets={canAdjustWallets}
                 onCreateClick={() => nameInputRef.current?.focus()}
+                page={currentPage}
+                total={pageTotals.advanced}
+                onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
           </Tabs>
@@ -261,20 +302,45 @@ function isGroupedWallet(wallet: CatalogWallet) {
   return Boolean(wallet.grouped_wallet_ids && wallet.grouped_wallet_ids.length > 1);
 }
 
+function paginate<T>(items: T[], page: number) {
+  const start = (Math.max(1, page) - 1) * CATALOGS_PAGE_LIMIT;
+  return items.slice(start, start + CATALOGS_PAGE_LIMIT);
+}
+
+function paginateAdvancedRecords(
+  sources: ClientSource[],
+  wallets: CatalogWallet[],
+  page: number,
+) {
+  const start = (Math.max(1, page) - 1) * CATALOGS_PAGE_LIMIT;
+  const end = start + CATALOGS_PAGE_LIMIT;
+  return {
+    sources: sources.slice(start, end),
+    wallets: wallets.slice(Math.max(0, start - sources.length), Math.max(0, end - sources.length)),
+  };
+}
+
 function AdvancedRecordsBlock({
   sources,
   wallets,
   walletTypes,
   canAdjustWallets,
   onCreateClick,
+  page,
+  total,
+  onPageChange,
 }: {
   sources: ClientSource[];
   wallets: NonNullable<ReturnType<typeof useCatalogs>["data"]>["wallets"];
   walletTypes: Array<{ value: WalletType; label: string }>;
   canAdjustWallets: boolean;
   onCreateClick: () => void;
+  page: number;
+  total: number;
+  onPageChange: (page: number) => void;
 }) {
   const { t } = useTranslation();
+  const totalPages = Math.max(1, Math.ceil(total / CATALOGS_PAGE_LIMIT));
 
   return (
     <div className="space-y-3">
@@ -291,6 +357,14 @@ function AdvancedRecordsBlock({
         canAdjustWallets={canAdjustWallets}
         onCreateClick={onCreateClick}
       />
+      {total ? (
+        <PaginationBar
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          onPageChange={onPageChange}
+        />
+      ) : null}
     </div>
   );
 }
@@ -645,6 +719,9 @@ function WalletTable({
   emptyDescription,
   onCreateClick,
   canAdjustWallets,
+  page,
+  total,
+  onPageChange,
 }: {
   tableLabel: string;
   tableIcon: React.ReactNode;
@@ -654,8 +731,12 @@ function WalletTable({
   emptyDescription: string;
   onCreateClick: () => void;
   canAdjustWallets: boolean;
+  page: number;
+  total: number;
+  onPageChange: (page: number) => void;
 }) {
   const { t } = useTranslation();
+  const totalPages = Math.max(1, Math.ceil(total / CATALOGS_PAGE_LIMIT));
 
   if (!wallets.length) {
     return (
@@ -770,6 +851,12 @@ function WalletTable({
           </div>
         ))}
       </div>
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 }
