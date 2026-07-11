@@ -31,6 +31,9 @@ export function RepayDialog({
   const [amount, setAmount] = useState("");
   const formId = `repay-${wallet.id}-${operationType}-${debtEntry?.id ?? "wallet"}`;
   const isPayment = operationType === "pay_supplier";
+  const shouldApplyInstallments =
+    operationType === "receive_client" &&
+    (!debtEntry || debtEntry.kind === "installment");
   const payableBalance = Math.abs(Number(debtEntry?.remaining_amount ?? wallet.balance));
   const buttonTone = tone ?? (isPayment ? "bad" : "good");
   const triggerClass = {
@@ -83,6 +86,7 @@ export function RepayDialog({
                 amount,
                 operation_type: operationType,
                 debt_entry_id: debtEntry?.id,
+                apply_installments: shouldApplyInstallments,
               },
               {
                 onSuccess: () => {
