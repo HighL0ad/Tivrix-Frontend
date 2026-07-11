@@ -582,6 +582,7 @@ function PayableRows({
   return (
     <div className="divide-y">
       {payables.map((payable) => {
+        const payableCategory = formatPayableCategory(payable.category, t);
         const imeis = [payable.product_imei, payable.product_imei2].filter(
           (imei): imei is string => Boolean(imei),
         );
@@ -604,7 +605,7 @@ function PayableRows({
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-semibold">{payable.category}</span>
+                  <span className="font-semibold">{payableCategory}</span>
                   <span className="text-xs text-muted-foreground">
                     {payable.product_name ?? t("products.noProduct")}
                   </span>
@@ -715,7 +716,11 @@ function PayableRows({
               <span className="whitespace-nowrap font-bold text-amber-700 sm:text-base">
                 {money(payable.amount)}
               </span>
-              <PayableDialog payable={payable} wallets={myWallets} />
+              <PayableDialog
+                payable={payable}
+                wallets={myWallets}
+                title={payableCategory}
+              />
             </div>
           </div>
         );
@@ -1079,6 +1084,13 @@ function formatInstallmentDueDate(value: string | null | undefined) {
     return `${day}.${month}.${year.slice(-2)}`;
   }
   return shortDate(value).split(",")[0] ?? value;
+}
+
+function formatPayableCategory(category: string, t: (key: string) => string) {
+  if (category.trim().toLowerCase() === "регистрация imei") {
+    return t("debts.payableCategory.registrationImei");
+  }
+  return category;
 }
 
 function formatForecastMonth(value: string, t: (key: string) => string) {

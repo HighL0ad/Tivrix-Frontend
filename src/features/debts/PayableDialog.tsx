@@ -14,9 +14,11 @@ import { WalletSelect } from "@/features/debts/WalletSelect";
 export function PayableDialog({
   payable,
   wallets,
+  title,
 }: {
   payable: Payable;
   wallets: Wallet[];
+  title?: string;
 }) {
   const { t } = useTranslation();
   const pay = usePayPayable();
@@ -27,7 +29,7 @@ export function PayableDialog({
     <ResponsiveModal
       open={open}
       onOpenChange={setOpen}
-      title={payable.category}
+      title={title ?? payable.category}
       trigger={
         <Button
           type="button"
