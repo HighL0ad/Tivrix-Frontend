@@ -758,6 +758,7 @@ function WalletRow({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const entries = wallet.debt_entries ?? [];
+  const canOpenClient = operationType === "receive_client" && wallet.client_id;
 
   return (
     <div className="border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50">
@@ -775,7 +776,18 @@ function WalletRow({
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <div className="break-words font-semibold">{wallet.name}</div>
+              {canOpenClient ? (
+                <NavLink
+                  to={`/clients/${wallet.client_id}`}
+                  state={{ from: "/debts" }}
+                  className="break-words font-semibold text-foreground transition-all duration-200 hover:text-primary hover:translate-x-0.5"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {wallet.name}
+                </NavLink>
+              ) : (
+                <div className="break-words font-semibold">{wallet.name}</div>
+              )}
               {entries.length > 0 && (
                 <ChevronDown
                   className={cn(
