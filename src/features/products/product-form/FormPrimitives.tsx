@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Input } from "@/shared/ui/input";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import { registrationOptions } from "./model";
 
 export function Field({
@@ -98,10 +99,15 @@ export function RegistrationCheckboxGroup({
   onChange: (value: string[]) => void;
 }) {
   const { t } = useTranslation();
+  const currentUserQuery = useCurrentUser();
+  const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
+  const filteredOptions = isCreditEnabled
+    ? registrationOptions
+    : registrationOptions.filter((option) => option.value !== "credit");
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {registrationOptions.map((option) => (
+      {filteredOptions.map((option) => (
         <label
           key={option.value}
           className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent p-2 text-muted-foreground transition hover:border-border hover:bg-background"

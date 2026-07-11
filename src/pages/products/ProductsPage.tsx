@@ -31,6 +31,7 @@ import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import { useDeleteProduct } from "@/entities/products/api/use-product-actions";
 import { useProductCreateOptions } from "@/entities/products/api/use-product-create";
 import { useProductDetail } from "@/entities/products/api/use-product-detail";
@@ -125,7 +126,15 @@ const sortDirections = ["asc", "desc"] as const;
 
 export function ProductsPage() {
   const { t } = useTranslation();
+  const currentUserQuery = useCurrentUser();
+  const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
   const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  const filteredRegistrationOptions = useMemo(() => {
+    return isCreditEnabled
+      ? registrationOptions
+      : registrationOptions.filter((option) => option.value !== "credit");
+  }, [isCreditEnabled]);
   const [{ status, supplierIds, registrationStatuses, q, sortBy, sortDir, page }, setProductParams] = useQueryStates({
     status: parseAsStringLiteral(productStatusValues),
     supplierIds: parseAsString.withDefault(""),
@@ -400,7 +409,7 @@ export function ProductsPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72">
                 <ScrollArea className="max-h-64">
-                  {registrationOptions.map((option) => {
+                  {filteredRegistrationOptions.map((option) => {
                     const checked = activeRegistrationStatuses.includes(
                       option.value as (typeof registrationStatusValues)[number],
                     );

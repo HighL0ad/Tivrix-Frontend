@@ -43,4 +43,5 @@ export type CurrentUser = {
   operation_permissions: Record<OperationPermissionKey, boolean>;
   resources: ResourcePermission[];
   operations: OperationPermission[];
+  credit_system_enabled: boolean;
 };

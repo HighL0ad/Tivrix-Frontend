@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import {
   ArrowLeftRight,
   Calendar,
@@ -63,6 +64,8 @@ export function ClientDetailPage() {
   const { t } = useTranslation();
   const location = useLocation();
   const params = useParams();
+  const currentUserQuery = useCurrentUser();
+  const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
   const clientId = Number(params.clientId);
   const clientQuery = useClient(Number.isFinite(clientId) ? clientId : null);
   const client = clientQuery.data;
@@ -134,7 +137,7 @@ export function ClientDetailPage() {
                 {t("debts.pay")}
               </Button>
             )}
-            <LegacyInstallmentDialog clientId={client.id} />
+            {isCreditEnabled && <LegacyInstallmentDialog clientId={client.id} />}
             <ClientEditDialog client={client} />
           </div>
         }

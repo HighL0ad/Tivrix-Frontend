@@ -5,6 +5,7 @@ import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { NavLink } from "react-router";
 import { type ReactNode, useState } from "react";
 
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import {
   type DebtWallet,
   type RepaymentOperationType,
@@ -52,6 +53,10 @@ export function DebtsPage() {
     action: parseAsStringLiteral(debtsActionValues),
     tab: parseAsStringLiteral(debtsTabValues).withDefault("debts"),
   });
+  const currentUserQuery = useCurrentUser();
+  const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
+  const activeTab = tab === "installments" && !isCreditEnabled ? "debts" : tab;
+
   const debtsQuery = useDebts();
   const financeQuery = useFinance({ page: 1 });
   const dashboardQuery = useDashboard();
@@ -103,7 +108,7 @@ export function DebtsPage() {
         title={t("app.nav.debts")}
         description={t("debts.description")}
         actions={
-          tab === "debts" ? (
+          activeTab === "debts" ? (
             <>
               <MoneyFlowDialog
                 title={t("debts.lend")}
@@ -129,14 +134,16 @@ export function DebtsPage() {
       />
 
       <Tabs
-        value={tab}
+        value={activeTab}
         onValueChange={(value) =>
           setDebtsParams({ tab: value as "debts" | "installments" })
         }
       >
         <TabsList>
           <TabsTrigger value="debts">{t("finance.overview")}</TabsTrigger>
-          <TabsTrigger value="installments">{t("dashboard.creditSystem")}</TabsTrigger>
+          {isCreditEnabled && (
+            <TabsTrigger value="installments">{t("dashboard.creditSystem")}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="debts" className="mt-4 space-y-5">
@@ -372,28 +379,27 @@ export function DebtsPage() {
                           {fData.attention.upcoming_installments.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-muted/50 transition-colors"
+                              className="px-4 py-3 text-sm transition-colors hover:bg-muted/50"
                             >
-                              <div className="flex min-w-0 flex-1 items-center">
-                                {/* Цветные аватары с инициалами */}
+                              <div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 sm:hidden">
                                 <div
-                                  className="mr-3 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-black uppercase shadow-sm ring-1 ring-white/8 select-none"
+                                  className="row-span-2 flex size-8 shrink-0 items-center justify-center self-center rounded-full border text-xs font-black uppercase shadow-sm ring-1 ring-white/8 select-none"
                                   style={getAvatarColorStyle(item.client_id)}
                                 >
                                   {getInitials(item.client_name)}
                                 </div>
-                                <div className="min-w-0 flex-1">
+                                <div className="min-w-0">
                                   <NavLink
                                     to={`/clients/${item.client_id}`}
                                     state={{ from: installmentsReturnTo }}
-                                    className="inline-block font-bold text-foreground hover:text-primary transition-all duration-200 hover:translate-x-0.5 truncate max-w-full"
+                                    className="block truncate font-bold leading-5 text-foreground transition-all duration-200 hover:text-primary"
                                   >
                                     {item.client_name}
                                   </NavLink>
                                   {item.product_name ? (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <span className="block max-w-full truncate text-[11px] font-medium text-muted-foreground">
+                                        <span className="block truncate text-[11px] font-medium leading-4 text-muted-foreground">
                                           {item.product_name}
                                         </span>
                                       </TooltipTrigger>
@@ -403,18 +409,60 @@ export function DebtsPage() {
                                     </Tooltip>
                                   ) : null}
                                 </div>
-                              </div>
-                              
-                              {/* Быстро читаемые даты и пилюльки */}
-                              <div className="flex items-center gap-4 shrink-0">
-                                <div className="flex flex-col items-end gap-0.5">
+                                <div className="shrink-0 self-start text-right font-sans text-sm font-black leading-5 text-foreground">
+                                  {money(item.remaining_amount)}
+                                </div>
+                                <div className="col-span-2 col-start-2 flex min-w-0 items-center justify-between gap-2">
                                   {renderDuePill(item.days_until_due, t)}
-                                  <span className="text-[10px] font-bold text-muted-foreground font-mono">
-                                    {shortDate(item.due_date)}
+                                  <span className="shrink-0 font-mono text-[10px] font-bold text-muted-foreground">
+                                    {formatInstallmentDueDate(item.due_date)}
                                   </span>
                                 </div>
-                                <div className="font-black text-right text-foreground font-sans text-sm min-w-[76px]">
-                                  {money(item.remaining_amount)}
+                              </div>
+
+                              <div className="hidden items-center justify-between gap-3 sm:flex">
+                                <div className="flex min-w-0 flex-1 items-center">
+                                  {/* Цветные аватары с инициалами */}
+                                  <div
+                                    className="mr-3 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-black uppercase shadow-sm ring-1 ring-white/8 select-none"
+                                    style={getAvatarColorStyle(item.client_id)}
+                                  >
+                                    {getInitials(item.client_name)}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <NavLink
+                                      to={`/clients/${item.client_id}`}
+                                      state={{ from: installmentsReturnTo }}
+                                      className="inline-block max-w-full truncate font-bold text-foreground transition-all duration-200 hover:translate-x-0.5 hover:text-primary"
+                                    >
+                                      {item.client_name}
+                                    </NavLink>
+                                    {item.product_name ? (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="block max-w-full truncate text-[11px] font-medium text-muted-foreground">
+                                            {item.product_name}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-80 whitespace-normal break-words">
+                                          {item.product_name}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ) : null}
+                                  </div>
+                                </div>
+
+                                {/* Быстро читаемые даты и пилюльки */}
+                                <div className="flex shrink-0 items-center gap-4">
+                                  <div className="flex flex-col items-end gap-0.5">
+                                    {renderDuePill(item.days_until_due, t)}
+                                    <span className="font-mono text-[10px] font-bold text-muted-foreground">
+                                      {formatInstallmentDueDate(item.due_date)}
+                                    </span>
+                                  </div>
+                                  <div className="min-w-[76px] text-right font-sans text-sm font-black text-foreground">
+                                    {money(item.remaining_amount)}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -534,6 +582,7 @@ function PayableRows({
   return (
     <div className="divide-y">
       {payables.map((payable) => {
+        const payableCategory = formatPayableCategory(payable.category, t);
         const imeis = [payable.product_imei, payable.product_imei2].filter(
           (imei): imei is string => Boolean(imei),
         );
@@ -556,7 +605,7 @@ function PayableRows({
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-semibold">{payable.category}</span>
+                  <span className="font-semibold">{payableCategory}</span>
                   <span className="text-xs text-muted-foreground">
                     {payable.product_name ?? t("products.noProduct")}
                   </span>
@@ -667,7 +716,11 @@ function PayableRows({
               <span className="whitespace-nowrap font-bold text-amber-700 sm:text-base">
                 {money(payable.amount)}
               </span>
-              <PayableDialog payable={payable} wallets={myWallets} />
+              <PayableDialog
+                payable={payable}
+                wallets={myWallets}
+                title={payableCategory}
+              />
             </div>
           </div>
         );
@@ -751,6 +804,7 @@ function WalletRow({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const entries = wallet.debt_entries ?? [];
+  const canOpenClient = operationType === "receive_client" && wallet.client_id;
 
   return (
     <div className="border-b px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-muted/50">
@@ -768,7 +822,18 @@ function WalletRow({
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <div className="break-words font-semibold">{wallet.name}</div>
+              {canOpenClient ? (
+                <NavLink
+                  to={`/clients/${wallet.client_id}`}
+                  state={{ from: "/debts" }}
+                  className="break-words font-semibold text-foreground transition-all duration-200 hover:text-primary hover:translate-x-0.5"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {wallet.name}
+                </NavLink>
+              ) : (
+                <div className="break-words font-semibold">{wallet.name}</div>
+              )}
               {entries.length > 0 && (
                 <ChevronDown
                   className={cn(
@@ -1009,6 +1074,23 @@ function renderDuePill(daysUntilDue: number, t: any) {
       {t("common.inNDays", { n: daysUntilDue })}
     </span>
   );
+}
+
+function formatInstallmentDueDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const [datePart] = value.split("T");
+  const [year, month, day] = datePart.split("-");
+  if (year && month && day) {
+    return `${day}.${month}.${year.slice(-2)}`;
+  }
+  return shortDate(value).split(",")[0] ?? value;
+}
+
+function formatPayableCategory(category: string, t: (key: string) => string) {
+  if (category.trim().toLowerCase() === "регистрация imei") {
+    return t("debts.payableCategory.registrationImei");
+  }
+  return category;
 }
 
 function formatForecastMonth(value: string, t: (key: string) => string) {

@@ -71,6 +71,11 @@ const UsersPage = lazy(() =>
     default: module.UsersPage,
   })),
 );
+const SettingsPage = lazy(() =>
+  import("@/pages/settings/SettingsPage").then((module) => ({
+    default: module.SettingsPage,
+  })),
+);
 
 export function App() {
   return (
@@ -91,6 +96,7 @@ export function App() {
             <Route path="clients/:clientId" element={<AccessGuard resource="clients"><ClientDetailPage /></AccessGuard>} />
             <Route path="catalogs" element={<AccessGuard resource="catalogs"><CatalogsPage /></AccessGuard>} />
             <Route path="users" element={<AccessGuard adminOnly><UsersPage /></AccessGuard>} />
+            <Route path="settings" element={<AccessGuard superAdminOnly><SettingsPage /></AccessGuard>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

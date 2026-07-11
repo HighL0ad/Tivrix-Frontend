@@ -2,6 +2,7 @@ import { Checkbox } from "@/shared/ui/checkbox";
 import { AppCheckboxPanel, AppFormField, AppRadioCards } from "@/shared/ui/app-form";
 import { Input } from "@/shared/ui/input";
 import { useTranslation } from "react-i18next";
+import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import type { ProductOption } from "@/entities/products/model/types";
 import {
   SelectField,
@@ -37,17 +38,24 @@ export function ClientPaymentFields({
   walletOptions: ProductOption[];
 }) {
   const { t } = useTranslation();
+  const currentUserQuery = useCurrentUser();
+  const isCreditEnabled = currentUserQuery.data?.credit_system_enabled ?? true;
+
+  const modeOptions: {
+    value: "full_payment" | "partial_debt" | "installment";
+    label: string;
+  }[] = [
+    { value: "full_payment", label: t("sell.fullPayment") },
+    { value: "partial_debt", label: t("sell.partialDebt") },
+    ...(isCreditEnabled ? [{ value: "installment" as const, label: t("sell.installment") }] : []),
+  ];
 
   return (
     <div className="space-y-4">
       <AppRadioCards
         value={saleMode}
         onValueChange={setSaleMode}
-        options={[
-          { value: "full_payment", label: t("sell.fullPayment") },
-          { value: "partial_debt", label: t("sell.partialDebt") },
-          { value: "installment", label: t("sell.installment") },
-        ]}
+        options={modeOptions}
       />
 
       <>
