@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -7,7 +7,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { AlertCircle, Banknote, CalendarClock, HandCoins, RotateCcw, Search, ShieldAlert, TrendingDown, TrendingUp, UsersRound, WalletCards } from "lucide-react";
+import { Banknote, HandCoins, RotateCcw, Search, ShieldAlert, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
 import {
   parseAsInteger,
   parseAsString,
@@ -16,7 +16,6 @@ import {
 } from "nuqs";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { NavLink } from "react-router";
 
 import { useCurrentUser } from "@/entities/auth/api/use-current-user";
 import {
@@ -702,33 +701,6 @@ function FinancePermissionBlock({ title }: { title: string }) {
   );
 }
 
-function AttentionMetric({
-  title,
-  value,
-  hint,
-  icon,
-  className,
-}: {
-  title: string;
-  value: string;
-  hint: string;
-  icon: ReactNode;
-  className: string;
-}) {
-  return (
-    <div className={`rounded-lg border p-4 ${className}`}>
-      <div className="flex min-h-10 items-start justify-between gap-3">
-        <div className="min-w-0 text-xs font-bold uppercase leading-4 tracking-wide opacity-75">
-          {title}
-        </div>
-        <div className="mt-0.5 shrink-0 opacity-80">{icon}</div>
-      </div>
-      <div className="mt-1 text-2xl font-black leading-none tracking-tight">{value}</div>
-      <div className="mt-2 text-xs font-semibold leading-4 opacity-75">{hint}</div>
-    </div>
-  );
-}
-
 function ProfitCard({
   data,
   isFetching,
@@ -1087,26 +1059,6 @@ function periodLabel(dateFrom: string, dateTo: string, t: (key: string, options?
 
 function profitToneClass(value: string | number) {
   return Number(value) >= 0 ? "text-emerald-700" : "text-rose-600";
-}
-
-function upcomingDueLabel(
-  daysUntilDue: number,
-  dueDate: string,
-  t: (key: string, options?: Record<string, string | number>) => string,
-) {
-  if (daysUntilDue < 0) {
-    return t("finance.daysOverdue", { count: Math.abs(daysUntilDue) });
-  }
-  if (daysUntilDue === 0) {
-    return t("finance.dueToday");
-  }
-  return `${shortDate(dueDate)} · ${t("common.inNDays", { n: daysUntilDue })}`;
-}
-
-function formatForecastMonth(value: string) {
-  const [year, month] = value.split("-");
-  if (!year || !month) return value;
-  return `${month}.${year.slice(-2)}`;
 }
 
 function useDebouncedValue(value: string, delay: number) {

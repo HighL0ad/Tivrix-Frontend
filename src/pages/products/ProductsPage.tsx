@@ -59,16 +59,6 @@ import { getApiErrorMessage } from "@/shared/api/error";
 import { queryClient } from "@/shared/api/query-client";
 import { eventStartedInInteractiveElement } from "@/shared/lib/events";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
 import { ResponsiveModal } from "@/shared/ui/app-form";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";

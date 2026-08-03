@@ -36,13 +36,6 @@ import { Input } from "@/shared/ui/input";
 import { PageHeader } from "@/shared/ui/page-header";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { SearchableSelect } from "@/shared/ui/searchable-select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
-import { Sheet, SheetContent } from "@/shared/ui/sheet";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import { cn } from "@/shared/lib/utils";
 import {
@@ -165,8 +158,6 @@ export function ProductCreatePage() {
 
   const purchaseSourcePlaceholder = t("products.selectPurchaseSource");
   const purchaseSourceSearchPlaceholder = t("products.purchaseSourceSearch");
-  const QuickSourceContainer = isMobile ? Sheet : Dialog;
-  const QuickSourceContent = isMobile ? SheetContent : DialogContent;
   const sourceTypeOptions = [
     {
       value: "client_debt" as const,

@@ -22,7 +22,7 @@ export const resources = {
   ru: {
     translation: {
       "app.addProduct": "Добавить товар",
-      "app.brand": "Ferdi Telefon",
+      "app.brand": "Tivrix",
       "app.language": "Язык",
       "app.menu": "Меню",
       "app.more": "Еще",
@@ -730,7 +730,7 @@ export const resources = {
       "debts.wallet": "Кошелек",
       "debts.weOwe": "Мы должны",
       "debts.who": "У кого",
-      "login.copyright": "© 2026 Ferdi Telefon. Internal Use Only.",
+      "login.copyright": "© 2026 Tivrix. Только для внутреннего использования.",
       "login.description": "Авторизация сотрудника",
       "login.failed": "Не удалось войти. Попробуйте ещё раз.",
       "login.loading": "Входим...",
@@ -757,7 +757,7 @@ export const resources = {
   az: {
     translation: {
       "app.addProduct": "Məhsul əlavə et",
-      "app.brand": "Ferdi Telefon",
+      "app.brand": "Tivrix",
       "app.language": "Dil",
       "app.menu": "Menyu",
       "app.more": "Daha çox",
@@ -1466,7 +1466,7 @@ export const resources = {
       "debts.wallet": "Hesab",
       "debts.weOwe": "Biz borcluyuq",
       "debts.who": "Kimdən",
-      "login.copyright": "© 2026 Ferdi Telefon. Yalnız daxili istifadə üçün.",
+      "login.copyright": "© 2026 Tivrix. Yalnız daxili istifadə üçün.",
       "login.description": "Əməkdaş girişi",
       "login.failed": "Daxil olmaq mümkün olmadı. Yenidən cəhd edin.",
       "login.loading": "Daxil olunur...",

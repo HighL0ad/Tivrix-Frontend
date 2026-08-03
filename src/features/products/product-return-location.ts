@@ -1,4 +1,4 @@
-const productsReturnLocationKey = "ferdi:last-products-location";
+const productsReturnLocationKey = "tivrix:last-products-location";
 
 export function saveProductsReturnLocation(path: string) {
   if (typeof window === "undefined") return;

@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = "ferdi-telefon-shell-v5";
+const APP_SHELL_CACHE = "tivrix-shell-v6";
 const APP_SHELL_ASSETS = [
   "/static/css/tailwind.css",
   "/static/css/app.css",
