@@ -1,8 +1,11 @@
 {
-  "name": "ferdi-erp-frontend",
+  "name": "tivrix-frontend",
   "private": true,
   "version": "0.1.0-alpha.1",
   "type": "module",
+  "engines": {
+    "node": ">=22.22.0"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
@@ -40,12 +43,12 @@
     "date-fns": "^4.1.0",
     "i18next": "^26.1.0",
     "lucide-react": "^0.468.0",
-    "nuqs": "^2.8.9",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "nuqs": "^2.9.4",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-hook-form": "^7.0.0",
     "react-i18next": "^17.0.7",
-    "react-router": "^7.0.0",
+    "react-router": "^8.3.0",
     "recharts": "^3.0.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.5.5",

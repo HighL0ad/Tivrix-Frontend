@@ -18,7 +18,7 @@ import {
   getCurrentChangelogItems,
 } from "@/features/changelog/changelog-data";
 
-const STORAGE_KEY = "ferdi.lastReadVersion";
+const STORAGE_KEY = "tivrix.lastReadVersion";
 
 export function ChangelogDialog() {
   const { i18n, t } = useTranslation();
@@ -94,7 +94,7 @@ export function ChangelogDialog() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/80 opacity-75"></span>
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
             </span>
-            <span>Ferdi Telefon ERP · v{CURRENT_CHANGELOG_VERSION}</span>
+            <span>Tivrix · v{CURRENT_CHANGELOG_VERSION}</span>
           </div>
           <Button 
             onClick={handleClose}

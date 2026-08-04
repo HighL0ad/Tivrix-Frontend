@@ -1,6 +1,7 @@
 import { Copy, ChevronDown, CalendarDays, AlertCircle, CalendarClock, HandCoins, TrendingUp, UsersRound, WalletCards, Landmark, ShoppingCart, Banknote, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { NavLink } from "react-router";
 import { type ReactNode, useState } from "react";
@@ -1054,7 +1055,7 @@ function getAvatarColorStyle(id: number) {
   };
 }
 
-function renderDuePill(daysUntilDue: number, t: any) {
+function renderDuePill(daysUntilDue: number, t: TFunction) {
   if (daysUntilDue < 0) {
     return (
       <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800 border border-rose-200">
@@ -1148,7 +1149,7 @@ function InstallmentsSkeleton() {
 
 function parseDebtEntryDescription(
   description: string | null | undefined,
-  t: any
+  t: TFunction
 ): { title: string; comment?: string | null } {
   if (!description) {
     return { title: t("debts.description") || "Долг" };

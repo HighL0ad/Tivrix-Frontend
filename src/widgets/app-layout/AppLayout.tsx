@@ -39,7 +39,8 @@ import {
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
-import { AppShellLoading } from "@/shared/ui/page-state";
+import { AppShellLoading, InitialAuthLoading } from "@/shared/ui/page-state";
+import { TivrixMark } from "@/shared/ui/tivrix-mark";
 
 const navItems = [
   { to: "/", labelKey: "app.nav.dashboard", icon: Gauge, resource: "dashboard" },
@@ -53,7 +54,7 @@ const navItems = [
 ];
 
 const mobileNavLabelClass = "text-[10px] font-medium leading-none";
-const SIDEBAR_WIDTH_STORAGE_KEY = "ferdi.sidebarWidth";
+const SIDEBAR_WIDTH_STORAGE_KEY = "tivrix.sidebarWidth";
 const DEFAULT_SIDEBAR_WIDTH = 256;
 const MIN_SIDEBAR_WIDTH = 220;
 const MAX_SIDEBAR_WIDTH = 380;
@@ -133,7 +134,7 @@ export function AppLayout() {
   }
 
   if (currentUserQuery.isLoading) {
-    return <AppShellLoading />;
+    return <InitialAuthLoading />;
   }
 
   if (!currentUser) {
@@ -147,8 +148,9 @@ export function AppLayout() {
     >
       <aside className="fixed z-40 hidden h-full w-[var(--sidebar-width)] flex-col border-r border-white/10 bg-[#0f172a] text-white md:flex">
         <NavLink to="/" className="block border-b border-white/10 px-5 py-5">
-          <h1 className="text-xl font-black tracking-tight text-white">
-            Ferdi <span className="text-xs font-bold text-slate-300">Telefon</span>
+          <h1 className="flex items-center gap-2.5 text-xl font-black tracking-tight text-white">
+            <TivrixMark className="size-8 shrink-0" />
+            <span>Tivrix</span>
           </h1>
         </NavLink>
 
@@ -265,8 +267,9 @@ export function AppLayout() {
       )}>
         <div className="mx-auto max-w-md p-4 pb-24 md:max-w-7xl md:p-6 lg:p-8 md:pb-8">
           <header className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-2.5 shadow-sm md:hidden">
-            <NavLink to="/" className="shrink-0 text-lg font-bold text-primary">
-              {t("app.brand")}
+            <NavLink to="/" className="inline-flex shrink-0 items-center gap-2 text-lg font-black text-primary">
+              <TivrixMark className="size-7" />
+              <span>{t("app.brand")}</span>
             </NavLink>
             <div className="flex items-center gap-2">
               <CommandMenuTrigger 
