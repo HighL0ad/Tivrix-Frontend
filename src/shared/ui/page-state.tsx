@@ -1,6 +1,7 @@
 import { Skeleton } from "@/shared/ui/skeleton";
 import { i18n } from "@/shared/i18n";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+import { TivrixMark } from "@/shared/ui/tivrix-mark";
 
 export function PageLoading() {
   return (
@@ -152,9 +153,7 @@ export function InitialAuthLoading() {
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#0b1120] text-white">
       <div className="flex flex-col items-center gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-sky-600 text-lg font-black text-white shadow-lg shadow-sky-950/50">
-            T
-          </span>
+          <TivrixMark className="size-12 shrink-0 drop-shadow-md" />
           <h1 className="text-2xl font-black tracking-tight text-white">
             Tivrix
           </h1>
