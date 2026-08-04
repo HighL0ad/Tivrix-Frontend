@@ -39,7 +39,7 @@ import {
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
-import { AppShellLoading } from "@/shared/ui/page-state";
+import { AppShellLoading, InitialAuthLoading } from "@/shared/ui/page-state";
 import { TivrixMark } from "@/shared/ui/tivrix-mark";
 
 const navItems = [
@@ -134,7 +134,7 @@ export function AppLayout() {
   }
 
   if (currentUserQuery.isLoading) {
-    return <AppShellLoading />;
+    return <InitialAuthLoading />;
   }
 
   if (!currentUser) {
