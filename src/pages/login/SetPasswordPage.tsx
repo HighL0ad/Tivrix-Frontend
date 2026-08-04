@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { useSetPassword } from "@/entities/auth/api/use-login";
 import { getApiErrorMessage } from "@/shared/api/error";
-import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
+import { LanguageRow } from "@/shared/i18n/LanguageSwitcher";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { TivrixMark } from "@/shared/ui/tivrix-mark";
 
 export function SetPasswordPage() {
   const { t } = useTranslation();
@@ -51,20 +52,24 @@ export function SetPasswordPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-4">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(79,70,229,0.28),transparent_32%),radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.16),transparent_28%)]" />
-      <div className="absolute right-4 top-4 z-10">
-        <LanguageSwitcher />
-      </div>
-      <Card className="relative w-full max-w-md border-white/15 bg-white/10 p-0 text-white shadow-2xl backdrop-blur-xl">
+      <Card className="relative w-full max-w-sm border-white/15 bg-white/10 p-0 text-white shadow-2xl backdrop-blur-xl">
         <CardHeader className="mb-2 items-center px-8 pt-8 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight text-white">
-            {t("setPassword.title")}
-          </CardTitle>
-          <CardDescription className="mt-2 whitespace-nowrap text-xs text-slate-300 sm:text-sm">
+          <div className="flex w-full items-center justify-center gap-3">
+            <TivrixMark className="size-12 shrink-0" />
+            <CardTitle className="text-3xl font-black tracking-tight text-white">
+              Tivrix
+            </CardTitle>
+          </div>
+          <CardDescription className="mt-2 text-sm text-slate-300">
             {t("setPassword.subtitle")}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="px-8 pb-8">
+          <div className="mb-5 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
+            <LanguageRow />
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {!token ? (
               <Alert variant="destructive" className="rounded-lg">
