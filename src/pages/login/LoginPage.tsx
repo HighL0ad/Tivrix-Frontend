@@ -55,7 +55,7 @@ export function LoginPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(79,70,229,0.28),transparent_32%),radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.16),transparent_28%)]" />
       <Card className="relative w-full max-w-sm border-white/15 bg-white/10 p-0 text-white shadow-2xl backdrop-blur-xl">
         <CardHeader className="mb-2 items-center px-8 pt-8 text-center">
-          <div className="flex items-center gap-3">
+          <div className="flex w-full items-center justify-center gap-3">
             <TivrixMark className="size-12 shrink-0" />
             <CardTitle className="text-3xl font-black tracking-tight text-white">
               Tivrix
