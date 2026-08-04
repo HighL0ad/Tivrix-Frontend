@@ -1,6 +1,9 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 export function TivrixMark(props: SVGProps<SVGSVGElement>) {
+  const rawId = useId();
+  const gradientId = `tivrix-grad-${rawId.replace(/:/g, "")}`;
+
   return (
     <svg
       viewBox="0 0 64 64"
@@ -16,7 +19,7 @@ export function TivrixMark(props: SVGProps<SVGSVGElement>) {
       {/* Simplified phone / screen outline */}
       <path
         d="M15 49V22C15 15.9 19.9 11 26 11H38C44.1 11 49 15.9 49 22V49"
-        stroke="url(#tivrix-gradient)"
+        stroke={`url(#${gradientId})`}
         strokeWidth="4.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -35,7 +38,7 @@ export function TivrixMark(props: SVGProps<SVGSVGElement>) {
       <path d="M27 38V48M32 36V48M37 38V48" stroke="#10254F" strokeWidth="3" strokeLinecap="round" />
 
       <defs>
-        <linearGradient id="tivrix-gradient" x1="16" y1="12" x2="49" y2="50" gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradientId} x1="16" y1="12" x2="49" y2="50" gradientUnits="userSpaceOnUse">
           <stop stopColor="#22E7E7" />
           <stop offset="1" stopColor="#1684FF" />
         </linearGradient>

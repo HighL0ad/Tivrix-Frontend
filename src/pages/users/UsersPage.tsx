@@ -116,15 +116,15 @@ export function UsersPage() {
                     </TableCell>
                     <TableCell>
                       {!user.is_active ? (
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                           {t("common.disabled")}
                         </Badge>
                       ) : user.pending_activation ? (
-                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
                           {t("users.pendingActivation")}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">
+                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400">
                           {t("common.active")}
                         </Badge>
                       )}
@@ -219,15 +219,15 @@ export function UsersPage() {
                     </div>
                     <div>
                       {!user.is_active ? (
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                           {t("common.disabled")}
                         </Badge>
                       ) : user.pending_activation ? (
-                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
                           {t("users.pendingActivation")}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">
+                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400">
                           {t("common.active")}
                         </Badge>
                       )}
