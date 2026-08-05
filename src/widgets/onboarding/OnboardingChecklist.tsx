@@ -31,6 +31,7 @@ export function OnboardingChecklist({
   hasClients,
   hasUsers,
   hasWallets,
+  onStartTour,
 }: OnboardingChecklistProps) {
   const { t } = useTranslation();
   const [isDismissed, setIsDismissed] = useState(false);
@@ -108,6 +109,17 @@ export function OnboardingChecklist({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {onStartTour && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onStartTour}
+                className="h-8 gap-1.5 border-sky-500/40 bg-sky-500/10 text-xs font-bold text-sky-600 hover:bg-sky-500/20 dark:text-sky-400"
+              >
+                <Sparkles className="size-3.5 text-sky-500" />
+                {t("help.startTour")}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

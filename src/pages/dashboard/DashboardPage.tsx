@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AlertCircle, Banknote, Boxes, ChartNoAxesColumnIncreasing, ChevronDown, ChevronUp, HandCoins, Landmark, Plus, ReceiptText, ShoppingCart, TrendingUp } from "lucide-react";
-import { NavLink, useLocation } from "react-router";
+import { NavLink, useLocation, useOutletContext } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/shared/lib/utils";
@@ -28,6 +28,7 @@ import { OnboardingChecklist } from "@/widgets/onboarding/OnboardingChecklist";
 export function DashboardPage() {
   const { t } = useTranslation();
   const location = useLocation();
+  const outletContext = useOutletContext<{ onStartTour?: () => void } | null>();
   const [profitPeriod, setProfitPeriod] = useState<"7d" | "30d" | "90d">("7d");
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
   const [isInstallmentAlertsExpanded, setIsInstallmentAlertsExpanded] = useState(false);
@@ -78,6 +79,7 @@ export function DashboardPage() {
         hasClients={true}
         hasUsers={true}
         hasWallets={true}
+        onStartTour={outletContext?.onStartTour}
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
