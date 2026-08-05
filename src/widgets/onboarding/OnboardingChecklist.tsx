@@ -7,6 +7,7 @@ import {
   Phone,
   Rocket,
   ShieldCheck,
+  Sparkles,
   UserCheck,
   Wallet,
   X,
@@ -24,6 +25,7 @@ export interface OnboardingChecklistProps {
   hasClients: boolean;
   hasUsers: boolean;
   hasWallets: boolean;
+  onStartTour?: () => void;
 }
 
 export function OnboardingChecklist({
