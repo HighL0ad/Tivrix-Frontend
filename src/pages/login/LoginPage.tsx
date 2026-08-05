@@ -1,5 +1,5 @@
 import { type ComponentProps, useState } from "react";
-import { LockKeyhole, LogIn, User } from "lucide-react";
+import { AlertCircle, LockKeyhole, LogIn, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -76,9 +76,10 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error ? (
-              <Alert variant="destructive" className="mb-6 rounded-lg">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="flex items-center gap-2.5 rounded-lg border border-red-500/30 bg-red-500/15 px-3.5 py-2.5 text-xs font-semibold text-red-200 shadow-sm backdrop-blur-md">
+                <AlertCircle className="size-4 shrink-0 text-red-400" aria-hidden="true" />
+                <span>{error}</span>
+              </div>
             ) : null}
 
             <div>
