@@ -19,14 +19,20 @@ export function getApiErrorMessage(
         detail.includes("invalid credentials") ||
         detail.includes("incorrect password") ||
         detail.includes("user not found") ||
-        detail.includes("invalid username or password")
+        detail.includes("invalid username or password") ||
+        detail.includes("неверное имя или пароль") ||
+        detail.includes("неверный логин или пароль") ||
+        detail.includes("неверный пароль") ||
+        detail.includes("неверные данные")
       ) {
         return i18n.t("errors.invalidCredentials");
       }
       if (
         detail.includes("user is disabled") ||
         detail.includes("user is inactive") ||
-        detail.includes("inactive user")
+        detail.includes("inactive user") ||
+        detail.includes("пользователь отключен") ||
+        detail.includes("учетная запись отключена")
       ) {
         return i18n.t("errors.userDisabled");
       }
@@ -34,18 +40,26 @@ export function getApiErrorMessage(
         detail.includes("invalid or expired token") ||
         detail.includes("invalid token") ||
         detail.includes("token expired") ||
-        detail.includes("expired token")
+        detail.includes("expired token") ||
+        detail.includes("ссылка недействительна") ||
+        detail.includes("сессия истекла") ||
+        detail.includes("сессия недействительна")
       ) {
         return i18n.t("errors.invalidToken");
       }
       if (
         detail.includes("permission") ||
         detail.includes("forbidden") ||
-        detail.includes("not allowed")
+        detail.includes("not allowed") ||
+        detail.includes("недостаточно прав") ||
+        detail.includes("доступно только")
       ) {
         return i18n.t("errors.permissionDenied");
       }
-      if (detail.includes("internal server error")) {
+      if (
+        detail.includes("internal server error") ||
+        detail.includes("ошибка сервера")
+      ) {
         return i18n.t("errors.serverError");
       }
       return payload.detail;
