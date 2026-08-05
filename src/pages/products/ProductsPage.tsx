@@ -264,10 +264,6 @@ export function ProductsPage() {
     saveProductsReturnLocation(returnTo);
   }, [returnTo]);
 
-  if (productsQuery.isLoading && !products) {
-    return <ProductsPageSkeleton />;
-  }
-
   return (
     <section className="space-y-5">
       <PageHeader
