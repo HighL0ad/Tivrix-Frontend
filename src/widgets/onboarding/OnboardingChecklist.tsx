@@ -17,6 +17,7 @@ import { NavLink } from "react-router";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { HelpCenterDialog } from "@/features/help/HelpCenterDialog";
+import { cn } from "@/shared/lib/utils";
 
 export interface OnboardingChecklistProps {
   hasProducts: boolean;
