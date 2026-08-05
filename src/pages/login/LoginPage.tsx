@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useLogin } from "@/entities/auth/api/use-login";
 import { queryClient } from "@/shared/api/query-client";
 import { ApiError } from "@/shared/api/http";
+import { getApiErrorMessage } from "@/shared/api/error";
 import { LanguageRow } from "@/shared/i18n/LanguageSwitcher";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
@@ -28,10 +29,9 @@ export function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const error =
-    loginMutation.error instanceof ApiError
-      ? getErrorMessage(loginMutation.error.payload, t("login.failed"))
-      : null;
+  const error = loginMutation.isError
+    ? getApiErrorMessage(loginMutation.error, t("login.failed"))
+    : null;
 
   const handleSubmit: NonNullable<ComponentProps<"form">["onSubmit"]> = (
     event,
@@ -45,6 +45,9 @@ export function LoginPage() {
           queryClient.setQueryData(["auth", "me"], currentUser);
           toast.success(t("login.success"));
           navigate(currentUser.first_accessible_route ?? "/", { replace: true });
+        },
+        onError: (err) => {
+          toast.error(getApiErrorMessage(err, t("login.failed")));
         },
       },
     );
@@ -146,17 +149,4 @@ export function LoginPage() {
       </Card>
     </main>
   );
-}
-
-function getErrorMessage(payload: unknown, fallback: string) {
-  if (
-    payload &&
-    typeof payload === "object" &&
-    "detail" in payload &&
-    typeof payload.detail === "string"
-  ) {
-    return payload.detail;
-  }
-
-  return fallback;
 }
