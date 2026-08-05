@@ -7,6 +7,7 @@ import {
   Database,
   Gauge,
   HandCoins,
+  HelpCircle,
   LogOut,
   Menu,
   Plus,
@@ -36,6 +37,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/ui/sheet";
+import { HelpCenterDialog } from "@/features/help/HelpCenterDialog";
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
@@ -69,6 +71,7 @@ export function AppLayout() {
   const currentUser = currentUserQuery.data;
   const uploadAvatar = useUploadAvatar();
   const [commandOpen, setCommandOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
   const [theme, setTheme] = useState<"light" | "dark">(( ) => {
@@ -217,6 +220,15 @@ export function AppLayout() {
                   </div>
                 </div>
                 <div className="border-t border-white/10" />
+                <button
+                  type="button"
+                  onClick={() => setHelpOpen(true)}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <HelpCircle className="size-4 text-sky-400" aria-hidden="true" />
+                  <span>{t("help.title")}</span>
+                </button>
+                <div className="border-t border-white/10" />
                 <LanguageRow />
                 <div className="border-t border-white/10" />
                 <button
@@ -274,6 +286,14 @@ export function AppLayout() {
               <span>{t("app.brand")}</span>
             </NavLink>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setHelpOpen(true)}
+                className="flex size-10 items-center justify-center rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-500/25"
+                title={t("help.title")}
+              >
+                <HelpCircle className="size-5" />
+              </button>
               <CommandMenuTrigger 
                 onClick={() => setCommandOpen(true)} 
                 className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground" 
@@ -350,7 +370,8 @@ export function AppLayout() {
           />
         </div>
       </nav>
-      <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} />
+      <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} onOpenHelp={() => setHelpOpen(true)} />
+      <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} />
       <ChangelogDialog />
     </div>
   );

@@ -5,6 +5,7 @@ import {
   Database,
   Gauge,
   HandCoins,
+  HelpCircle,
   History,
   Plus,
   Receipt,
@@ -62,9 +63,11 @@ export function CommandMenuTrigger({
 export function CommandMenuDialog({
   open,
   setOpen,
+  onOpenHelp,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
+  onOpenHelp?: () => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -288,6 +291,12 @@ export function CommandMenuDialog({
         ) : null}
         {hasGlobalQuery && hasGlobalResults ? <CommandSeparator /> : null}
         <CommandGroup heading={t("common.actions")}>
+          {onOpenHelp ? (
+            <CommandItem onSelect={() => runCommand(onOpenHelp)}>
+              <HelpCircle className="mr-2 h-4 w-4 text-sky-500" />
+              <span>{t("help.title")}</span>
+            </CommandItem>
+          ) : null}
           <CommandItem onSelect={() => runCommand(() => navigate("/products/new"))}>
             <Plus className="mr-2 h-4 w-4" />
             <span>{t("app.addProduct")}</span>
