@@ -278,36 +278,17 @@ export function HelpCenterDialog({
       <DialogContent className="flex h-[85vh] w-[94vw] max-w-4xl sm:max-w-4xl flex-col p-0 overflow-hidden sm:rounded-2xl border-border bg-card shadow-2xl">
         {/* Header */}
         <DialogHeader className="border-b bg-muted/40 px-6 py-4 shrink-0">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 shadow-xs">
-                <HelpCircle className="size-6" />
-              </span>
-              <div>
-                <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
-                  {t("help.title")}
-                </DialogTitle>
-                <p className="text-xs text-muted-foreground">
-                  {t("help.subtitle")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 mr-8">
-              {onStartTour && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    onOpenChange(false);
-                    onStartTour(selectedTopic?.id ?? "quick-start");
-                  }}
-                  className="gap-1.5 border-sky-400/40 text-xs font-bold text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
-                >
-                  <Sparkles className="size-4 text-sky-500" />
-                  <span>{t("help.startTour")}</span>
-                </Button>
-              )}
+          <div className="flex items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 shadow-xs">
+              <HelpCircle className="size-6" />
+            </span>
+            <div>
+              <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+                {t("help.title")}
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground">
+                {t("help.subtitle")}
+              </p>
             </div>
           </div>
         </DialogHeader>
@@ -328,9 +309,26 @@ export function HelpCenterDialog({
                   <ArrowLeft className="size-4" />
                   {t("help.backToList")}
                 </Button>
-                <span className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-                  {t(selectedTopic.titleKey)}
-                </span>
+
+                <div className="flex items-center gap-3">
+                  {onStartTour && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        onOpenChange(false);
+                        onStartTour(selectedTopic.id);
+                      }}
+                      className="gap-1.5 border-sky-400/40 text-xs font-bold text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
+                    >
+                      <Sparkles className="size-4 text-sky-500" />
+                      <span>{t("help.startGuideTour")}</span>
+                    </Button>
+                  )}
+                  <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                    {t(selectedTopic.titleKey)}
+                  </span>
+                </div>
               </div>
 
               {/* Stepper Progress Bar */}
@@ -479,6 +477,32 @@ export function HelpCenterDialog({
                   </TabsList>
                 </Tabs>
               </div>
+
+              {/* Interactive Screen Tour Banner */}
+              {onStartTour && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-sky-500/30 bg-sky-500/10 p-4 text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md">
+                      <Sparkles className="size-5" />
+                    </span>
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-foreground text-sm">{t("tour.interactiveGuide")}</p>
+                      <p className="text-xs text-muted-foreground">{t("tour.bannerDesc")}</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      onOpenChange(false);
+                      onStartTour("quick-start");
+                    }}
+                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md shrink-0 gap-1.5 w-full sm:w-auto justify-center"
+                  >
+                    <Sparkles className="size-4" />
+                    {t("help.startTour")}
+                  </Button>
+                </div>
+              )}
 
               {/* Topics Grid */}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
