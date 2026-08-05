@@ -32,7 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { CatalogsPageSkeleton, PageError } from "@/shared/ui/page-state";
 import { PaginationBar } from "@/shared/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -67,7 +67,7 @@ export function CatalogsPage() {
   const activeTab = getCatalogTab(tab);
 
   if (catalogsQuery.isLoading) {
-    return <PageLoading />;
+    return <CatalogsPageSkeleton />;
   }
 
   if (!catalogsQuery.data) {
