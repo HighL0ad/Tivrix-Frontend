@@ -225,7 +225,7 @@ export function SpotlightTour({
         className="w-full max-w-[360px] p-2 transition-all duration-300 pointer-events-auto"
         style={tooltipStyle}
       >
-        <div className="rounded-2xl border border-sky-500/30 bg-[#0b132b] p-5 text-white shadow-2xl backdrop-blur-2xl space-y-4 ring-1 ring-sky-400/20">
+        <div className="rounded-2xl border border-sky-500/30 bg-[#0b132b] p-5 text-white shadow-2xl space-y-4 ring-1 ring-sky-400/20">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <span className="flex size-7 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400 font-bold text-xs">
