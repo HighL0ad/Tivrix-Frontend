@@ -3,77 +3,254 @@ import { i18n } from "@/shared/i18n";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { TivrixMark } from "@/shared/ui/tivrix-mark";
 
-export function PageLoading() {
+export function ProductsPageSkeleton() {
   return (
     <div className="space-y-5">
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-64" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <Skeleton className="h-10 w-36 rounded-lg" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Card key={index} size="sm">
-            <CardContent className="flex items-start justify-between gap-3 p-4">
-              <div className="flex-1 space-y-3">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-3 w-24" />
+      <Card>
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <Skeleton className="h-10 w-full sm:w-72" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-24 rounded-lg" />
+            <Skeleton className="h-9 w-24 rounded-lg" />
+            <Skeleton className="h-9 w-24 rounded-lg" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <Card key={index} className="overflow-hidden">
+            <div className="aspect-[4/3] w-full bg-muted/60" />
+            <CardContent className="space-y-3 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-5 w-12 rounded-full" />
               </div>
-              <Skeleton className="h-10 w-10 rounded-lg" />
+              <Skeleton className="h-4 w-1/2" />
+              <div className="pt-2 flex items-center justify-between border-t border-border/40">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function FinancePageSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-4 w-60" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-28 rounded-lg" />
+          <Skeleton className="h-10 w-28 rounded-lg" />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Card key={index}>
+            <CardContent className="space-y-3 p-5">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="size-8 rounded-lg" />
+              </div>
+              <Skeleton className="h-8 w-36" />
+              <Skeleton className="h-3 w-28" />
             </CardContent>
           </Card>
         ))}
       </div>
 
       <Card>
-        <CardContent className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-9 w-40 rounded-lg" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {Array.from({ length: 5 }).map((_, index) => (
-            <Skeleton key={index} className="h-10 w-full" />
+            <div key={index} className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-9 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-5 w-24" />
+            </div>
           ))}
         </CardContent>
       </Card>
+    </div>
+  );
+}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[1fr_360px]">
+export function DebtsPageSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-44" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Card key={index}>
+            <CardContent className="space-y-3 p-4">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-7 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-10 w-full sm:w-72" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+              <div className="space-y-2 text-right">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function ClientsPageSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <Skeleton className="h-10 w-36 rounded-lg" />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-10 w-full sm:w-72" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between rounded-lg border p-3.5">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function UsersPageSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-4 w-52" />
+        </div>
+        <Skeleton className="h-10 w-40 rounded-lg" />
+      </div>
+
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between rounded-lg border p-3.5">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function DetailPageSkeleton() {
+  return (
+    <div className="space-y-5">
+      <Skeleton className="h-9 w-28 rounded-lg" />
+      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-24" />
-              <Skeleton className="h-8 w-32 rounded-lg" />
-            </div>
+          <CardHeader className="space-y-3">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-32" />
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} className="h-24 w-full" />
-              ))}
+          <CardContent className="space-y-4">
+            <Skeleton className="h-48 w-full rounded-lg" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
             </div>
-            <Skeleton className="h-[280px] w-full" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-6 w-32" />
           </CardHeader>
           <CardContent className="space-y-3">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="rounded-lg border p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-3 w-2/3" />
-                  </div>
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="mt-3 h-3 w-24" />
-              </div>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-14 w-full rounded-lg" />
             ))}
           </CardContent>
         </Card>
       </div>
     </div>
   );
+}
+
+export function PageLoading() {
+  return <ProductsPageSkeleton />;
 }
 
 export function AppShellLoading() {

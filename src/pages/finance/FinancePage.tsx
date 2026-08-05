@@ -53,7 +53,7 @@ import { PageHeader } from "@/shared/ui/page-header";
 import {
   PaginationBar,
 } from "@/shared/ui/pagination";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { FinancePageSkeleton, PageError } from "@/shared/ui/page-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
@@ -139,7 +139,7 @@ export function FinancePage() {
   }
 
   if (financeQuery.isPending && !financeQuery.data) {
-    return <PageLoading />;
+    return <FinancePageSkeleton />;
   }
 
   if (!data) {

@@ -34,7 +34,7 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { formatPhoneInput } from "@/shared/lib/input-formatters";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { DetailPageSkeleton, PageError } from "@/shared/ui/page-state";
 import {
   Table,
   TableBody,
@@ -90,7 +90,7 @@ export function ClientDetailPage() {
     return client.installments;
   }, [client?.installments, timelineFilter]);
 
-  if (clientQuery.isLoading) return <PageLoading />;
+  if (clientQuery.isLoading) return <DetailPageSkeleton />;
   if (!client) return <PageError />;
 
   const totalPurchasesNum = Number(client.total_purchases);
