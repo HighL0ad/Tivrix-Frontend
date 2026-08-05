@@ -22,6 +22,7 @@ import { Money } from "@/shared/ui/money-display";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError } from "@/shared/ui/page-state";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { OnboardingChecklist } from "@/widgets/onboarding/OnboardingChecklist";
 
 export function DashboardPage() {
