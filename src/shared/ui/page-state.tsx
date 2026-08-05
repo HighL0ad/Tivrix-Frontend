@@ -220,22 +220,22 @@ export function UsersPageSkeleton() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-10 w-44 rounded-lg" />
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="h-10 w-full sm:w-44 rounded-lg" />
         </CardHeader>
         <CardContent className="space-y-3">
           {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="flex items-center justify-between rounded-lg border p-3.5">
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-9 rounded-full" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
+            <div key={index} className="flex flex-col gap-3 rounded-lg border p-3.5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <Skeleton className="size-9 shrink-0 rounded-full" />
+                <div className="space-y-1.5 min-w-0">
+                  <Skeleton className="h-4 w-28 sm:w-36" />
+                  <Skeleton className="h-3 w-20 sm:w-24" />
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-6 w-24 rounded-full" />
+              <div className="flex items-center gap-2 pt-1 border-t sm:border-0 sm:pt-0">
+                <Skeleton className="h-6 w-20 rounded-full" />
                 <Skeleton className="h-6 w-16 rounded-full" />
               </div>
             </div>
@@ -254,18 +254,18 @@ export function CatalogsPageSkeleton() {
         <Skeleton className="h-4 w-64" />
       </div>
 
-      <div className="flex gap-2 border-b pb-3">
-        <Skeleton className="h-9 w-28 rounded-lg" />
-        <Skeleton className="h-9 w-24 rounded-lg" />
-        <Skeleton className="h-9 w-36 rounded-lg" />
-        <Skeleton className="h-9 w-28 rounded-lg" />
+      <div className="flex gap-2 overflow-x-auto border-b pb-3 no-scrollbar">
+        <Skeleton className="h-9 w-28 shrink-0 rounded-lg" />
+        <Skeleton className="h-9 w-24 shrink-0 rounded-lg" />
+        <Skeleton className="h-9 w-36 shrink-0 rounded-lg" />
+        <Skeleton className="h-9 w-28 shrink-0 rounded-lg" />
       </div>
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Skeleton className="h-10 flex-1 rounded-lg" />
-            <Skeleton className="h-10 w-32 rounded-lg" />
+            <Skeleton className="h-10 w-full sm:w-32 rounded-lg" />
           </div>
         </CardContent>
       </Card>
