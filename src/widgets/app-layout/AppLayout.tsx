@@ -317,7 +317,7 @@ export function AppLayout() {
             </div>
           </header>
 
-          <Outlet />
+          <Outlet context={{ onStartTour: () => setTourOpen(true) }} />
         </div>
       </main>
 
