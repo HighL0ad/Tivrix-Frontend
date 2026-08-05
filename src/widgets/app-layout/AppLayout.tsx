@@ -38,6 +38,7 @@ import {
   SheetTrigger,
 } from "@/shared/ui/sheet";
 import { HelpCenterDialog } from "@/features/help/HelpCenterDialog";
+import { SpotlightTour } from "@/features/tour/SpotlightTour";
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
@@ -72,6 +73,7 @@ export function AppLayout() {
   const uploadAvatar = useUploadAvatar();
   const [commandOpen, setCommandOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
   const [theme, setTheme] = useState<"light" | "dark">(( ) => {
@@ -158,7 +160,7 @@ export function AppLayout() {
         </NavLink>
 
         <nav className="flex flex-1 flex-col gap-1.5 p-3">
-          <div className="mb-2">
+          <div className="mb-2" data-tour="search">
             <CommandMenuTrigger 
               onClick={() => setCommandOpen(true)} 
               className="flex h-10 w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-slate-400 hover:bg-white/10 hover:text-white" 
@@ -170,6 +172,7 @@ export function AppLayout() {
               key={item.to}
               to={item.to}
               end={item.to === "/"}
+              data-tour={item.to === "/finance" ? "nav-finance" : item.to === "/debts" ? "nav-debts" : undefined}
               className={({ isActive }) =>
                 cn(
                   buttonVariants({ variant: "ghost" }),
@@ -185,7 +188,7 @@ export function AppLayout() {
             </NavLink>
           ))}
 
-          <div className="mt-3 border-t border-white/10 pt-3">
+          <div className="mt-3 border-t border-white/10 pt-3" data-tour="add-product">
             <Button asChild className="w-full bg-sky-600 hover:bg-sky-500 text-white">
               <NavLink to="/products/new">
                 <Plus aria-hidden="true" />
@@ -196,7 +199,7 @@ export function AppLayout() {
 
           <div className="mt-auto space-y-2 pt-4">
             {currentUser ? (
-              <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] text-xs text-slate-300">
+              <div data-tour="user-profile" className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] text-xs text-slate-300">
                 <div className="flex min-w-0 items-center gap-2 px-3 py-2.5">
                   <UserAvatar
                     user={currentUser}
@@ -369,7 +372,8 @@ export function AppLayout() {
         </div>
       </nav>
       <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} onOpenHelp={() => setHelpOpen(true)} />
-      <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} onStartTour={() => setTourOpen(true)} />
+      <SpotlightTour open={tourOpen} onClose={() => setTourOpen(false)} />
       <ChangelogDialog />
     </div>
   );
