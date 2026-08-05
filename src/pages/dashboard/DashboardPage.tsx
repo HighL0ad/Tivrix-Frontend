@@ -22,7 +22,7 @@ import { Money } from "@/shared/ui/money-display";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PageError } from "@/shared/ui/page-state";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
+import { OnboardingChecklist } from "@/widgets/onboarding/OnboardingChecklist";
 
 export function DashboardPage() {
   const { t } = useTranslation();
@@ -70,6 +70,13 @@ export function DashboardPage() {
       <PageHeader
         title={t("app.nav.dashboard")}
         description={t("dashboard.description")}
+      />
+
+      <OnboardingChecklist
+        hasProducts={data.stock_count > 0}
+        hasClients={true}
+        hasUsers={true}
+        hasWallets={true}
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
