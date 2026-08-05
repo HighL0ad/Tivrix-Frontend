@@ -273,7 +273,7 @@ export function HelpCenterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[85vh] w-[94vw] max-w-4xl flex-col p-0 overflow-hidden sm:rounded-2xl border-border bg-card shadow-2xl">
+      <DialogContent className="flex h-[85vh] w-[94vw] max-w-4xl sm:max-w-4xl flex-col p-0 overflow-hidden sm:rounded-2xl border-border bg-card shadow-2xl">
         {/* Header */}
         <DialogHeader className="border-b bg-muted/40 px-6 py-4 shrink-0">
           <div className="flex items-center justify-between gap-4">
