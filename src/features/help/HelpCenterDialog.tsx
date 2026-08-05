@@ -226,10 +226,12 @@ export function HelpCenterDialog({
   open,
   onOpenChange,
   initialTopicId,
+  onStartTour,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialTopicId?: string;
+  onStartTour?: () => void;
 }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
@@ -291,17 +293,22 @@ export function HelpCenterDialog({
               </div>
             </div>
 
-            {selectedTopic && (
-              <div className="hidden sm:flex items-center gap-2 rounded-xl border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                <Sparkles className="size-4 text-sky-500" />
-                <span>
-                  {t("help.wizardStepProgress", {
-                    current: currentStepIndex + 1,
-                    total: selectedTopic.steps.length,
-                  })}
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {onStartTour && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onStartTour();
+                  }}
+                  className="gap-1.5 border-sky-400/40 text-xs font-bold text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
+                >
+                  <Sparkles className="size-4 text-sky-500" />
+                  <span>{t("help.startTour")}</span>
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
