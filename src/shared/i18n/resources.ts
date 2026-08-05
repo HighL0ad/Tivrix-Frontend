@@ -22,7 +22,7 @@ export const resources = {
   ru: {
     translation: {
       "app.addProduct": "Добавить товар",
-      "app.brand": "Tivrix",
+      "app.brand": "Ferdi Telefon",
       "app.language": "Язык",
       "app.menu": "Меню",
       "app.more": "Еще",
@@ -757,7 +757,7 @@ export const resources = {
   az: {
     translation: {
       "app.addProduct": "Məhsul əlavə et",
-      "app.brand": "Tivrix",
+      "app.brand": "Ferdi Telefon",
       "app.language": "Dil",
       "app.menu": "Menyu",
       "app.more": "Daha çox",

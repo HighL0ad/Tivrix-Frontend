@@ -150,7 +150,9 @@ export function AppLayout() {
         <NavLink to="/" className="block border-b border-white/10 px-5 py-5">
           <h1 className="flex items-center gap-2.5 text-xl font-black tracking-tight text-white">
             <TivrixMark className="size-8 shrink-0" />
-            <span>Tivrix</span>
+            <span>
+              Ferdi <span className="text-xs font-bold text-slate-300">Telefon</span>
+            </span>
           </h1>
         </NavLink>
 

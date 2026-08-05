@@ -57,8 +57,8 @@ export function LoginPage() {
         <CardHeader className="mb-2 items-center px-8 pt-8 text-center">
           <div className="flex w-full items-center justify-center gap-3">
             <TivrixMark className="size-12 shrink-0" />
-            <CardTitle className="text-3xl font-black tracking-tight text-white">
-              Tivrix
+            <CardTitle className="text-3xl font-bold tracking-tight text-white">
+              Ferdi <span className="text-lg text-indigo-200">Telefon</span>
             </CardTitle>
           </div>
           <CardDescription className="mt-2 text-sm text-slate-300">
