@@ -16,7 +16,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { PageError, UsersPageSkeleton } from "@/shared/ui/page-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 
 const roleLabelKey: Record<string, string> = {
@@ -43,7 +43,7 @@ export function UsersPage() {
   const passwordSetupLink = useCreatePasswordSetupLink();
 
   if (usersQuery.isLoading) {
-    return <PageLoading />;
+    return <UsersPageSkeleton />;
   }
 
   if (!usersQuery.data) {

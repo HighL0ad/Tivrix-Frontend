@@ -76,6 +76,7 @@ import { Input } from "@/shared/ui/input";
 import { Money } from "@/shared/ui/money-display";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
+import { ProductsPageSkeleton } from "@/shared/ui/page-state";
 import {
   PaginationBar,
 } from "@/shared/ui/pagination";
@@ -262,6 +263,10 @@ export function ProductsPage() {
   useEffect(() => {
     saveProductsReturnLocation(returnTo);
   }, [returnTo]);
+
+  if (productsQuery.isLoading && !products) {
+    return <ProductsPageSkeleton />;
+  }
 
   return (
     <section className="space-y-5">

@@ -16,7 +16,7 @@ import { Input } from "@/shared/ui/input";
 import { HighlightText } from "@/shared/ui/highlight-text";
 import { formatPhoneInput } from "@/shared/lib/input-formatters";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { ClientsPageSkeleton, PageError } from "@/shared/ui/page-state";
 import { PaginationBar } from "@/shared/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
@@ -137,7 +137,7 @@ export function ClientsPage() {
   }, [debouncedSearch, setClientParams]);
 
   if (clientsQuery.isPending && !clientsQuery.data) {
-    return <PageLoading />;
+    return <ClientsPageSkeleton />;
   }
 
   if (!clientsQuery.data) {

@@ -34,7 +34,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
-import { PageError, PageLoading } from "@/shared/ui/page-state";
+import { DebtsPageSkeleton, PageError } from "@/shared/ui/page-state";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import {
@@ -63,7 +63,7 @@ export function DebtsPage() {
   const dashboardQuery = useDashboard();
 
   if (debtsQuery.isLoading) {
-    return <PageLoading />;
+    return <DebtsPageSkeleton />;
   }
 
   if (!debtsQuery.data) {
