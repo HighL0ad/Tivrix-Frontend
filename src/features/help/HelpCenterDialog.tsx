@@ -1,14 +1,17 @@
 import { useState } from "react";
 import {
+  ArrowLeft,
+  ArrowRight,
   BookOpen,
-  Boxes,
+  Check,
   CheckCircle2,
   ChevronRight,
   CreditCard,
-  FileText,
   HelpCircle,
+  Lightbulb,
   LucideIcon,
   Phone,
+  Rocket,
   Search,
   ShieldCheck,
   Sparkles,
@@ -27,9 +30,16 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
-import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { cn } from "@/shared/lib/utils";
+
+export interface HelpStep {
+  titleKey: string;
+  descKey: string;
+  tipKey?: string;
+  actionUrl?: string;
+  actionLabelKey?: string;
+}
 
 export interface HelpTopic {
   id: string;
@@ -39,10 +49,7 @@ export interface HelpTopic {
   summaryKey: string;
   actionUrl?: string;
   actionLabelKey?: string;
-  steps: {
-    titleKey: string;
-    descKey: string;
-  }[];
+  steps: HelpStep[];
 }
 
 export const helpTopics: HelpTopic[] = [
@@ -58,18 +65,30 @@ export const helpTopics: HelpTopic[] = [
       {
         titleKey: "help.topics.quickStart.step1Title",
         descKey: "help.topics.quickStart.step1Desc",
+        tipKey: "help.topics.quickStart.step1Tip",
+        actionUrl: "/finance",
+        actionLabelKey: "help.actions.goToFinance",
       },
       {
         titleKey: "help.topics.quickStart.step2Title",
         descKey: "help.topics.quickStart.step2Desc",
+        tipKey: "help.topics.quickStart.step2Tip",
+        actionUrl: "/products/new",
+        actionLabelKey: "help.actions.addProduct",
       },
       {
         titleKey: "help.topics.quickStart.step3Title",
         descKey: "help.topics.quickStart.step3Desc",
+        tipKey: "help.topics.quickStart.step3Tip",
+        actionUrl: "/clients",
+        actionLabelKey: "help.actions.goToClients",
       },
       {
         titleKey: "help.topics.quickStart.step4Title",
         descKey: "help.topics.quickStart.step4Desc",
+        tipKey: "help.topics.quickStart.step4Tip",
+        actionUrl: "/users",
+        actionLabelKey: "help.actions.goToUsers",
       },
     ],
   },
@@ -85,14 +104,23 @@ export const helpTopics: HelpTopic[] = [
       {
         titleKey: "help.topics.imei.step1Title",
         descKey: "help.topics.imei.step1Desc",
+        tipKey: "help.topics.imei.step1Tip",
+        actionUrl: "/products/new",
+        actionLabelKey: "help.actions.addProduct",
       },
       {
         titleKey: "help.topics.imei.step2Title",
         descKey: "help.topics.imei.step2Desc",
+        tipKey: "help.topics.imei.step2Tip",
+        actionUrl: "/products",
+        actionLabelKey: "help.actions.goToProducts",
       },
       {
         titleKey: "help.topics.imei.step3Title",
         descKey: "help.topics.imei.step3Desc",
+        tipKey: "help.topics.imei.step3Tip",
+        actionUrl: "/products?status=in_stock",
+        actionLabelKey: "help.actions.goToStock",
       },
     ],
   },
@@ -108,14 +136,23 @@ export const helpTopics: HelpTopic[] = [
       {
         titleKey: "help.topics.installments.step1Title",
         descKey: "help.topics.installments.step1Desc",
+        tipKey: "help.topics.installments.step1Tip",
+        actionUrl: "/clients",
+        actionLabelKey: "help.actions.goToClients",
       },
       {
         titleKey: "help.topics.installments.step2Title",
         descKey: "help.topics.installments.step2Desc",
+        tipKey: "help.topics.installments.step2Tip",
+        actionUrl: "/debts",
+        actionLabelKey: "help.actions.goToDebts",
       },
       {
         titleKey: "help.topics.installments.step3Title",
         descKey: "help.topics.installments.step3Desc",
+        tipKey: "help.topics.installments.step3Tip",
+        actionUrl: "/debts?tab=overview",
+        actionLabelKey: "help.actions.goToDebts",
       },
     ],
   },
@@ -131,14 +168,23 @@ export const helpTopics: HelpTopic[] = [
       {
         titleKey: "help.topics.finance.step1Title",
         descKey: "help.topics.finance.step1Desc",
+        tipKey: "help.topics.finance.step1Tip",
+        actionUrl: "/catalogs",
+        actionLabelKey: "help.actions.goToCatalogs",
       },
       {
         titleKey: "help.topics.finance.step2Title",
         descKey: "help.topics.finance.step2Desc",
+        tipKey: "help.topics.finance.step2Tip",
+        actionUrl: "/finance?action=adjust",
+        actionLabelKey: "help.actions.goToFinance",
       },
       {
         titleKey: "help.topics.finance.step3Title",
         descKey: "help.topics.finance.step3Desc",
+        tipKey: "help.topics.finance.step3Tip",
+        actionUrl: "/finance?action=transfer",
+        actionLabelKey: "help.actions.goToFinance",
       },
     ],
   },
@@ -154,14 +200,23 @@ export const helpTopics: HelpTopic[] = [
       {
         titleKey: "help.topics.users.step1Title",
         descKey: "help.topics.users.step1Desc",
+        tipKey: "help.topics.users.step1Tip",
+        actionUrl: "/users",
+        actionLabelKey: "help.actions.goToUsers",
       },
       {
         titleKey: "help.topics.users.step2Title",
         descKey: "help.topics.users.step2Desc",
+        tipKey: "help.topics.users.step2Tip",
+        actionUrl: "/users",
+        actionLabelKey: "help.actions.goToUsers",
       },
       {
         titleKey: "help.topics.users.step3Title",
         descKey: "help.topics.users.step3Desc",
+        tipKey: "help.topics.users.step3Tip",
+        actionUrl: "/users",
+        actionLabelKey: "help.actions.goToUsers",
       },
     ],
   },
@@ -182,6 +237,25 @@ export function HelpCenterDialog({
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(
     helpTopics.find((t) => t.id === initialTopicId) ?? null,
   );
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  const handleSelectTopic = (topic: HelpTopic) => {
+    setSelectedTopic(topic);
+    setCurrentStepIndex(0);
+  };
+
+  const handleNextStep = () => {
+    if (!selectedTopic) return;
+    if (currentStepIndex < selectedTopic.steps.length - 1) {
+      setCurrentStepIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex((prev) => prev - 1);
+    }
+  };
 
   const filteredTopics = helpTopics.filter((topic) => {
     const title = t(topic.titleKey).toLowerCase();
@@ -195,17 +269,20 @@ export function HelpCenterDialog({
     return matchesSearch && matchesCategory;
   });
 
+  const activeStep = selectedTopic ? selectedTopic.steps[currentStepIndex] : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden p-0 sm:rounded-2xl">
-        <DialogHeader className="border-b bg-muted/30 px-6 py-4">
-          <div className="flex items-center justify-between">
+      <DialogContent className="flex h-[85vh] w-[94vw] max-w-4xl flex-col p-0 overflow-hidden sm:rounded-2xl border-border bg-card shadow-2xl">
+        {/* Header */}
+        <DialogHeader className="border-b bg-muted/40 px-6 py-4 shrink-0">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">
-                <HelpCircle className="size-5" />
+              <span className="flex size-11 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 shadow-xs">
+                <HelpCircle className="size-6" />
               </span>
               <div>
-                <DialogTitle className="text-xl font-bold tracking-tight">
+                <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
                   {t("help.title")}
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground">
@@ -213,135 +290,229 @@ export function HelpCenterDialog({
                 </p>
               </div>
             </div>
+
+            {selectedTopic && (
+              <div className="hidden sm:flex items-center gap-2 rounded-xl border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                <Sparkles className="size-4 text-sky-500" />
+                <span>
+                  {t("help.wizardStepProgress", {
+                    current: currentStepIndex + 1,
+                    total: selectedTopic.steps.length,
+                  })}
+                </span>
+              </div>
+            )}
           </div>
         </DialogHeader>
 
-        <div className="p-6 space-y-5">
-          {selectedTopic ? (
-            <div className="space-y-5">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedTopic(null)}
-                className="gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-4" />
-                {t("help.backToList")}
-              </Button>
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {selectedTopic && activeStep ? (
+            /* Interactive Wizard View */
+            <div className="space-y-6 max-w-3xl mx-auto">
+              {/* Back to Topics List */}
+              <div className="flex items-center justify-between border-b pb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedTopic(null)}
+                  className="gap-2 text-xs font-bold text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="size-4" />
+                  {t("help.backToList")}
+                </Button>
+                <span className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                  {t(selectedTopic.titleKey)}
+                </span>
+              </div>
 
-              <div className="rounded-xl border bg-card p-5 shadow-xs space-y-4">
-                <div className="flex items-start gap-4">
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">
-                    <selectedTopic.icon className="size-6" />
+              {/* Stepper Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                  <span>
+                    {t("help.stepLabel", { number: currentStepIndex + 1 })}
                   </span>
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-foreground">
-                      {t(selectedTopic.titleKey)}
+                  <span>
+                    {Math.round(
+                      ((currentStepIndex + 1) / selectedTopic.steps.length) * 100,
+                    )}
+                    %
+                  </span>
+                </div>
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-linear-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+                    style={{
+                      width: `${
+                        ((currentStepIndex + 1) / selectedTopic.steps.length) * 100
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Interactive Step Card */}
+              <div className="rounded-2xl border bg-card p-6 shadow-md space-y-6">
+                <div className="flex items-start gap-4">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white font-bold text-lg shadow-md shadow-sky-900/30">
+                    {currentStepIndex + 1}
+                  </span>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-foreground">
+                      {t(activeStep.titleKey)}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t(selectedTopic.summaryKey)}
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {t(activeStep.descKey)}
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    {t("help.stepByStep")}
-                  </h4>
-                  <div className="space-y-3">
-                    {selectedTopic.steps.map((step, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-3 rounded-lg border bg-muted/20 p-3.5"
-                      >
-                        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-sky-600 text-xs font-bold text-white">
-                          {idx + 1}
-                        </span>
-                        <div className="space-y-1">
-                          <h5 className="text-sm font-semibold text-foreground">
-                            {t(step.titleKey)}
-                          </h5>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {t(step.descKey)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                {/* Pro-Tip Box if present */}
+                {activeStep.tipKey && (
+                  <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-medium text-amber-950 dark:text-amber-200">
+                    <Lightbulb className="size-5 shrink-0 text-amber-500" />
+                    <div className="space-y-1">
+                      <span className="font-bold block uppercase text-[10px] tracking-wider text-amber-600 dark:text-amber-400">
+                        {t("help.proTip")}
+                      </span>
+                      <p className="leading-relaxed">{t(activeStep.tipKey)}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {selectedTopic.actionUrl && (
-                  <div className="pt-3 border-t">
-                    <Button asChild className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white">
+                {/* Direct Action Link for this step */}
+                {activeStep.actionUrl && (
+                  <div className="pt-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="gap-2 border-sky-400/40 text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
+                    >
                       <NavLink
-                        to={selectedTopic.actionUrl}
+                        to={activeStep.actionUrl}
                         onClick={() => onOpenChange(false)}
                       >
-                        {t(selectedTopic.actionLabelKey ?? "common.open")}
-                        <ChevronRight className="size-4 ml-1" />
+                        {t(activeStep.actionLabelKey ?? "common.open")}
+                        <ChevronRight className="size-4" />
                       </NavLink>
                     </Button>
                   </div>
                 )}
               </div>
+
+              {/* Wizard Bottom Controls */}
+              <div className="flex items-center justify-between border-t pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevStep}
+                  disabled={currentStepIndex === 0}
+                  className="gap-1.5 text-xs font-semibold"
+                >
+                  <ArrowLeft className="size-4" />
+                  {t("help.prevStep")}
+                </Button>
+
+                <div className="flex items-center gap-1.5">
+                  {selectedTopic.steps.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentStepIndex(idx)}
+                      className={cn(
+                        "size-3 rounded-full transition-all",
+                        idx === currentStepIndex
+                          ? "bg-sky-600 w-8"
+                          : "bg-muted hover:bg-sky-400/50",
+                      )}
+                    />
+                  ))}
+                </div>
+
+                {currentStepIndex < selectedTopic.steps.length - 1 ? (
+                  <Button
+                    onClick={handleNextStep}
+                    className="gap-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold"
+                  >
+                    {t("help.nextStep")}
+                    <ArrowRight className="size-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => onOpenChange(false)}
+                    className="gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                  >
+                    <Check className="size-4" />
+                    {t("help.finishWizard")}
+                  </Button>
+                )}
+              </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t("help.searchPlaceholder")}
-                  className="pl-9"
-                />
+            /* Topics Grid List View */
+            <div className="space-y-6">
+              {/* Search & Categories Bar */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t("help.searchPlaceholder")}
+                    className="pl-10 h-11 text-sm bg-background border-border shadow-xs"
+                  />
+                </div>
+
+                <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+                  <TabsList className="w-full justify-start overflow-x-auto no-scrollbar">
+                    <TabsTrigger value="all">{t("common.all")}</TabsTrigger>
+                    <TabsTrigger value="getting-started">{t("help.categories.quickStart")}</TabsTrigger>
+                    <TabsTrigger value="imei">{t("help.categories.imei")}</TabsTrigger>
+                    <TabsTrigger value="installments">{t("help.categories.installments")}</TabsTrigger>
+                    <TabsTrigger value="finance">{t("help.categories.finance")}</TabsTrigger>
+                    <TabsTrigger value="users">{t("help.categories.users")}</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
 
-              <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                <TabsList className="w-full justify-start overflow-x-auto no-scrollbar">
-                  <TabsTrigger value="all">{t("common.all")}</TabsTrigger>
-                  <TabsTrigger value="getting-started">{t("help.categories.quickStart")}</TabsTrigger>
-                  <TabsTrigger value="imei">{t("help.categories.imei")}</TabsTrigger>
-                  <TabsTrigger value="installments">{t("help.categories.installments")}</TabsTrigger>
-                  <TabsTrigger value="finance">{t("help.categories.finance")}</TabsTrigger>
-                  <TabsTrigger value="users">{t("help.categories.users")}</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <ScrollArea className="max-h-[380px] pr-2">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {filteredTopics.map((topic) => {
-                    const Icon = topic.icon;
-                    return (
-                      <div
-                        key={topic.id}
-                        onClick={() => setSelectedTopic(topic)}
-                        className="group flex flex-col justify-between rounded-xl border bg-card p-4 transition-all hover:border-sky-500/40 hover:shadow-md cursor-pointer"
-                      >
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="flex size-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 group-hover:scale-105 transition-transform">
-                              <Icon className="size-5" />
-                            </span>
-                            <ChevronRight className="size-4 text-muted-foreground group-hover:text-sky-500 group-hover:translate-x-0.5 transition-all" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-foreground text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                              {t(topic.titleKey)}
-                            </h3>
-                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                              {t(topic.summaryKey)}
-                            </p>
-                          </div>
+              {/* Topics Grid */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredTopics.map((topic) => {
+                  const Icon = topic.icon;
+                  return (
+                    <div
+                      key={topic.id}
+                      onClick={() => handleSelectTopic(topic)}
+                      className="group flex flex-col justify-between rounded-2xl border bg-card p-5 transition-all hover:border-sky-500/50 hover:shadow-lg cursor-pointer"
+                    >
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="flex size-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                            <Icon className="size-6" />
+                          </span>
+                          <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+                            {t("help.stepCount", { count: topic.steps.length })}
+                          </span>
                         </div>
-                        <div className="mt-3 pt-2 border-t text-[11px] font-semibold text-sky-600 dark:text-sky-400 flex items-center gap-1">
-                          <span>{t("help.readGuide")}</span>
+                        <div>
+                          <h3 className="font-bold text-foreground text-base group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                            {t(topic.titleKey)}
+                          </h3>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
+                            {t(topic.summaryKey)}
+                          </p>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
+
+                      <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs font-bold text-sky-600 dark:text-sky-400">
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles className="size-3.5" />
+                          {t("help.startWizard")}
+                        </span>
+                        <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
