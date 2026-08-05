@@ -231,7 +231,7 @@ export function HelpCenterDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialTopicId?: string;
-  onStartTour?: () => void;
+  onStartTour?: (topicId?: string) => void;
 }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
@@ -293,14 +293,14 @@ export function HelpCenterDialog({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mr-8">
               {onStartTour && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     onOpenChange(false);
-                    onStartTour();
+                    onStartTour(selectedTopic?.id ?? "quick-start");
                   }}
                   className="gap-1.5 border-sky-400/40 text-xs font-bold text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
                 >

@@ -3,8 +3,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  Compass,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -15,55 +13,115 @@ export interface TourStep {
   targetSelector: string;
   titleKey: string;
   descKey: string;
-  preferredPosition?: "right" | "bottom" | "top" | "left";
 }
 
-export const defaultTourSteps: TourStep[] = [
-  {
-    targetSelector: '[data-tour="search"]',
-    titleKey: "tour.steps.search.title",
-    descKey: "tour.steps.search.desc",
-    preferredPosition: "right",
-  },
-  {
-    targetSelector: '[data-tour="add-product"]',
-    titleKey: "tour.steps.addProduct.title",
-    descKey: "tour.steps.addProduct.desc",
-    preferredPosition: "right",
-  },
-  {
-    targetSelector: '[data-tour="nav-finance"]',
-    titleKey: "tour.steps.finance.title",
-    descKey: "tour.steps.finance.desc",
-    preferredPosition: "right",
-  },
-  {
-    targetSelector: '[data-tour="nav-debts"]',
-    titleKey: "tour.steps.debts.title",
-    descKey: "tour.steps.debts.desc",
-    preferredPosition: "right",
-  },
-  {
-    targetSelector: '[data-tour="user-profile"]',
-    titleKey: "tour.steps.profile.title",
-    descKey: "tour.steps.profile.desc",
-    preferredPosition: "right",
-  },
-];
+export const topicTours: Record<string, TourStep[]> = {
+  "quick-start": [
+    {
+      targetSelector: '[data-tour="nav-finance"]',
+      titleKey: "tour.steps.quickStart.step1Title",
+      descKey: "tour.steps.quickStart.step1Desc",
+    },
+    {
+      targetSelector: '[data-tour="add-product"]',
+      titleKey: "tour.steps.quickStart.step2Title",
+      descKey: "tour.steps.quickStart.step2Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-clients"]',
+      titleKey: "tour.steps.quickStart.step3Title",
+      descKey: "tour.steps.quickStart.step3Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-users"]',
+      titleKey: "tour.steps.quickStart.step4Title",
+      descKey: "tour.steps.quickStart.step4Desc",
+    },
+  ],
+  "imei-management": [
+    {
+      targetSelector: '[data-tour="add-product"]',
+      titleKey: "tour.steps.imei.step1Title",
+      descKey: "tour.steps.imei.step1Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-products"]',
+      titleKey: "tour.steps.imei.step2Title",
+      descKey: "tour.steps.imei.step2Desc",
+    },
+    {
+      targetSelector: '[data-tour="search"]',
+      titleKey: "tour.steps.imei.step3Title",
+      descKey: "tour.steps.imei.step3Desc",
+    },
+  ],
+  "installment-system": [
+    {
+      targetSelector: '[data-tour="add-product"]',
+      titleKey: "tour.steps.installments.step1Title",
+      descKey: "tour.steps.installments.step1Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-debts"]',
+      titleKey: "tour.steps.installments.step2Title",
+      descKey: "tour.steps.installments.step2Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-clients"]',
+      titleKey: "tour.steps.installments.step3Title",
+      descKey: "tour.steps.installments.step3Desc",
+    },
+  ],
+  "cash-and-finance": [
+    {
+      targetSelector: '[data-tour="nav-finance"]',
+      titleKey: "tour.steps.finance.step1Title",
+      descKey: "tour.steps.finance.step1Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-finance"]',
+      titleKey: "tour.steps.finance.step2Title",
+      descKey: "tour.steps.finance.step2Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-finance"]',
+      titleKey: "tour.steps.finance.step3Title",
+      descKey: "tour.steps.finance.step3Desc",
+    },
+  ],
+  "staff-and-roles": [
+    {
+      targetSelector: '[data-tour="nav-users"]',
+      titleKey: "tour.steps.users.step1Title",
+      descKey: "tour.steps.users.step1Desc",
+    },
+    {
+      targetSelector: '[data-tour="nav-users"]',
+      titleKey: "tour.steps.users.step2Title",
+      descKey: "tour.steps.users.step2Desc",
+    },
+    {
+      targetSelector: '[data-tour="user-profile"]',
+      titleKey: "tour.steps.users.step3Title",
+      descKey: "tour.steps.users.step3Desc",
+    },
+  ],
+};
 
 export function SpotlightTour({
   open,
+  topicId = "quick-start",
   onClose,
-  steps = defaultTourSteps,
 }: {
   open: boolean;
+  topicId?: string;
   onClose: () => void;
-  steps?: TourStep[];
 }) {
   const { t } = useTranslation();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
 
+  const steps = topicTours[topicId] ?? topicTours["quick-start"];
   const activeStep = steps[currentStepIndex];
 
   const updateTargetRect = useCallback(() => {
@@ -92,7 +150,6 @@ export function SpotlightTour({
       return;
     }
 
-    // Settlement delay for dialog unmount animation
     const timer = setTimeout(() => {
       updateTargetRect();
     }, 150);
@@ -127,7 +184,6 @@ export function SpotlightTour({
     }
   };
 
-  // Calculate tooltip placement dynamically relative to the highlighted target element
   let tooltipStyle: React.CSSProperties = {
     position: "fixed",
     zIndex: 100,
@@ -137,7 +193,6 @@ export function SpotlightTour({
     const pad = 12;
     const cardWidth = 360;
 
-    // Check if target is on the left sidebar
     if (rect.left < 320) {
       tooltipStyle = {
         position: "fixed",
@@ -146,7 +201,6 @@ export function SpotlightTour({
         zIndex: 100,
       };
     } else if (rect.top < 150) {
-      // Near top header
       tooltipStyle = {
         position: "fixed",
         top: rect.bottom + pad,
@@ -154,7 +208,6 @@ export function SpotlightTour({
         zIndex: 100,
       };
     } else {
-      // Default floating placement
       tooltipStyle = {
         position: "fixed",
         top: Math.max(20, rect.top - 200),
@@ -163,7 +216,6 @@ export function SpotlightTour({
       };
     }
   } else {
-    // Fallback centered card if target element is not found
     tooltipStyle = {
       position: "fixed",
       top: "50%",
@@ -174,14 +226,12 @@ export function SpotlightTour({
   }
 
   return (
-    <div className="fixed inset-0 z-[99] overflow-hidden">
+    <div className="fixed inset-0 z-[99] overflow-hidden pointer-events-none">
       {/* SVG Mask for Spotlight Hole Cutout */}
       <svg className="absolute inset-0 size-full pointer-events-auto">
         <defs>
           <mask id="spotlight-mask">
-            {/* White rectangle covers the entire screen (opaque dark) */}
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {/* Black rectangle cuts out the spotlight hole over target element */}
             {rect && (
               <rect
                 x={rect.left - 8}
@@ -196,7 +246,6 @@ export function SpotlightTour({
           </mask>
         </defs>
 
-        {/* Dark Overlay Layer applying the mask */}
         <rect
           x="0"
           y="0"

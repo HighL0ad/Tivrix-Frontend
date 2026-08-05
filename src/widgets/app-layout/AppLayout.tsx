@@ -74,7 +74,14 @@ export function AppLayout() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [tourTopicId, setTourTopicId] = useState<string>("quick-start");
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  const handleStartTour = (topicId?: string) => {
+    if (topicId) setTourTopicId(topicId);
+    setHelpOpen(false);
+    setTourOpen(true);
+  };
 
   const [theme, setTheme] = useState<"light" | "dark">(( ) => {
     const stored = window.localStorage.getItem("theme") as "light" | "dark" | null;
@@ -319,7 +326,7 @@ export function AppLayout() {
             </div>
           </header>
 
-          <Outlet context={{ onStartTour: () => setTourOpen(true) }} />
+          <Outlet context={{ onStartTour: handleStartTour }} />
         </div>
       </main>
 
@@ -374,8 +381,8 @@ export function AppLayout() {
         </div>
       </nav>
       <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} onOpenHelp={() => setHelpOpen(true)} />
-      <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} onStartTour={() => setTourOpen(true)} />
-      <SpotlightTour open={tourOpen} onClose={() => setTourOpen(false)} />
+      <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} onStartTour={handleStartTour} />
+      <SpotlightTour open={tourOpen} topicId={tourTopicId} onClose={() => setTourOpen(false)} />
       <ChangelogDialog />
     </div>
   );
