@@ -62,6 +62,17 @@ const DEFAULT_SIDEBAR_WIDTH = 256;
 const MIN_SIDEBAR_WIDTH = 220;
 const MAX_SIDEBAR_WIDTH = 380;
 
+const navTourTargets: Record<string, string> = {
+  "/": "nav-dashboard",
+  "/products": "nav-products",
+  "/finance": "nav-finance",
+  "/debts": "nav-debts",
+  "/clients": "nav-clients",
+  "/catalogs": "nav-catalogs",
+  "/users": "nav-users",
+  "/settings": "nav-settings",
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -179,7 +190,7 @@ export function AppLayout() {
               key={item.to}
               to={item.to}
               end={item.to === "/"}
-              data-tour={item.to === "/finance" ? "nav-finance" : item.to === "/debts" ? "nav-debts" : undefined}
+              data-tour={navTourTargets[item.to]}
               className={({ isActive }) =>
                 cn(
                   buttonVariants({ variant: "ghost" }),
@@ -302,12 +313,14 @@ export function AppLayout() {
               >
                 <HelpCircle className="size-5" />
               </button>
-              <CommandMenuTrigger 
-                onClick={() => setCommandOpen(true)} 
-                className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground" 
-                kbdClassName="hidden" 
-                showLabel={false}
-              />
+              <div data-tour="search">
+                <CommandMenuTrigger
+                  onClick={() => setCommandOpen(true)}
+                  className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  kbdClassName="hidden"
+                  showLabel={false}
+                />
+              </div>
               {currentUser ? (
                 <UserAvatar
                   user={currentUser}
@@ -335,6 +348,7 @@ export function AppLayout() {
               key={item.to}
               to={item.to}
               end={item.to === "/"}
+              data-tour={navTourTargets[item.to]}
               className={({ isActive }) =>
                 [
                   "flex w-full flex-col items-center justify-center text-[10px] font-medium",
@@ -349,6 +363,7 @@ export function AppLayout() {
           <div className="relative -top-5 flex justify-center">
             <NavLink
               to="/products/new"
+              data-tour="add-product"
               className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-600 text-white shadow-lg shadow-sky-950/40 transition-transform hover:scale-105 hover:bg-sky-500"
               aria-label={t("app.addProduct")}
             >
@@ -359,6 +374,7 @@ export function AppLayout() {
             <NavLink
               key={item.to}
               to={item.to}
+              data-tour={navTourTargets[item.to]}
               className={({ isActive }) =>
                 [
                   "flex w-full flex-col items-center justify-center text-[10px] font-medium",
@@ -467,6 +483,7 @@ function MobileMoreMenu({
       <SheetTrigger asChild>
         <button
           type="button"
+          data-tour="mobile-more"
           className="flex h-full w-full appearance-none flex-col items-center justify-center bg-transparent p-0 text-[10px] font-medium leading-none text-slate-400"
         >
           <Menu className="mb-1 h-5 w-5" aria-hidden="true" />
@@ -482,6 +499,7 @@ function MobileMoreMenu({
             <NavLink
               key={item.to}
               to={item.to}
+              data-tour={navTourTargets[item.to]}
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white"
             >
