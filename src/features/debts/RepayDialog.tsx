@@ -33,7 +33,7 @@ export function RepayDialog({
   const isPayment = operationType === "pay_supplier";
   const shouldApplyInstallments =
     operationType === "receive_client" &&
-    (!debtEntry || debtEntry.kind === "installment");
+    debtEntry?.kind === "installment";
   const payableBalance = Math.abs(Number(debtEntry?.remaining_amount ?? wallet.balance));
   const buttonTone = tone ?? (isPayment ? "bad" : "good");
   const triggerClass = {
