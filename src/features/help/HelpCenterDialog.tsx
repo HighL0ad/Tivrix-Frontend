@@ -99,6 +99,10 @@ const helpTopics: HelpTopic[] = [
     actionLabelKey: "help.actions.addProduct",
     steps: [
       {
+        titleKey: "tour.steps.productCreate.startTitle",
+        descKey: "tour.steps.productCreate.startDesc",
+      },
+      {
         titleKey: "tour.steps.productCreate.step1Title",
         descKey: "tour.steps.productCreate.step1Desc",
       },
