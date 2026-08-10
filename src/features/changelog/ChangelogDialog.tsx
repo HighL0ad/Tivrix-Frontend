@@ -40,7 +40,7 @@ export function ChangelogDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); }}>
-      <DialogContent className="sm:max-w-[480px] p-5 gap-4 overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xl">
+      <DialogContent className="max-h-[94dvh] gap-4 overflow-hidden rounded-t-2xl rounded-b-none border border-border/80 bg-card p-5 pt-7 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-[480px] sm:rounded-xl sm:pt-5 sm:pb-5">
         <DialogHeader className="gap-1">
           <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/20 w-fit px-2.5 py-1 rounded-full text-xs font-bold border border-sky-100 dark:border-sky-500/20 select-none">
             <Sparkles className="size-3.5 animate-pulse" />

@@ -431,7 +431,7 @@ export function AppModalFooter({
   return (
     <div
       className={cn(
-        "flex justify-end border-t bg-muted/30 px-6 py-4 [&>button]:w-full sm:[&>button]:w-auto",
+        "flex justify-end border-t bg-muted/30 px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:py-4 [&>button]:w-full sm:[&>button]:w-auto",
         className,
       )}
     >

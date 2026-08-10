@@ -27,7 +27,7 @@ function CommandDialog({
 }: React.ComponentProps<typeof Dialog> & { children: React.ReactNode }) {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0 sm:max-w-xl">
+      <DialogContent className="overflow-hidden p-0 pb-[env(safe-area-inset-bottom)] sm:max-w-xl sm:pb-0">
         <DialogHeader className="sr-only">
           <DialogTitle>Command Menu</DialogTitle>
           <DialogDescription>

@@ -61,9 +61,11 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  mobileVariant = "drawer",
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  mobileVariant?: "drawer" | "dialog"
 }) {
   return (
     <DialogPortal>
@@ -71,7 +73,10 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-card p-4 text-sm/relaxed text-card-foreground shadow-2xl ring-1 ring-foreground/10 duration-100 outline-none max-w-md sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed z-50 grid gap-4 overflow-y-auto border border-border bg-card p-4 text-sm/relaxed text-card-foreground shadow-2xl ring-1 ring-foreground/10 duration-200 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+          mobileVariant === "drawer"
+            ? "inset-x-0 bottom-0 max-h-[94dvh] w-full max-w-none translate-x-0 translate-y-0 rounded-t-2xl rounded-b-none pb-[max(1rem,env(safe-area-inset-bottom))] before:absolute before:top-2 before:left-1/2 before:h-1 before:w-10 before:-translate-x-1/2 before:rounded-full before:bg-muted-foreground/25 data-open:slide-in-from-bottom-4 data-closed:slide-out-to-bottom-4 sm:top-1/2 sm:left-1/2 sm:right-auto sm:bottom-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:pb-4 sm:before:hidden sm:data-open:zoom-in-95 sm:data-closed:zoom-out-95"
+            : "top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg data-open:zoom-in-95 data-closed:zoom-out-95 sm:max-w-md",
           className
         )}
         {...props}

@@ -462,9 +462,9 @@ export function HelpCenterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100vh-1rem)] w-[94vw] max-w-4xl flex-col gap-0 overflow-hidden border-border bg-card p-0 shadow-2xl duration-200 sm:max-h-[min(90vh,52rem)] sm:max-w-4xl sm:rounded-2xl sm:duration-300">
+      <DialogContent className="flex h-[94dvh] max-h-[94dvh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-t-2xl rounded-b-none border-border bg-card p-0 pb-[env(safe-area-inset-bottom)] shadow-2xl duration-200 sm:h-auto sm:max-h-[min(90vh,52rem)] sm:w-[94vw] sm:max-w-4xl sm:rounded-2xl sm:pb-0 sm:duration-300">
         {/* Header */}
-        <DialogHeader className="border-b bg-muted/40 px-6 py-4 shrink-0">
+        <DialogHeader className="shrink-0 border-b bg-muted/40 px-5 pt-7 pb-4 pr-12 sm:px-6 sm:py-4 sm:pr-12">
           <div className="flex items-center gap-3">
             <span className="flex size-11 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 shadow-xs">
               <HelpCircle className="size-6" />
@@ -625,18 +625,18 @@ export function HelpCenterDialog({
               </div>
 
               {/* Wizard Bottom Controls */}
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t pt-4 sm:gap-4">
+              <div className="grid grid-cols-2 items-center gap-3 border-t pt-4 sm:grid-cols-[1fr_auto_1fr] sm:gap-4">
                 <Button
                   variant="outline"
                   onClick={handlePrevStep}
                   disabled={currentStepIndex === 0}
-                  className="justify-self-start gap-1.5 px-3 text-xs font-semibold"
+                  className="row-start-2 justify-self-start gap-1.5 px-3 text-xs font-semibold sm:row-start-1"
                 >
                   <ArrowLeft className="size-4" />
                   {t("help.prevStep")}
                 </Button>
 
-                <div className="flex items-center justify-center gap-0.5">
+                <div className="col-span-2 row-start-1 flex max-w-full items-center justify-center gap-0.5 overflow-x-auto no-scrollbar sm:col-span-1 sm:col-start-2 sm:row-start-1">
                   {selectedTopic.steps.map((_, idx) => (
                     <button
                       type="button"
@@ -661,7 +661,7 @@ export function HelpCenterDialog({
                 {currentStepIndex < selectedTopic.steps.length - 1 ? (
                   <Button
                     onClick={handleNextStep}
-                    className="justify-self-end gap-1.5 bg-sky-600 px-3 text-xs font-bold text-white hover:bg-sky-500"
+                    className="row-start-2 justify-self-end gap-1.5 bg-sky-600 px-3 text-xs font-bold text-white hover:bg-sky-500 sm:row-start-1"
                   >
                     {t("help.nextStep")}
                     <ArrowRight className="size-4" />
@@ -669,7 +669,7 @@ export function HelpCenterDialog({
                 ) : (
                   <Button
                     onClick={() => onOpenChange(false)}
-                    className="justify-self-end gap-1.5 bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-500"
+                    className="row-start-2 justify-self-end gap-1.5 bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-500 sm:row-start-1"
                   >
                     <Check className="size-4" />
                     {t("help.finishWizard")}
