@@ -5,6 +5,7 @@ import {
   Check,
   ChevronRight,
   CreditCard,
+  Database,
   HelpCircle,
   Lightbulb,
   PackagePlus,
@@ -40,7 +41,7 @@ export interface HelpStep {
 
 export interface HelpTopic {
   id: string;
-  category: "getting-started" | "imei" | "installments" | "finance" | "users";
+  category: "getting-started" | "catalogs" | "imei" | "installments" | "finance" | "users";
   icon: LucideIcon;
   titleKey: string;
   summaryKey: string;
@@ -63,8 +64,8 @@ const helpTopics: HelpTopic[] = [
         titleKey: "help.topics.quickStart.step1Title",
         descKey: "help.topics.quickStart.step1Desc",
         tipKey: "help.topics.quickStart.step1Tip",
-        actionUrl: "/finance",
-        actionLabelKey: "help.actions.goToFinance",
+        actionUrl: "/catalogs",
+        actionLabelKey: "help.actions.goToCatalogs",
       },
       {
         titleKey: "help.topics.quickStart.step2Title",
@@ -86,6 +87,63 @@ const helpTopics: HelpTopic[] = [
         tipKey: "help.topics.quickStart.step4Tip",
         actionUrl: "/users",
         actionLabelKey: "help.actions.goToUsers",
+      },
+    ],
+  },
+  {
+    id: "catalogs-setup",
+    category: "catalogs",
+    icon: Database,
+    titleKey: "help.topics.catalogs.title",
+    summaryKey: "help.topics.catalogs.summary",
+    actionUrl: "/catalogs",
+    actionLabelKey: "help.actions.goToCatalogs",
+    steps: [
+      {
+        titleKey: "tour.steps.catalogs.startTitle",
+        descKey: "tour.steps.catalogs.startDesc",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step1Title",
+        descKey: "tour.steps.catalogs.step1Desc",
+        tipKey: "help.topics.catalogs.step1Tip",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step2Title",
+        descKey: "tour.steps.catalogs.step2Desc",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step3Title",
+        descKey: "tour.steps.catalogs.step3Desc",
+        tipKey: "help.topics.catalogs.step3Tip",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step4Title",
+        descKey: "tour.steps.catalogs.step4Desc",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step5Title",
+        descKey: "tour.steps.catalogs.step5Desc",
+        tipKey: "help.topics.catalogs.step5Tip",
+        actionUrl: "/clients",
+        actionLabelKey: "help.actions.goToClients",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step6Title",
+        descKey: "tour.steps.catalogs.step6Desc",
+        tipKey: "help.topics.catalogs.step6Tip",
+        actionUrl: "/debts",
+        actionLabelKey: "help.actions.goToDebts",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step7Title",
+        descKey: "tour.steps.catalogs.step7Desc",
+      },
+      {
+        titleKey: "tour.steps.catalogs.step8Title",
+        descKey: "tour.steps.catalogs.step8Desc",
+        actionUrl: "/catalogs",
+        actionLabelKey: "help.actions.goToCatalogs",
       },
     ],
   },
@@ -638,6 +696,7 @@ export function HelpCenterDialog({
                   <TabsList className="w-full justify-start overflow-x-auto no-scrollbar">
                     <TabsTrigger value="all">{t("common.all")}</TabsTrigger>
                     <TabsTrigger value="getting-started">{t("help.categories.quickStart")}</TabsTrigger>
+                    <TabsTrigger value="catalogs">{t("help.categories.catalogs")}</TabsTrigger>
                     <TabsTrigger value="imei">{t("help.categories.imei")}</TabsTrigger>
                     <TabsTrigger value="installments">{t("help.categories.installments")}</TabsTrigger>
                     <TabsTrigger value="finance">{t("help.categories.finance")}</TabsTrigger>

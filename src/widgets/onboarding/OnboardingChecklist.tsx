@@ -3,13 +3,13 @@ import {
   CheckCircle2,
   ChevronRight,
   Circle,
+  Database,
   HelpCircle,
   Phone,
   Rocket,
   ShieldCheck,
   Sparkles,
   UserCheck,
-  Wallet,
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -48,9 +48,9 @@ export function OnboardingChecklist({
       titleKey: "onboarding.step1Title",
       descKey: "onboarding.step1Desc",
       completed: hasWallets,
-      url: "/finance",
-      helpTopicId: "cash-and-finance",
-      icon: Wallet,
+      url: "/catalogs",
+      helpTopicId: "catalogs-setup",
+      icon: Database,
     },
     {
       id: "products",

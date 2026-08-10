@@ -118,19 +118,22 @@ export function CatalogsPage() {
   );
 
   return (
-    <section className="space-y-5">
-      <PageHeader
-        title={t("catalogs.title")}
-        description={t("catalogs.description")}
-      />
+    <section className="space-y-5" data-tour="catalogs-page">
+      <div data-tour="catalogs-header">
+        <PageHeader
+          title={t("catalogs.title")}
+          description={t("catalogs.description")}
+        />
+      </div>
 
       {canAdjustWallets ? (
-      <Card>
+      <Card data-tour="catalogs-create">
         <CardHeader>
           <CardTitle>{t("catalogs.newRecord")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form
+            data-tour="catalogs-create-form"
             className="grid gap-2 sm:grid-cols-[1fr_220px_auto]"
             onSubmit={(event) => {
               event.preventDefault();
@@ -186,11 +189,11 @@ export function CatalogsPage() {
       </Card>
       ) : null}
 
-      <Card>
+      <Card data-tour="catalogs-records">
         <CardHeader className="gap-3">
           <CardTitle>{t("catalogs.allRecords")}</CardTitle>
           <div className="grid gap-3">
-            <div className="relative min-w-0">
+            <div className="relative min-w-0" data-tour="catalogs-search">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
               <Input
                 value={search}
@@ -203,13 +206,13 @@ export function CatalogsPage() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={(value) => setCatalogParams({ tab: getCatalogTab(value), page: 1 })}>
-            <TabsList className="mb-4">
+            <TabsList className="mb-4" data-tour="catalogs-tabs">
               <TabsTrigger value="wallets">{t("catalogs.wallets")}</TabsTrigger>
               <TabsTrigger value="clients">{t("catalogs.clients")}</TabsTrigger>
               <TabsTrigger value="suppliers">{t("catalogs.suppliers")}</TabsTrigger>
               <TabsTrigger value="advanced">{t("catalogs.advanced")}</TabsTrigger>
             </TabsList>
-            <TabsContent value="wallets">
+            <TabsContent value="wallets" data-tour="catalogs-wallets">
               <WalletTable
                 tableLabel={t("catalogs.walletsTable")}
                 tableIcon={<Banknote className="size-4" aria-hidden="true" />}
@@ -224,7 +227,7 @@ export function CatalogsPage() {
                 onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
-            <TabsContent value="clients">
+            <TabsContent value="clients" data-tour="catalogs-clients">
               <WalletTable
                 tableLabel={t("catalogs.clientsTable")}
                 tableIcon={<UserRound className="size-4" aria-hidden="true" />}
@@ -239,7 +242,7 @@ export function CatalogsPage() {
                 onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
-            <TabsContent value="suppliers">
+            <TabsContent value="suppliers" data-tour="catalogs-suppliers">
               <WalletTable
                 tableLabel={t("catalogs.suppliersTable")}
                 tableIcon={<Handshake className="size-4" aria-hidden="true" />}
@@ -254,7 +257,7 @@ export function CatalogsPage() {
                 onPageChange={(nextPage) => setCatalogParams({ page: nextPage })}
               />
             </TabsContent>
-            <TabsContent value="advanced">
+            <TabsContent value="advanced" data-tour="catalogs-advanced">
               <AdvancedRecordsBlock
                 sources={paginatedAdvanced.sources}
                 wallets={paginatedAdvanced.wallets}
@@ -540,7 +543,7 @@ function AdvancedRecordsTable({
                   {money(wallet.balance)}
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1.5">
+                  <div className="flex justify-end gap-1.5" data-tour="catalogs-wallet-actions">
                     {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
                       <>
                         <AdjustWalletDialog wallet={wallet} />
@@ -689,7 +692,7 @@ function AdvancedRecordsTable({
               </span>
 
               {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5" data-tour="catalogs-wallet-actions">
                   <AdjustWalletDialog wallet={wallet} />
                   <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
                   <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
@@ -794,7 +797,7 @@ function WalletTable({
                   {money(wallet.balance)}
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1.5">
+                  <div className="flex justify-end gap-1.5" data-tour="catalogs-wallet-actions">
                     {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
                       <>
                         <AdjustWalletDialog wallet={wallet} />
@@ -841,7 +844,7 @@ function WalletTable({
               </span>
 
               {canAdjustWallets && !isSystemWallet(wallet.type) && !isGroupedWallet(wallet) ? (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5" data-tour="catalogs-wallet-actions">
                   <AdjustWalletDialog wallet={wallet} />
                   <WalletEditDialog wallet={wallet} walletTypes={walletTypes} />
                   <DeleteWalletButton walletId={wallet.id} walletName={wallet.name} />
