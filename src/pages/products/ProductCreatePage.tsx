@@ -435,6 +435,7 @@ export function ProductCreatePage() {
 
       <form
         onSubmit={handleSubmit}
+        data-tour="product-form-main"
         className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
       >
         <div className="min-w-0 space-y-4">
@@ -448,7 +449,7 @@ export function ProductCreatePage() {
           ) : null}
 
           {/* Scenario */}
-          <Card>
+          <Card data-tour="product-scenario">
             <CardHeader>
               <CardTitle>{t("sell.paymentQuestion")}</CardTitle>
               <CardDescription>
@@ -505,7 +506,7 @@ export function ProductCreatePage() {
           </Card>
 
           {/* Product */}
-          <Card>
+          <Card data-tour="product-main-data">
             <CardHeader>
               <CardTitle>{t("sell.product")}</CardTitle>
               <CardDescription>
@@ -524,21 +525,23 @@ export function ProductCreatePage() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Field label={t("products.imeiSerial")}>
-                  <div className="relative flex items-center w-full">
-                    <Input
-                      required
-                      placeholder="35..."
-                      className={`font-mono pr-10 w-full ${
-                        imeiError
-                          ? "border-red-300 bg-red-50 focus-visible:ring-red-500/20"
-                          : ""
-                      }`}
-                      value={imei}
-                      onChange={(e) => setImei(formatImeiInput(e.target.value))}
-                      onBlur={handleImeiBlur}
-                    />
-                    <div className="absolute right-1 flex items-center">
-                      <ImeiScannerButton onScan={handlePrimaryImeiScan} />
+                  <div data-tour="product-imei-field">
+                    <div className="relative flex items-center w-full">
+                      <Input
+                        required
+                        placeholder="35..."
+                        className={`font-mono pr-10 w-full ${
+                          imeiError
+                            ? "border-red-300 bg-red-50 focus-visible:ring-red-500/20"
+                            : ""
+                        }`}
+                        value={imei}
+                        onChange={(e) => setImei(formatImeiInput(e.target.value))}
+                        onBlur={handleImeiBlur}
+                      />
+                      <div className="absolute right-1 flex items-center">
+                        <ImeiScannerButton onScan={handlePrimaryImeiScan} />
+                      </div>
                     </div>
                   </div>
                   {imeiError ? (
@@ -601,7 +604,7 @@ export function ProductCreatePage() {
           </Card>
 
           {/* Registration */}
-          <Card>
+          <Card data-tour="product-registration">
             <CardHeader>
               <CardTitle>{t("products.registration")}</CardTitle>
               <CardDescription>
@@ -617,7 +620,7 @@ export function ProductCreatePage() {
           </Card>
 
           {/* Photo */}
-          <Card>
+          <Card data-tour="product-photo">
             <CardHeader>
               <CardTitle>{t("products.photo")}</CardTitle>
               <CardDescription>
@@ -662,7 +665,7 @@ export function ProductCreatePage() {
           </Card>
 
           {/* Payment */}
-          <Card>
+          <Card data-tour="product-payment">
             <CardHeader>
               <CardTitle>{t("sell.payment")}</CardTitle>
               <CardDescription>

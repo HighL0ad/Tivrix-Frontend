@@ -155,10 +155,10 @@ export function ClientsPage() {
       <PageHeader
         title={t("clients.title")}
         description={t("clients.description")}
-        actions={<ClientCreateDialog />}
+        actions={<div data-tour="clients-create"><ClientCreateDialog /></div>}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div data-tour="clients-filters" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <FilterCard
           title={t("clients.filter.installments")}
           value={String(counts.with_debt)}
@@ -188,7 +188,7 @@ export function ClientsPage() {
         />
       </div>
 
-      <Card>
+      <Card data-tour="clients-list">
         <CardHeader className="gap-3">
           <CardTitle>{t("clients.list")}</CardTitle>
           <div className="relative">

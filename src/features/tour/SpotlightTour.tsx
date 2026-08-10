@@ -7,6 +7,7 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router";
 
 import { Button } from "@/shared/ui/button";
 
@@ -14,6 +15,7 @@ export interface TourStep {
   targetSelector: string;
   titleKey: string;
   descKey: string;
+  route?: string;
 }
 
 interface TargetRect {
@@ -25,93 +27,109 @@ interface TargetRect {
   height: number;
 }
 
-export const topicTours: Record<string, TourStep[]> = {
+const topicTours: Record<string, TourStep[]> = {
   "quick-start": [
     {
-      targetSelector: '[data-tour="nav-finance"]',
+      route: "/finance",
+      targetSelector: '[data-tour="finance-wallets"], [data-tour="nav-finance"]',
       titleKey: "tour.steps.quickStart.step1Title",
       descKey: "tour.steps.quickStart.step1Desc",
     },
     {
-      targetSelector: '[data-tour="add-product"]',
+      route: "/products/new",
+      targetSelector: '[data-tour="product-imei-field"], [data-tour="product-form-main"], [data-tour="add-product"]',
       titleKey: "tour.steps.quickStart.step2Title",
       descKey: "tour.steps.quickStart.step2Desc",
     },
     {
-      targetSelector: '[data-tour="nav-clients"], [data-tour="mobile-more"]',
+      route: "/clients",
+      targetSelector: '[data-tour="clients-create"], [data-tour="nav-clients"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.quickStart.step3Title",
       descKey: "tour.steps.quickStart.step3Desc",
     },
     {
-      targetSelector: '[data-tour="nav-users"], [data-tour="mobile-more"]',
+      route: "/users",
+      targetSelector: '[data-tour="users-create"], [data-tour="nav-users"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.quickStart.step4Title",
       descKey: "tour.steps.quickStart.step4Desc",
     },
   ],
   "imei-management": [
     {
-      targetSelector: '[data-tour="add-product"]',
+      route: "/products/new",
+      targetSelector: '[data-tour="product-imei-field"], [data-tour="product-form-main"], [data-tour="add-product"]',
       titleKey: "tour.steps.imei.step1Title",
       descKey: "tour.steps.imei.step1Desc",
     },
     {
-      targetSelector: '[data-tour="nav-products"]',
+      route: "/products/new",
+      targetSelector: '[data-tour="product-registration"], [data-tour="product-form-main"], [data-tour="add-product"]',
       titleKey: "tour.steps.imei.step2Title",
       descKey: "tour.steps.imei.step2Desc",
     },
     {
-      targetSelector: '[data-tour="search"]',
+      route: "/products",
+      targetSelector: '[data-tour="products-search"], [data-tour="search"]',
       titleKey: "tour.steps.imei.step3Title",
       descKey: "tour.steps.imei.step3Desc",
     },
   ],
   "installment-system": [
     {
-      targetSelector: '[data-tour="add-product"]',
+      route: "/products",
+      targetSelector: '[data-tour="products-list"], [data-tour="add-product"]',
       titleKey: "tour.steps.installments.step1Title",
       descKey: "tour.steps.installments.step1Desc",
     },
     {
-      targetSelector: '[data-tour="nav-debts"], [data-tour="mobile-more"]',
+      route: "/debts?tab=installments",
+      targetSelector: '[data-tour="installments-dashboard"], [data-tour="debts-tabs"], [data-tour="nav-debts"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.installments.step2Title",
       descKey: "tour.steps.installments.step2Desc",
     },
     {
-      targetSelector: '[data-tour="nav-clients"], [data-tour="mobile-more"]',
+      route: "/clients?filter=debt",
+      targetSelector: '[data-tour="clients-list"], [data-tour="clients-filters"], [data-tour="nav-clients"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.installments.step3Title",
       descKey: "tour.steps.installments.step3Desc",
     },
   ],
   "cash-and-finance": [
     {
-      targetSelector: '[data-tour="nav-finance"]',
+      route: "/finance",
+      targetSelector: '[data-tour="finance-wallets"], [data-tour="nav-finance"]',
       titleKey: "tour.steps.finance.step1Title",
       descKey: "tour.steps.finance.step1Desc",
     },
     {
-      targetSelector: '[data-tour="nav-finance"]',
+      route: "/finance",
+      targetSelector: '[data-tour="finance-adjust-wallet"], [data-tour="finance-wallets"], [data-tour="nav-finance"]',
       titleKey: "tour.steps.finance.step2Title",
       descKey: "tour.steps.finance.step2Desc",
     },
     {
-      targetSelector: '[data-tour="nav-finance"]',
+      route: "/finance",
+      targetSelector: '[data-tour="finance-transfer"], [data-tour="finance-actions"], [data-tour="nav-finance"]',
       titleKey: "tour.steps.finance.step3Title",
       descKey: "tour.steps.finance.step3Desc",
     },
   ],
   "staff-and-roles": [
     {
-      targetSelector: '[data-tour="nav-users"], [data-tour="mobile-more"]',
+      route: "/users",
+      targetSelector: '[data-tour="users-create"], [data-tour="nav-users"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.users.step1Title",
       descKey: "tour.steps.users.step1Desc",
     },
     {
-      targetSelector: '[data-tour="nav-users"], [data-tour="mobile-more"]',
+      route: "/users",
+      targetSelector: '[data-tour="users-list"], [data-tour="nav-users"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.users.step2Title",
       descKey: "tour.steps.users.step2Desc",
     },
     {
-      targetSelector: '[data-tour="user-profile"]',
+      route: "/users",
+      targetSelector: '[data-tour="users-list"], [data-tour="nav-users"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.users.step3Title",
       descKey: "tour.steps.users.step3Desc",
     },
@@ -121,43 +139,46 @@ export const topicTours: Record<string, TourStep[]> = {
 export function SpotlightTour({
   open,
   topicId = "quick-start",
+  accessiblePaths,
   onClose,
 }: {
   open: boolean;
   topicId?: string;
+  accessiblePaths?: string[];
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const maskId = `spotlight-mask-${useId().replace(/:/g, "")}`;
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [rect, setRect] = useState<TargetRect | null>(null);
   const [targetMissing, setTargetMissing] = useState(false);
 
-  const steps = useMemo(() => topicTours[topicId] ?? topicTours["quick-start"], [topicId]);
-  const activeStep = steps[currentStepIndex];
+  const steps = useMemo(() => {
+    const topicSteps = topicTours[topicId] ?? topicTours["quick-start"];
+    if (!accessiblePaths) return topicSteps;
 
-  const updateTargetRect = useCallback((scrollToTarget = false) => {
-    if (!activeStep) return;
-    const elements = Array.from(
-      document.querySelectorAll<HTMLElement>(activeStep.targetSelector),
-    );
-    const visibleEl = elements.find((el) => {
-      const r = el.getBoundingClientRect();
-      return (
-        r.width > 0 &&
-        r.height > 0 &&
-        r.right > 0 &&
-        r.left < window.innerWidth &&
-        r.bottom > 0 &&
-        r.top < window.innerHeight
+    return topicSteps.filter((step) => {
+      if (!step.route) return true;
+      const routePath = step.route.split("?")[0];
+      return accessiblePaths.some(
+        (path) => routePath === path || routePath.startsWith(`${path}/`),
       );
-    }) ?? elements[0];
+    });
+  }, [accessiblePaths, topicId]);
+  const activeStep = steps[currentStepIndex];
+  const currentRoute = `${location.pathname}${location.search}`;
+
+  const updateTargetRect = useCallback((scrollToTarget = false, showMissing = true) => {
+    if (!activeStep) return;
+    const visibleEl = findTourTarget(activeStep.targetSelector);
 
     if (visibleEl) {
       setTargetMissing(false);
 
       if (scrollToTarget) {
-        visibleEl.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        centerElementInViewport(visibleEl);
       }
 
       window.requestAnimationFrame(() => {
@@ -171,9 +192,11 @@ export function SpotlightTour({
           height: r.height,
         });
       });
+      return visibleEl;
     } else {
       setRect(null);
-      setTargetMissing(true);
+      if (showMissing) setTargetMissing(true);
+      return null;
     }
   }, [activeStep]);
 
@@ -181,12 +204,47 @@ export function SpotlightTour({
     if (!open) {
       setCurrentStepIndex(0);
       setRect(null);
+      setTargetMissing(false);
+      return;
+    }
+    if (!activeStep) return;
+
+    if (activeStep.route && currentRoute !== activeStep.route) {
+      setRect(null);
+      setTargetMissing(false);
+      navigate(activeStep.route);
       return;
     }
 
-    const timer = setTimeout(() => {
-      updateTargetRect(true);
-    }, 150);
+    let targetLocated = false;
+    let retryTimer: number | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+    const observeTarget = (element: HTMLElement) => {
+      resizeObserver?.disconnect();
+      resizeObserver = new ResizeObserver(() => updateTargetRect());
+      resizeObserver.observe(element);
+    };
+    const locateTarget = (showMissing = false) => {
+      const element = updateTargetRect(!targetLocated, showMissing);
+      if (element && !targetLocated) {
+        targetLocated = true;
+        observeTarget(element);
+        if (retryTimer !== null) {
+          window.clearInterval(retryTimer);
+          retryTimer = null;
+        }
+      }
+    };
+
+    const initialTimer = window.setTimeout(() => locateTarget(false), 80);
+    const missingTimer = window.setTimeout(() => locateTarget(true), 1_200);
+    retryTimer = window.setInterval(() => locateTarget(false), 500);
+    const stopRetryTimer = window.setTimeout(
+      () => {
+        if (retryTimer !== null) window.clearInterval(retryTimer);
+      },
+      8_000,
+    );
 
     const handleResizeOrScroll = () => {
       updateTargetRect();
@@ -196,11 +254,19 @@ export function SpotlightTour({
     window.addEventListener("scroll", handleResizeOrScroll, true);
 
     return () => {
-      clearTimeout(timer);
+      window.clearTimeout(initialTimer);
+      window.clearTimeout(missingTimer);
+      window.clearTimeout(stopRetryTimer);
+      if (retryTimer !== null) window.clearInterval(retryTimer);
+      resizeObserver?.disconnect();
       window.removeEventListener("resize", handleResizeOrScroll);
       window.removeEventListener("scroll", handleResizeOrScroll, true);
     };
-  }, [open, currentStepIndex, updateTargetRect]);
+  }, [activeStep, currentRoute, navigate, open, currentStepIndex, updateTargetRect]);
+
+  useEffect(() => {
+    if (open && !activeStep) onClose();
+  }, [activeStep, onClose, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -250,6 +316,7 @@ export function SpotlightTour({
     zIndex: 101,
     ...getTooltipPosition(rect),
   };
+  const spotlightRect = rect ? getSpotlightRect(rect) : null;
 
   const maskUrl = `url(#${maskId})`;
 
@@ -264,12 +331,12 @@ export function SpotlightTour({
         <defs>
           <mask id={maskId}>
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {rect && (
+            {spotlightRect && (
               <rect
-                x={Math.max(8, rect.left - 8)}
-                y={Math.max(8, rect.top - 8)}
-                width={Math.max(0, Math.min(rect.width + 16, window.innerWidth - Math.max(8, rect.left - 8) - 8))}
-                height={Math.max(0, Math.min(rect.height + 16, window.innerHeight - Math.max(8, rect.top - 8) - 8))}
+                x={spotlightRect.left}
+                y={spotlightRect.top}
+                width={spotlightRect.width}
+                height={spotlightRect.height}
                 rx="10"
                 ry="10"
                 fill="black"
@@ -288,20 +355,20 @@ export function SpotlightTour({
         />
       </svg>
 
-      {rect && (
+      {spotlightRect && (
         <div
           className="fixed rounded-xl ring-2 ring-sky-300 ring-offset-4 ring-offset-slate-950/90 shadow-[0_0_0_1px_rgba(14,165,233,0.25),0_12px_36px_rgba(14,165,233,0.35)] transition-all duration-200 pointer-events-none z-[100]"
           style={{
-            top: `${rect.top - 8}px`,
-            left: `${rect.left - 8}px`,
-            width: `${rect.width + 16}px`,
-            height: `${rect.height + 16}px`,
+            top: `${spotlightRect.top}px`,
+            left: `${spotlightRect.left}px`,
+            width: `${spotlightRect.width}px`,
+            height: `${spotlightRect.height}px`,
           }}
         />
       )}
 
       <div
-        className="w-[calc(100vw-32px)] max-w-[360px] transition-all duration-200 pointer-events-auto"
+        className="max-h-[calc(100vh-32px)] w-[calc(100vw-32px)] max-w-[360px] overflow-y-auto transition-all duration-200 pointer-events-auto"
         style={tooltipStyle}
       >
         <div className="space-y-4 rounded-xl border border-white/10 bg-slate-950 p-4 text-white shadow-2xl ring-1 ring-sky-400/20 sm:p-5">
@@ -333,7 +400,7 @@ export function SpotlightTour({
               </div>
             )}
             <h3 className="text-base font-bold tracking-tight text-white">
-              {t(activeStep.titleKey)}
+              {stripStepNumber(t(activeStep.titleKey))}
             </h3>
             <p className="text-sm leading-relaxed text-slate-300">
               {t(activeStep.descKey)}
@@ -376,7 +443,48 @@ export function SpotlightTour({
   );
 }
 
-function getTooltipPosition(rect: TargetRect | null): Pick<CSSProperties, "top" | "left" | "transform"> {
+function findTourTarget(targetSelector: string) {
+  const selectors = targetSelector
+    .split(",")
+    .map((selector) => selector.trim())
+    .filter(Boolean);
+
+  for (const selector of selectors) {
+    const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    const visibleElement = elements.find((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        style.display !== "none" &&
+        style.visibility !== "hidden"
+      );
+    });
+    if (visibleElement) return visibleElement;
+  }
+
+  return null;
+}
+
+function getSpotlightRect(rect: TargetRect): TargetRect {
+  const padding = 8;
+  const left = clamp(rect.left - padding, padding, window.innerWidth - padding);
+  const top = clamp(rect.top - padding, padding, window.innerHeight - padding);
+  const right = clamp(rect.right + padding, padding, window.innerWidth - padding);
+  const bottom = clamp(rect.bottom + padding, padding, window.innerHeight - padding);
+
+  return {
+    top,
+    left,
+    right,
+    bottom,
+    width: Math.max(0, right - left),
+    height: Math.max(0, bottom - top),
+  };
+}
+
+function getTooltipPosition(rect: TargetRect | null): CSSProperties {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   const margin = 16;
@@ -387,7 +495,7 @@ function getTooltipPosition(rect: TargetRect | null): Pick<CSSProperties, "top" 
   if (!rect || rect.width <= 0 || viewportWidth < 640) {
     return {
       left: margin,
-      top: Math.max(margin, viewportHeight - estimatedCardHeight - margin),
+      bottom: margin,
       transform: undefined,
     };
   }
@@ -425,7 +533,15 @@ function getTooltipPosition(rect: TargetRect | null): Pick<CSSProperties, "top" 
   };
 }
 
+function centerElementInViewport(element: HTMLElement) {
+  element.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
+}
+
 function clamp(value: number, min: number, max: number) {
   if (max < min) return min;
   return Math.min(Math.max(value, min), max);
+}
+
+function stripStepNumber(value: string) {
+  return value.replace(/^\s*\d+\.\s*/, "");
 }

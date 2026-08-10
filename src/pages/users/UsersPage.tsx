@@ -58,10 +58,12 @@ export function UsersPage() {
     <section className="space-y-5">
       <PageHeader title={t("users.title")} description={t("users.description")} />
 
-      <Card>
+      <Card data-tour="users-list">
         <CardHeader className="grid grid-cols-[1fr_auto] items-center">
           <CardTitle>{t("users.list")}</CardTitle>
-          <UserDialog mode="create" />
+          <div data-tour="users-create">
+            <UserDialog mode="create" />
+          </div>
         </CardHeader>
         <CardContent>
           <Table className="hidden md:table">

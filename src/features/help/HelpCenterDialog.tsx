@@ -1,23 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   Check,
-  CheckCircle2,
   ChevronRight,
   CreditCard,
   HelpCircle,
   Lightbulb,
-  LucideIcon,
+  type LucideIcon,
   Phone,
-  Rocket,
   Search,
-  ShieldCheck,
+  SearchX,
   Sparkles,
   UserCheck,
   Wallet,
-  X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router";
@@ -52,7 +48,7 @@ export interface HelpTopic {
   steps: HelpStep[];
 }
 
-export const helpTopics: HelpTopic[] = [
+const helpTopics: HelpTopic[] = [
   {
     id: "quick-start",
     category: "getting-started",
@@ -112,8 +108,8 @@ export const helpTopics: HelpTopic[] = [
         titleKey: "help.topics.imei.step2Title",
         descKey: "help.topics.imei.step2Desc",
         tipKey: "help.topics.imei.step2Tip",
-        actionUrl: "/products",
-        actionLabelKey: "help.actions.goToProducts",
+        actionUrl: "/products/new",
+        actionLabelKey: "help.actions.addProduct",
       },
       {
         titleKey: "help.topics.imei.step3Title",
@@ -137,22 +133,22 @@ export const helpTopics: HelpTopic[] = [
         titleKey: "help.topics.installments.step1Title",
         descKey: "help.topics.installments.step1Desc",
         tipKey: "help.topics.installments.step1Tip",
-        actionUrl: "/clients",
-        actionLabelKey: "help.actions.goToClients",
+        actionUrl: "/products",
+        actionLabelKey: "help.actions.goToProducts",
       },
       {
         titleKey: "help.topics.installments.step2Title",
         descKey: "help.topics.installments.step2Desc",
         tipKey: "help.topics.installments.step2Tip",
-        actionUrl: "/debts",
+        actionUrl: "/debts?tab=installments",
         actionLabelKey: "help.actions.goToDebts",
       },
       {
         titleKey: "help.topics.installments.step3Title",
         descKey: "help.topics.installments.step3Desc",
         tipKey: "help.topics.installments.step3Tip",
-        actionUrl: "/debts?tab=overview",
-        actionLabelKey: "help.actions.goToDebts",
+        actionUrl: "/clients?filter=debt",
+        actionLabelKey: "help.actions.goToClients",
       },
     ],
   },
@@ -169,8 +165,8 @@ export const helpTopics: HelpTopic[] = [
         titleKey: "help.topics.finance.step1Title",
         descKey: "help.topics.finance.step1Desc",
         tipKey: "help.topics.finance.step1Tip",
-        actionUrl: "/catalogs",
-        actionLabelKey: "help.actions.goToCatalogs",
+        actionUrl: "/finance",
+        actionLabelKey: "help.actions.goToFinance",
       },
       {
         titleKey: "help.topics.finance.step2Title",
@@ -246,6 +242,16 @@ export function HelpCenterDialog({
     setCurrentStepIndex(0);
   };
 
+  useEffect(() => {
+    if (!open) return;
+
+    const nextTopic = helpTopics.find((topic) => topic.id === initialTopicId);
+    setSelectedTopic(nextTopic ?? null);
+    setCurrentStepIndex(0);
+    setSearch("");
+    setActiveCategory("all");
+  }, [initialTopicId, open]);
+
   const handleNextStep = () => {
     if (!selectedTopic) return;
     if (currentStepIndex < selectedTopic.steps.length - 1) {
@@ -260,12 +266,13 @@ export function HelpCenterDialog({
   };
 
   const filteredTopics = helpTopics.filter((topic) => {
+    const normalizedSearch = search.trim().toLocaleLowerCase();
     const title = t(topic.titleKey).toLowerCase();
     const summary = t(topic.summaryKey).toLowerCase();
     const matchesSearch =
-      !search.trim() ||
-      title.includes(search.toLowerCase()) ||
-      summary.includes(search.toLowerCase());
+      !normalizedSearch ||
+      title.includes(normalizedSearch) ||
+      summary.includes(normalizedSearch);
     const matchesCategory =
       activeCategory === "all" || topic.category === activeCategory;
     return matchesSearch && matchesCategory;
@@ -364,7 +371,7 @@ export function HelpCenterDialog({
                   </span>
                   <div className="space-y-2">
                     <h3 className="text-xl font-bold text-foreground">
-                      {t(activeStep.titleKey)}
+                      {stripStepNumber(t(activeStep.titleKey))}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {t(activeStep.descKey)}
@@ -420,8 +427,10 @@ export function HelpCenterDialog({
                 <div className="flex items-center gap-1.5">
                   {selectedTopic.steps.map((_, idx) => (
                     <button
+                      type="button"
                       key={idx}
                       onClick={() => setCurrentStepIndex(idx)}
+                      aria-label={t("help.stepLabel", { number: idx + 1 })}
                       className={cn(
                         "size-3 rounded-full transition-all",
                         idx === currentStepIndex
@@ -505,14 +514,16 @@ export function HelpCenterDialog({
               )}
 
               {/* Topics Grid */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredTopics.map((topic) => {
+              {filteredTopics.length ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredTopics.map((topic) => {
                   const Icon = topic.icon;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={topic.id}
                       onClick={() => handleSelectTopic(topic)}
-                      className="group flex flex-col justify-between rounded-2xl border bg-card p-5 transition-all hover:border-sky-500/50 hover:shadow-lg cursor-pointer"
+                      className="group flex flex-col justify-between rounded-2xl border bg-card p-5 text-left transition-all hover:border-sky-500/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     >
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -540,14 +551,31 @@ export function HelpCenterDialog({
                         </span>
                         <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
+                    </button>
                   );
-                })}
-              </div>
+                  })}
+                </div>
+              ) : (
+                <div className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 text-center">
+                  <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <SearchX className="size-5" />
+                  </span>
+                  <h3 className="mt-4 text-sm font-bold text-foreground">
+                    {t("help.noResultsTitle")}
+                  </h3>
+                  <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                    {t("help.noResultsDescription")}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
   );
+}
+
+function stripStepNumber(value: string) {
+  return value.replace(/^\s*\d+\.\s*/, "");
 }
