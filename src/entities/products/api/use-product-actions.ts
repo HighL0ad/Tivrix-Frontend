@@ -30,11 +30,21 @@ export function useDeleteProduct(productId: number) {
 }
 
 export function useUpdateProductSalePrice(productId: number) {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (payload: { total_price: string; cash_price?: string | null }) =>
       apiRequest<ProductDetail>(`/api/products/${productId}/sale-price`, {
         method: "PATCH",
         json: payload,
       }),
+    onSuccess: (product) => {
+      queryClient.setQueryData(["products", product.id], product);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["finance"] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
   });
 }
