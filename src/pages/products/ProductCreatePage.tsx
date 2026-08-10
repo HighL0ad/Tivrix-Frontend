@@ -514,18 +514,20 @@ export function ProductCreatePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field label={t("products.nameModel")}>
-                <Input
-                  required
-                  placeholder="iPhone 13..."
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </Field>
+              <div data-tour="product-name-field">
+                <Field label={t("products.nameModel")}>
+                  <Input
+                    required
+                    placeholder="iPhone 13..."
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </Field>
+              </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Field label={t("products.imeiSerial")}>
-                  <div data-tour="product-imei-field">
+                <div data-tour="product-imei-field">
+                  <Field label={t("products.imeiSerial")}>
                     <div className="relative flex items-center w-full">
                       <Input
                         required
@@ -543,62 +545,68 @@ export function ProductCreatePage() {
                         <ImeiScannerButton onScan={handlePrimaryImeiScan} />
                       </div>
                     </div>
-                  </div>
-                  {imeiError ? (
-                    <p className="mt-1 text-xs font-semibold text-red-600">
-                      {imeiError}
-                    </p>
-                  ) : checkingImei ? (
-                    <p className="mt-1 text-[13px] font-medium leading-5 text-gray-500">
-                      {t("products.checkingImei")}
-                    </p>
-                  ) : null}
-                </Field>
+                    {imeiError ? (
+                      <p className="mt-1 text-xs font-semibold text-red-600">
+                        {imeiError}
+                      </p>
+                    ) : checkingImei ? (
+                      <p className="mt-1 text-[13px] font-medium leading-5 text-gray-500">
+                        {t("products.checkingImei")}
+                      </p>
+                    ) : null}
+                  </Field>
+                </div>
 
-                <Field label="IMEI 2">
-                  <div className="relative flex items-center w-full">
-                    <Input
-                      placeholder={t("common.optional")}
-                      className="font-mono pr-10 w-full"
-                      value={imei2}
-                      onChange={(e) =>
-                        setImei2(formatImeiInput(e.target.value))
-                      }
-                    />
-                    <div className="absolute right-1 flex items-center">
-                      <ImeiScannerButton
-                        onScan={(scannedImei) =>
-                          setImei2(formatImeiInput(scannedImei))
+                <div data-tour="product-imei2-field">
+                  <Field label="IMEI 2">
+                    <div className="relative flex items-center w-full">
+                      <Input
+                        placeholder={t("common.optional")}
+                        className="font-mono pr-10 w-full"
+                        value={imei2}
+                        onChange={(e) =>
+                          setImei2(formatImeiInput(e.target.value))
                         }
                       />
+                      <div className="absolute right-1 flex items-center">
+                        <ImeiScannerButton
+                          onScan={(scannedImei) =>
+                            setImei2(formatImeiInput(scannedImei))
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
-                </Field>
+                  </Field>
+                </div>
 
-                <Field label={t("products.phoneNumber")}>
-                  <Input
-                    type="tel"
-                    placeholder="+994..."
-                    className="font-mono"
-                    value={phoneNumber}
-                    onChange={(e) =>
-                      setPhoneNumber(formatPhoneInput(e.target.value))
-                    }
-                  />
-                </Field>
+                <div data-tour="product-phone-field">
+                  <Field label={t("products.phoneNumber")}>
+                    <Input
+                      type="tel"
+                      placeholder="+994..."
+                      className="font-mono"
+                      value={phoneNumber}
+                      onChange={(e) =>
+                        setPhoneNumber(formatPhoneInput(e.target.value))
+                      }
+                    />
+                  </Field>
+                </div>
 
-                <Field label={t("products.buyPriceAzn")}>
-                  <Input
-                    required
-                    type="number"
-                    step="1"
-                    min="1"
-                    placeholder="0"
-                    className="font-bold"
-                    value={buyPrice}
-                    onChange={(e) => setBuyPrice(e.target.value)}
-                  />
-                </Field>
+                <div data-tour="product-buy-price-field">
+                  <Field label={t("products.buyPriceAzn")}>
+                    <Input
+                      required
+                      type="number"
+                      step="1"
+                      min="1"
+                      placeholder="0"
+                      className="font-bold"
+                      value={buyPrice}
+                      onChange={(e) => setBuyPrice(e.target.value)}
+                    />
+                  </Field>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -673,19 +681,21 @@ export function ProductCreatePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="min-w-0 space-y-5">
-              <Field label={t("products.buyFrom")} strong>
-                <SearchableSelect
-                  value={supplierId}
-                  onValueChange={setSupplierId}
-                  options={purchaseSourceOptions}
-                  placeholder={purchaseSourcePlaceholder}
-                  searchPlaceholder={purchaseSourceSearchPlaceholder}
-                  onCreateNew={openQuickSourceDialog}
-                  createNewFormat={
-                    t("products.createPurchaseSourceFormat")
-                  }
-                />
-              </Field>
+              <div data-tour="product-source-field">
+                <Field label={t("products.buyFrom")} strong>
+                  <SearchableSelect
+                    value={supplierId}
+                    onValueChange={setSupplierId}
+                    options={purchaseSourceOptions}
+                    placeholder={purchaseSourcePlaceholder}
+                    searchPlaceholder={purchaseSourceSearchPlaceholder}
+                    onCreateNew={openQuickSourceDialog}
+                    createNewFormat={
+                      t("products.createPurchaseSourceFormat")
+                    }
+                  />
+                </Field>
+              </div>
 
               {scenario === "supplier_debt" && selectedSource && (
                 <AppCheckboxPanel
@@ -697,7 +707,10 @@ export function ProductCreatePage() {
               )}
 
               {scenario === "supplier_debt" ? (
-                <div className="min-w-0 space-y-4">
+                <div
+                  data-tour="product-payment-options"
+                  className="min-w-0 space-y-4"
+                >
                   <InfoBox
                     color="red"
                     title={
@@ -1014,7 +1027,7 @@ export function ProductCreatePage() {
 
         {/* Sidebar */}
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
-          <Card>
+          <Card data-tour="product-summary">
             <CardHeader>
               <CardTitle>{t("products.summary")}</CardTitle>
               <CardDescription>

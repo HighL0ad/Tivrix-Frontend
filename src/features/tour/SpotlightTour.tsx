@@ -54,6 +54,74 @@ const topicTours: Record<string, TourStep[]> = {
       descKey: "tour.steps.quickStart.step4Desc",
     },
   ],
+  "product-create": [
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-scenario"], [data-tour="product-form-main"]',
+      titleKey: "tour.steps.productCreate.step1Title",
+      descKey: "tour.steps.productCreate.step1Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-name-field"], [data-tour="product-main-data"]',
+      titleKey: "tour.steps.productCreate.step2Title",
+      descKey: "tour.steps.productCreate.step2Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-imei-field"], [data-tour="product-main-data"]',
+      titleKey: "tour.steps.productCreate.step3Title",
+      descKey: "tour.steps.productCreate.step3Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-imei2-field"], [data-tour="product-main-data"]',
+      titleKey: "tour.steps.productCreate.step4Title",
+      descKey: "tour.steps.productCreate.step4Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-phone-field"], [data-tour="product-main-data"]',
+      titleKey: "tour.steps.productCreate.step5Title",
+      descKey: "tour.steps.productCreate.step5Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-buy-price-field"], [data-tour="product-main-data"]',
+      titleKey: "tour.steps.productCreate.step6Title",
+      descKey: "tour.steps.productCreate.step6Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-registration"], [data-tour="product-form-main"]',
+      titleKey: "tour.steps.productCreate.step7Title",
+      descKey: "tour.steps.productCreate.step7Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-photo"], [data-tour="product-form-main"]',
+      titleKey: "tour.steps.productCreate.step8Title",
+      descKey: "tour.steps.productCreate.step8Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-source-field"], [data-tour="product-payment"]',
+      titleKey: "tour.steps.productCreate.step9Title",
+      descKey: "tour.steps.productCreate.step9Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-payment-options"], [data-tour="product-payment"]',
+      titleKey: "tour.steps.productCreate.step10Title",
+      descKey: "tour.steps.productCreate.step10Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-summary"], [data-tour="product-form-main"]',
+      titleKey: "tour.steps.productCreate.step11Title",
+      descKey: "tour.steps.productCreate.step11Desc",
+    },
+  ],
   "imei-management": [
     {
       route: "/products/new",
@@ -357,7 +425,7 @@ export function SpotlightTour({
 
       {spotlightRect && (
         <div
-          className="fixed rounded-xl ring-2 ring-sky-300 ring-offset-4 ring-offset-slate-950/90 shadow-[0_0_0_1px_rgba(14,165,233,0.25),0_12px_36px_rgba(14,165,233,0.35)] transition-all duration-200 pointer-events-none z-[100]"
+          className="fixed rounded-xl ring-2 ring-sky-300 ring-offset-4 ring-offset-slate-950/90 shadow-[0_0_0_1px_rgba(14,165,233,0.25),0_12px_36px_rgba(14,165,233,0.35)] transition-all duration-500 ease-out pointer-events-none z-[100] motion-reduce:transition-none"
           style={{
             top: `${spotlightRect.top}px`,
             left: `${spotlightRect.left}px`,
@@ -368,7 +436,7 @@ export function SpotlightTour({
       )}
 
       <div
-        className="max-h-[calc(100vh-32px)] w-[calc(100vw-32px)] max-w-[360px] overflow-y-auto transition-all duration-200 pointer-events-auto"
+        className="max-h-[calc(100vh-32px)] w-[calc(100vw-32px)] max-w-[360px] overflow-y-auto transition-all duration-500 ease-out pointer-events-auto motion-reduce:transition-none"
         style={tooltipStyle}
       >
         <div className="space-y-4 rounded-xl border border-white/10 bg-slate-950 p-4 text-white shadow-2xl ring-1 ring-sky-400/20 sm:p-5">
@@ -534,7 +602,14 @@ function getTooltipPosition(rect: TargetRect | null): CSSProperties {
 }
 
 function centerElementInViewport(element: HTMLElement) {
-  element.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  element.scrollIntoView({
+    behavior: reduceMotion ? "auto" : "smooth",
+    block: "center",
+    inline: "center",
+  });
 }
 
 function clamp(value: number, min: number, max: number) {
