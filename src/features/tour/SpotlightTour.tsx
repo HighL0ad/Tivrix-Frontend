@@ -56,6 +56,11 @@ const topicTours: Record<string, TourStep[]> = {
   ],
   "product-create": [
     {
+      targetSelector: '[data-tour="add-product"], [data-tour="products-add"], [data-tour="nav-products"]',
+      titleKey: "tour.steps.productCreate.startTitle",
+      descKey: "tour.steps.productCreate.startDesc",
+    },
+    {
       route: "/products/new",
       targetSelector: '[data-tour="product-scenario"], [data-tour="product-form-main"]',
       titleKey: "tour.steps.productCreate.step1Title",
@@ -508,7 +513,7 @@ export function SpotlightTour({
         <div className="flex max-h-[min(30rem,calc(100vh-2rem))] flex-col gap-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950 p-4 text-white shadow-2xl ring-1 ring-sky-400/20 sm:p-5">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 min-w-14 items-center justify-center rounded-md bg-sky-500/15 px-2 text-xs font-bold text-sky-300">
+              <span className="flex h-7 min-w-[4.5rem] shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-sky-500/15 px-2 text-xs font-bold text-sky-300">
                 {currentStepIndex + 1} / {steps.length}
               </span>
               <span className="text-[11px] font-bold uppercase tracking-wide text-sky-200">
