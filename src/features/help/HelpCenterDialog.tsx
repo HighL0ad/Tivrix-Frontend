@@ -236,10 +236,14 @@ export function HelpCenterDialog({
     helpTopics.find((t) => t.id === initialTopicId) ?? null,
   );
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [stepDirection, setStepDirection] = useState<"forward" | "backward">(
+    "forward",
+  );
 
   const handleSelectTopic = (topic: HelpTopic) => {
     setSelectedTopic(topic);
     setCurrentStepIndex(0);
+    setStepDirection("forward");
   };
 
   useEffect(() => {
@@ -248,6 +252,7 @@ export function HelpCenterDialog({
     const nextTopic = helpTopics.find((topic) => topic.id === initialTopicId);
     setSelectedTopic(nextTopic ?? null);
     setCurrentStepIndex(0);
+    setStepDirection("forward");
     setSearch("");
     setActiveCategory("all");
   }, [initialTopicId, open]);
@@ -255,14 +260,22 @@ export function HelpCenterDialog({
   const handleNextStep = () => {
     if (!selectedTopic) return;
     if (currentStepIndex < selectedTopic.steps.length - 1) {
+      setStepDirection("forward");
       setCurrentStepIndex((prev) => prev + 1);
     }
   };
 
   const handlePrevStep = () => {
     if (currentStepIndex > 0) {
+      setStepDirection("backward");
       setCurrentStepIndex((prev) => prev - 1);
     }
+  };
+
+  const handleStepChange = (nextStepIndex: number) => {
+    if (nextStepIndex === currentStepIndex) return;
+    setStepDirection(nextStepIndex > currentStepIndex ? "forward" : "backward");
+    setCurrentStepIndex(nextStepIndex);
   };
 
   const filteredTopics = helpTopics.filter((topic) => {
@@ -279,10 +292,11 @@ export function HelpCenterDialog({
   });
 
   const activeStep = selectedTopic ? selectedTopic.steps[currentStepIndex] : null;
+  const SelectedTopicIcon = selectedTopic?.icon;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[85vh] w-[94vw] max-w-4xl sm:max-w-4xl flex-col p-0 overflow-hidden sm:rounded-2xl border-border bg-card shadow-2xl">
+      <DialogContent className="flex max-h-[calc(100vh-1rem)] w-[94vw] max-w-4xl flex-col gap-0 overflow-hidden border-border bg-card p-0 shadow-2xl duration-200 sm:max-h-[min(90vh,52rem)] sm:max-w-4xl sm:rounded-2xl sm:duration-300">
         {/* Header */}
         <DialogHeader className="border-b bg-muted/40 px-6 py-4 shrink-0">
           <div className="flex items-center gap-3">
@@ -301,40 +315,56 @@ export function HelpCenterDialog({
         </DialogHeader>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {selectedTopic && activeStep ? (
+        <div className="min-h-0 flex-auto overflow-x-hidden overflow-y-auto px-4 py-5 sm:p-6">
+          {selectedTopic && activeStep && SelectedTopicIcon ? (
             /* Interactive Wizard View */
-            <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="mx-auto max-w-3xl space-y-5 animate-in fade-in-0 duration-300">
               {/* Back to Topics List */}
-              <div className="flex items-center justify-between border-b pb-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedTopic(null)}
-                  className="gap-2 text-xs font-bold text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSelectedTopic(null);
+                    setCurrentStepIndex(0);
+                  }}
+                  className="w-fit gap-2 px-2 text-xs font-bold text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="size-4" />
                   {t("help.backToList")}
                 </Button>
 
-                <div className="flex items-center gap-3">
-                  {onStartTour && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        onOpenChange(false);
-                        onStartTour(selectedTopic.id);
-                      }}
-                      className="gap-1.5 border-sky-400/40 text-xs font-bold text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
-                    >
-                      <Sparkles className="size-4 text-sky-500" />
-                      <span>{t("help.startGuideTour")}</span>
-                    </Button>
-                  )}
-                  <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                {onStartTour && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onOpenChange(false);
+                      onStartTour(selectedTopic.id);
+                    }}
+                    className="w-full gap-1.5 border-sky-400/40 text-xs font-bold text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40 sm:w-auto"
+                  >
+                    <Sparkles className="size-4 text-sky-500" />
+                    <span>{t("help.startGuideTour")}</span>
+                  </Button>
+                )}
+              </div>
+
+              {/* Selected instruction summary */}
+              <div className="flex items-start gap-3 border-b pb-5 sm:gap-4">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/12 text-sky-600 dark:bg-sky-500/18 dark:text-sky-400">
+                  <SelectedTopicIcon className="size-5" />
+                </span>
+                <div className="min-w-0 space-y-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                    {t("help.stepByStep")}
+                  </p>
+                  <h2 className="text-lg font-bold leading-tight text-foreground sm:text-xl">
                     {t(selectedTopic.titleKey)}
-                  </span>
+                  </h2>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {t(selectedTopic.summaryKey)}
+                  </p>
                 </div>
               </div>
 
@@ -351,9 +381,16 @@ export function HelpCenterDialog({
                     %
                   </span>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-label={t("help.stepByStep")}
+                  aria-valuemin={1}
+                  aria-valuemax={selectedTopic.steps.length}
+                  aria-valuenow={currentStepIndex + 1}
+                >
                   <div
-                    className="h-full bg-linear-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+                    className="h-full bg-linear-to-r from-sky-500 to-indigo-600 transition-[width] duration-700 ease-out motion-reduce:transition-none"
                     style={{
                       width: `${
                         ((currentStepIndex + 1) / selectedTopic.steps.length) * 100
@@ -364,7 +401,16 @@ export function HelpCenterDialog({
               </div>
 
               {/* Interactive Step Card */}
-              <div className="rounded-2xl border bg-card p-6 shadow-md space-y-6">
+              <div
+                key={`${selectedTopic.id}-${currentStepIndex}`}
+                aria-live="polite"
+                className={cn(
+                  "space-y-5 rounded-2xl border bg-card p-4 shadow-md animate-in fade-in-0 duration-500 motion-reduce:animate-none sm:space-y-6 sm:p-6",
+                  stepDirection === "forward"
+                    ? "slide-in-from-right-2"
+                    : "slide-in-from-left-2",
+                )}
+              >
                 <div className="flex items-start gap-4">
                   <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white font-bold text-lg shadow-md shadow-sky-900/30">
                     {currentStepIndex + 1}
@@ -398,7 +444,7 @@ export function HelpCenterDialog({
                     <Button
                       asChild
                       variant="outline"
-                      className="gap-2 border-sky-400/40 text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40"
+                      className="w-full gap-2 border-sky-400/40 text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/40 sm:w-auto"
                     >
                       <NavLink
                         to={activeStep.actionUrl}
@@ -413,38 +459,43 @@ export function HelpCenterDialog({
               </div>
 
               {/* Wizard Bottom Controls */}
-              <div className="flex items-center justify-between border-t pt-4">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t pt-4 sm:gap-4">
                 <Button
                   variant="outline"
                   onClick={handlePrevStep}
                   disabled={currentStepIndex === 0}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="justify-self-start gap-1.5 px-3 text-xs font-semibold"
                 >
                   <ArrowLeft className="size-4" />
                   {t("help.prevStep")}
                 </Button>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-center gap-0.5">
                   {selectedTopic.steps.map((_, idx) => (
                     <button
                       type="button"
                       key={idx}
-                      onClick={() => setCurrentStepIndex(idx)}
+                      onClick={() => handleStepChange(idx)}
                       aria-label={t("help.stepLabel", { number: idx + 1 })}
-                      className={cn(
-                        "size-3 rounded-full transition-all",
-                        idx === currentStepIndex
-                          ? "bg-sky-600 w-8"
-                          : "bg-muted hover:bg-sky-400/50",
-                      )}
-                    />
+                      aria-current={idx === currentStepIndex ? "step" : undefined}
+                      className="flex size-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
+                    >
+                      <span
+                        className={cn(
+                          "h-2 rounded-full transition-all duration-500 motion-reduce:transition-none",
+                          idx === currentStepIndex
+                            ? "w-6 bg-sky-600"
+                            : "w-2 bg-muted hover:bg-sky-400/50",
+                        )}
+                      />
+                    </button>
                   ))}
                 </div>
 
                 {currentStepIndex < selectedTopic.steps.length - 1 ? (
                   <Button
                     onClick={handleNextStep}
-                    className="gap-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold"
+                    className="justify-self-end gap-1.5 bg-sky-600 px-3 text-xs font-bold text-white hover:bg-sky-500"
                   >
                     {t("help.nextStep")}
                     <ArrowRight className="size-4" />
@@ -452,7 +503,7 @@ export function HelpCenterDialog({
                 ) : (
                   <Button
                     onClick={() => onOpenChange(false)}
-                    className="gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                    className="justify-self-end gap-1.5 bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-500"
                   >
                     <Check className="size-4" />
                     {t("help.finishWizard")}
@@ -462,7 +513,7 @@ export function HelpCenterDialog({
             </div>
           ) : (
             /* Topics Grid List View */
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in-0 duration-300">
               {/* Search & Categories Bar */}
               <div className="space-y-4">
                 <div className="relative">
@@ -523,11 +574,11 @@ export function HelpCenterDialog({
                       type="button"
                       key={topic.id}
                       onClick={() => handleSelectTopic(topic)}
-                      className="group flex flex-col justify-between rounded-2xl border bg-card p-5 text-left transition-all hover:border-sky-500/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                      className="group flex flex-col justify-between rounded-2xl border bg-card p-5 text-left transition-all duration-300 hover:border-sky-500/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 motion-reduce:transition-none"
                     >
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="flex size-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                          <span className="flex size-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none dark:bg-sky-500/20 dark:text-sky-400">
                             <Icon className="size-6" />
                           </span>
                           <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
@@ -549,7 +600,7 @@ export function HelpCenterDialog({
                           <Sparkles className="size-3.5" />
                           {t("help.startWizard")}
                         </span>
-                        <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none" />
                       </div>
                     </button>
                   );
