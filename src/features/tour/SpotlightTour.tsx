@@ -413,6 +413,7 @@ export function SpotlightTour({
     let targetLocated = false;
     let retryTimer: number | null = null;
     let resizeObserver: ResizeObserver | null = null;
+    const recenterTimers: number[] = [];
     const observeTarget = (element: HTMLElement) => {
       resizeObserver?.disconnect();
       resizeObserver = new ResizeObserver(() => updateTargetRect());
@@ -430,7 +431,13 @@ export function SpotlightTour({
       }
     };
 
-    const initialTimer = window.setTimeout(() => locateTarget(false), 80);
+    const initialTimer = window.setTimeout(() => locateTarget(false), 120);
+    // Closing the help dialog temporarily locks page scrolling on mobile.
+    // Recenter again after its exit transition has released the document.
+    recenterTimers.push(
+      window.setTimeout(() => updateTargetRect(true, false), 420),
+      window.setTimeout(() => updateTargetRect(true, false), 800),
+    );
     const missingTimer = window.setTimeout(() => locateTarget(true), 1_200);
     retryTimer = window.setInterval(() => locateTarget(false), 500);
     const stopRetryTimer = window.setTimeout(
@@ -449,6 +456,7 @@ export function SpotlightTour({
 
     return () => {
       window.clearTimeout(initialTimer);
+      recenterTimers.forEach((timer) => window.clearTimeout(timer));
       window.clearTimeout(missingTimer);
       window.clearTimeout(stopRetryTimer);
       if (retryTimer !== null) window.clearInterval(retryTimer);
@@ -731,11 +739,22 @@ function centerElementInViewport(element: HTMLElement) {
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
+  const isMobile = window.innerWidth < 640;
+  const previousScrollMarginTop = element.style.scrollMarginTop;
+
+  if (isMobile) {
+    // Keep the highlighted control below the sticky mobile header while the
+    // tour card occupies the bottom of the viewport.
+    element.style.scrollMarginTop = "80px";
+  }
+
   element.scrollIntoView({
     behavior: reduceMotion ? "auto" : "smooth",
-    block: "center",
-    inline: "center",
+    block: isMobile ? "start" : "center",
+    inline: "nearest",
   });
+
+  element.style.scrollMarginTop = previousScrollMarginTop;
 }
 
 function clamp(value: number, min: number, max: number) {
