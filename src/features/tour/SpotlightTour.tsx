@@ -30,8 +30,8 @@ interface TargetRect {
 const topicTours: Record<string, TourStep[]> = {
   "quick-start": [
     {
-      route: "/finance",
-      targetSelector: '[data-tour="finance-wallets"], [data-tour="nav-finance"]',
+      route: "/catalogs",
+      targetSelector: '[data-tour="catalogs-create"], [data-tour="catalogs-wallets"], [data-tour="nav-catalogs"]',
       titleKey: "tour.steps.quickStart.step1Title",
       descKey: "tour.steps.quickStart.step1Desc",
     },
@@ -52,6 +52,61 @@ const topicTours: Record<string, TourStep[]> = {
       targetSelector: '[data-tour="users-create"], [data-tour="nav-users"], [data-tour="mobile-more"]',
       titleKey: "tour.steps.quickStart.step4Title",
       descKey: "tour.steps.quickStart.step4Desc",
+    },
+  ],
+  "catalogs-setup": [
+    {
+      targetSelector: '[data-tour="nav-catalogs"], [data-tour="mobile-more"]',
+      titleKey: "tour.steps.catalogs.startTitle",
+      descKey: "tour.steps.catalogs.startDesc",
+    },
+    {
+      route: "/catalogs",
+      targetSelector: '[data-tour="catalogs-create-form"], [data-tour="catalogs-create"], [data-tour="catalogs-page"]',
+      titleKey: "tour.steps.catalogs.step1Title",
+      descKey: "tour.steps.catalogs.step1Desc",
+    },
+    {
+      route: "/catalogs?tab=wallets",
+      targetSelector: '[data-tour="catalogs-wallets"], [data-tour="catalogs-tabs"], [data-tour="catalogs-records"]',
+      titleKey: "tour.steps.catalogs.step2Title",
+      descKey: "tour.steps.catalogs.step2Desc",
+    },
+    {
+      route: "/catalogs?tab=wallets",
+      targetSelector: '[data-tour="catalogs-wallet-actions"], [data-tour="catalogs-wallets"], [data-tour="catalogs-records"]',
+      titleKey: "tour.steps.catalogs.step3Title",
+      descKey: "tour.steps.catalogs.step3Desc",
+    },
+    {
+      route: "/catalogs?tab=suppliers",
+      targetSelector: '[data-tour="catalogs-suppliers"], [data-tour="catalogs-tabs"], [data-tour="catalogs-records"]',
+      titleKey: "tour.steps.catalogs.step4Title",
+      descKey: "tour.steps.catalogs.step4Desc",
+    },
+    {
+      route: "/clients",
+      targetSelector: '[data-tour="clients-create"], [data-tour="clients-list"], [data-tour="nav-clients"], [data-tour="mobile-more"]',
+      titleKey: "tour.steps.catalogs.step5Title",
+      descKey: "tour.steps.catalogs.step5Desc",
+    },
+    {
+      route: "/debts",
+      targetSelector: '[data-tour="debts-page"], [data-tour="debts-tabs"], [data-tour="nav-debts"], [data-tour="mobile-more"]',
+      titleKey: "tour.steps.catalogs.step6Title",
+      descKey: "tour.steps.catalogs.step6Desc",
+    },
+    {
+      route: "/catalogs?tab=advanced",
+      targetSelector: '[data-tour="catalogs-advanced"], [data-tour="catalogs-tabs"], [data-tour="catalogs-records"]',
+      titleKey: "tour.steps.catalogs.step7Title",
+      descKey: "tour.steps.catalogs.step7Desc",
+    },
+    {
+      route: "/catalogs",
+      targetSelector: '[data-tour="catalogs-search"], [data-tour="catalogs-records"], [data-tour="catalogs-page"]',
+      titleKey: "tour.steps.catalogs.step8Title",
+      descKey: "tour.steps.catalogs.step8Desc",
     },
   ],
   "product-create": [
