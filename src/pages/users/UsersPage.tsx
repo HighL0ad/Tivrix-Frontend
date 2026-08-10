@@ -70,10 +70,10 @@ export function UsersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("common.login")}</TableHead>
-                <TableHead>{t("common.role")}</TableHead>
+                <TableHead data-tour="users-roles">{t("common.role")}</TableHead>
                 <TableHead>{t("common.status")}</TableHead>
-                <TableHead>{t("users.lastLogin")}</TableHead>
-                <TableHead>{t("permissions.accesses")}</TableHead>
+                <TableHead data-tour="users-last-login">{t("users.lastLogin")}</TableHead>
+                <TableHead data-tour="users-permissions">{t("permissions.accesses")}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -145,7 +145,7 @@ export function UsersPage() {
                       ].filter(Boolean).join(", ")}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" data-tour="users-password-actions">
                         <UserDialog
                           mode="edit"
                           user={user}
@@ -272,7 +272,10 @@ export function UsersPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 border-t border-border/50 pt-3">
+                  <div
+                    className="flex items-center justify-end gap-2 border-t border-border/50 pt-3"
+                    data-tour="users-password-actions"
+                  >
                     <UserDialog
                       mode="edit"
                       user={user}

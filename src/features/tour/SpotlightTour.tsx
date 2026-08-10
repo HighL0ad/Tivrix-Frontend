@@ -131,15 +131,27 @@ const topicTours: Record<string, TourStep[]> = {
     },
     {
       route: "/products/new",
-      targetSelector: '[data-tour="product-registration"], [data-tour="product-form-main"], [data-tour="add-product"]',
+      targetSelector: '[data-tour="product-imei2-field"], [data-tour="product-main-data"]',
       titleKey: "tour.steps.imei.step2Title",
       descKey: "tour.steps.imei.step2Desc",
     },
     {
-      route: "/products",
-      targetSelector: '[data-tour="products-search"], [data-tour="search"]',
+      route: "/products/new",
+      targetSelector: '[data-tour="product-registration"], [data-tour="product-form-main"], [data-tour="add-product"]',
       titleKey: "tour.steps.imei.step3Title",
       descKey: "tour.steps.imei.step3Desc",
+    },
+    {
+      route: "/products/new",
+      targetSelector: '[data-tour="product-photo"], [data-tour="product-form-main"]',
+      titleKey: "tour.steps.imei.step4Title",
+      descKey: "tour.steps.imei.step4Desc",
+    },
+    {
+      route: "/products",
+      targetSelector: '[data-tour="products-search"], [data-tour="search"]',
+      titleKey: "tour.steps.imei.step5Title",
+      descKey: "tour.steps.imei.step5Desc",
     },
   ],
   "installment-system": [
@@ -150,16 +162,40 @@ const topicTours: Record<string, TourStep[]> = {
       descKey: "tour.steps.installments.step1Desc",
     },
     {
-      route: "/debts?tab=installments",
-      targetSelector: '[data-tour="installments-dashboard"], [data-tour="debts-tabs"], [data-tour="nav-debts"], [data-tour="mobile-more"]',
+      route: "/products",
+      targetSelector: '[data-tour="products-search"], [data-tour="products-list"]',
       titleKey: "tour.steps.installments.step2Title",
       descKey: "tour.steps.installments.step2Desc",
     },
     {
-      route: "/clients?filter=debt",
-      targetSelector: '[data-tour="clients-list"], [data-tour="clients-filters"], [data-tour="nav-clients"], [data-tour="mobile-more"]',
+      route: "/debts?tab=installments",
+      targetSelector: '[data-tour="debts-tabs"], [data-tour="installments-dashboard"]',
       titleKey: "tour.steps.installments.step3Title",
       descKey: "tour.steps.installments.step3Desc",
+    },
+    {
+      route: "/debts?tab=installments",
+      targetSelector: '[data-tour="installments-summary"], [data-tour="installments-dashboard"]',
+      titleKey: "tour.steps.installments.step4Title",
+      descKey: "tour.steps.installments.step4Desc",
+    },
+    {
+      route: "/debts?tab=installments",
+      targetSelector: '[data-tour="installments-attention"], [data-tour="installments-dashboard"]',
+      titleKey: "tour.steps.installments.step5Title",
+      descKey: "tour.steps.installments.step5Desc",
+    },
+    {
+      route: "/debts?tab=installments",
+      targetSelector: '[data-tour="installments-upcoming"], [data-tour="installments-dashboard"]',
+      titleKey: "tour.steps.installments.step6Title",
+      descKey: "tour.steps.installments.step6Desc",
+    },
+    {
+      route: "/clients?filter=debt",
+      targetSelector: '[data-tour="clients-list"], [data-tour="clients-filters"], [data-tour="nav-clients"], [data-tour="mobile-more"]',
+      titleKey: "tour.steps.installments.step7Title",
+      descKey: "tour.steps.installments.step7Desc",
     },
   ],
   "cash-and-finance": [
@@ -181,6 +217,24 @@ const topicTours: Record<string, TourStep[]> = {
       titleKey: "tour.steps.finance.step3Title",
       descKey: "tour.steps.finance.step3Desc",
     },
+    {
+      route: "/finance?tab=history",
+      targetSelector: '[data-tour="finance-history"], [data-tour="finance-tabs"]',
+      titleKey: "tour.steps.finance.step4Title",
+      descKey: "tour.steps.finance.step4Desc",
+    },
+    {
+      route: "/finance?tab=profit",
+      targetSelector: '[data-tour="finance-profit"], [data-tour="finance-tabs"]',
+      titleKey: "tour.steps.finance.step5Title",
+      descKey: "tour.steps.finance.step5Desc",
+    },
+    {
+      route: "/finance?tab=expenses",
+      targetSelector: '[data-tour="finance-expenses"], [data-tour="finance-tabs"]',
+      titleKey: "tour.steps.finance.step6Title",
+      descKey: "tour.steps.finance.step6Desc",
+    },
   ],
   "staff-and-roles": [
     {
@@ -191,15 +245,27 @@ const topicTours: Record<string, TourStep[]> = {
     },
     {
       route: "/users",
-      targetSelector: '[data-tour="users-list"], [data-tour="nav-users"], [data-tour="mobile-more"]',
+      targetSelector: '[data-tour="users-roles"], [data-tour="users-list"]',
       titleKey: "tour.steps.users.step2Title",
       descKey: "tour.steps.users.step2Desc",
     },
     {
       route: "/users",
-      targetSelector: '[data-tour="users-list"], [data-tour="nav-users"], [data-tour="mobile-more"]',
+      targetSelector: '[data-tour="users-permissions"], [data-tour="users-list"]',
       titleKey: "tour.steps.users.step3Title",
       descKey: "tour.steps.users.step3Desc",
+    },
+    {
+      route: "/users",
+      targetSelector: '[data-tour="users-password-actions"], [data-tour="users-list"]',
+      titleKey: "tour.steps.users.step4Title",
+      descKey: "tour.steps.users.step4Desc",
+    },
+    {
+      route: "/users",
+      targetSelector: '[data-tour="users-last-login"], [data-tour="users-list"]',
+      titleKey: "tour.steps.users.step5Title",
+      descKey: "tour.steps.users.step5Desc",
     },
   ],
 };
@@ -436,11 +502,11 @@ export function SpotlightTour({
       )}
 
       <div
-        className="max-h-[calc(100vh-32px)] w-[calc(100vw-32px)] max-w-[360px] overflow-y-auto transition-all duration-500 ease-out pointer-events-auto motion-reduce:transition-none"
+        className="w-[calc(100vw-32px)] max-w-[360px] transition-all duration-500 ease-out pointer-events-auto motion-reduce:transition-none"
         style={tooltipStyle}
       >
-        <div className="space-y-4 rounded-xl border border-white/10 bg-slate-950 p-4 text-white shadow-2xl ring-1 ring-sky-400/20 sm:p-5">
-          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <div className="flex max-h-[min(30rem,calc(100vh-2rem))] flex-col gap-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950 p-4 text-white shadow-2xl ring-1 ring-sky-400/20 sm:p-5">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <span className="flex h-7 min-w-14 items-center justify-center rounded-md bg-sky-500/15 px-2 text-xs font-bold text-sky-300">
                 {currentStepIndex + 1} / {steps.length}
@@ -460,7 +526,7 @@ export function SpotlightTour({
             </button>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="min-h-0 space-y-1.5 overflow-y-auto pr-1">
             {targetMissing && (
               <div className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-semibold text-amber-200">
                 <SearchX className="size-3.5" />
@@ -475,7 +541,7 @@ export function SpotlightTour({
             </p>
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 pt-3">
             <Button
               variant="ghost"
               size="sm"
@@ -558,7 +624,7 @@ function getTooltipPosition(rect: TargetRect | null): CSSProperties {
   const margin = 16;
   const gap = 16;
   const cardWidth = Math.min(360, viewportWidth - margin * 2);
-  const estimatedCardHeight = 240;
+  const estimatedCardHeight = Math.min(480, viewportHeight - margin * 2);
 
   if (!rect || rect.width <= 0 || viewportWidth < 640) {
     return {
