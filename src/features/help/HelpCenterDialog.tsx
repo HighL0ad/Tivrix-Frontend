@@ -7,6 +7,7 @@ import {
   CreditCard,
   HelpCircle,
   Lightbulb,
+  PackagePlus,
   type LucideIcon,
   Phone,
   Search,
@@ -85,6 +86,63 @@ const helpTopics: HelpTopic[] = [
         tipKey: "help.topics.quickStart.step4Tip",
         actionUrl: "/users",
         actionLabelKey: "help.actions.goToUsers",
+      },
+    ],
+  },
+  {
+    id: "product-create",
+    category: "imei",
+    icon: PackagePlus,
+    titleKey: "help.topics.productCreate.title",
+    summaryKey: "help.topics.productCreate.summary",
+    actionUrl: "/products/new",
+    actionLabelKey: "help.actions.addProduct",
+    steps: [
+      {
+        titleKey: "tour.steps.productCreate.step1Title",
+        descKey: "tour.steps.productCreate.step1Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step2Title",
+        descKey: "tour.steps.productCreate.step2Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step3Title",
+        descKey: "tour.steps.productCreate.step3Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step4Title",
+        descKey: "tour.steps.productCreate.step4Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step5Title",
+        descKey: "tour.steps.productCreate.step5Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step6Title",
+        descKey: "tour.steps.productCreate.step6Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step7Title",
+        descKey: "tour.steps.productCreate.step7Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step8Title",
+        descKey: "tour.steps.productCreate.step8Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step9Title",
+        descKey: "tour.steps.productCreate.step9Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step10Title",
+        descKey: "tour.steps.productCreate.step10Desc",
+      },
+      {
+        titleKey: "tour.steps.productCreate.step11Title",
+        descKey: "tour.steps.productCreate.step11Desc",
+        actionUrl: "/products/new",
+        actionLabelKey: "help.actions.addProduct",
       },
     ],
   },
