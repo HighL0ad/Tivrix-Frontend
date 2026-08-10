@@ -450,7 +450,7 @@ export function ProductCreatePage() {
 
           {/* Scenario */}
           <Card data-tour="product-scenario">
-            <CardHeader>
+            <CardHeader data-tour="product-scenario-heading">
               <CardTitle>{t("sell.paymentQuestion")}</CardTitle>
               <CardDescription>
                 {t("products.paymentScenarioDescription")}
