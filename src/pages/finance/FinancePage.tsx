@@ -247,7 +247,7 @@ export function FinancePage() {
             <FinancePermissionBlock title={t("finance.historyClosed")} />
           )}
         </TabsContent>
-        <TabsContent value="profit">
+        <TabsContent value="profit" data-tour="finance-profit">
           {canViewProfit ? (
             <ProfitCard
               data={profitQuery.data}
@@ -263,7 +263,7 @@ export function FinancePage() {
             <FinancePermissionBlock title={t("finance.profitClosed")} />
           )}
         </TabsContent>
-        <TabsContent value="expenses">
+        <TabsContent value="expenses" data-tour="finance-expenses">
           {canViewExpenses ? (
             <ExpensesCard
               data={expensesQuery.data}
@@ -441,7 +441,7 @@ function HistoryCard({
   });
 
   return (
-    <Card>
+    <Card data-tour="finance-history">
       <CardHeader className="gap-3">
         <CardTitle>{t("finance.historyShort")}</CardTitle>
         <div className="flex flex-col gap-2 sm:flex-row">

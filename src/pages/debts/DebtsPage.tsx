@@ -217,7 +217,7 @@ export function DebtsPage() {
           ) : (
             <div className="space-y-6">
               {/* Раздел 1: Баланс кредитной системы с иерархией KPI */}
-              <div className="space-y-3">
+              <div className="space-y-3" data-tour="installments-summary">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <Landmark className="size-3.5 text-sky-600" />
                   {t("dashboard.creditSystem")}
@@ -276,7 +276,7 @@ export function DebtsPage() {
               </div>
 
               {/* Раздел 2: Сборы и операционные показатели (Цвет как язык) */}
-              <div className="space-y-3">
+              <div className="space-y-3" data-tour="installments-attention">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <Eye className="size-3.5 text-indigo-600" />
                   {t("finance.attentionTitle")}
@@ -368,7 +368,10 @@ export function DebtsPage() {
               </div>
 
               {/* Раздел 3: Таблицы и графики (Полировка списков) */}
-              <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
+              <div
+                className="grid gap-4 xl:grid-cols-[1fr_420px]"
+                data-tour="installments-upcoming"
+              >
                 {/* Список предстоящих платежей с цветными аватарами и пилюльками */}
                 <Card className="py-0 gap-0 overflow-hidden bg-card border-border">
                   <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 bg-muted/35">
