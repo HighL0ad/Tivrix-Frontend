@@ -78,7 +78,7 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
         showCloseButton={false}
         className={
           isMobile
-            ? "bg-slate-950 text-white border-slate-900 p-0 overflow-hidden select-none rounded-t-2xl border-t"
+            ? "bg-slate-950 text-white border-slate-900 p-0 pb-[env(safe-area-inset-bottom)] overflow-hidden select-none rounded-t-2xl border-t"
             : "max-w-md bg-slate-950 text-white border-slate-900 p-0 overflow-hidden select-none shadow-2xl rounded-2xl"
         }
       >

@@ -26,7 +26,7 @@ function SheetContent({
   return (
     <DialogContent
       className={cn(
-        "top-auto bottom-0 left-0 max-h-[92vh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-lg rounded-b-none",
+        "top-auto bottom-0 left-0 max-h-[94dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-2xl rounded-b-none",
         className,
       )}
       {...props}

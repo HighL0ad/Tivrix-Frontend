@@ -369,7 +369,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
       </Card>
 
       <Dialog open={Boolean(lightboxImage)} onOpenChange={() => setLightboxImage(null)}>
-        <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none" showCloseButton={false}>
+        <DialogContent mobileVariant="dialog" className="max-w-5xl border-0 bg-transparent p-0 shadow-none" showCloseButton={false}>
           <DialogHeader className="sr-only">
             <DialogTitle>{t("products.photoPreview")}</DialogTitle>
             <DialogDescription>{t("products.photoPreviewDescription")}</DialogDescription>
@@ -437,4 +437,3 @@ function LightboxImage({ src }: { src: string }) {
     </div>
   );
 }
-

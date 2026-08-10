@@ -70,7 +70,7 @@ function AlertDialogContent({
         data-slot="alert-dialog-content"
         data-size={size}
         className={cn(
-          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full max-h-[calc(100vh-2rem)] overflow-y-auto -translate-x-1/2 -translate-y-1/2 gap-3 rounded-lg bg-popover p-4 text-sm/relaxed text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-[size=default]:max-w-xs data-[size=sm]:max-w-64 data-[size=default]:sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "group/alert-dialog-content fixed inset-x-0 bottom-0 z-50 grid max-h-[94dvh] w-full max-w-none translate-x-0 translate-y-0 gap-3 overflow-y-auto rounded-t-2xl rounded-b-none bg-popover p-4 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] text-sm/relaxed text-popover-foreground ring-1 ring-foreground/10 duration-200 outline-none before:absolute before:top-2 before:left-1/2 before:h-1 before:w-10 before:-translate-x-1/2 before:rounded-full before:bg-muted-foreground/25 data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4 sm:top-1/2 sm:left-1/2 sm:right-auto sm:bottom-auto sm:max-h-[calc(100vh-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:p-4 sm:before:hidden data-[size=default]:sm:max-w-sm data-[size=sm]:sm:max-w-64 sm:data-open:zoom-in-95 sm:data-closed:zoom-out-95",
           className
         )}
         {...props}
