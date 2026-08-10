@@ -117,7 +117,7 @@ const topicTours: Record<string, TourStep[]> = {
     },
     {
       route: "/products/new",
-      targetSelector: '[data-tour="product-scenario"], [data-tour="product-form-main"]',
+      targetSelector: '[data-tour="product-scenario-heading"], [data-tour="product-scenario"], [data-tour="product-form-main"]',
       titleKey: "tour.steps.productCreate.step1Title",
       descKey: "tour.steps.productCreate.step1Desc",
     },
@@ -473,6 +473,20 @@ export function SpotlightTour({
   useEffect(() => {
     if (!open) return;
 
+    // Give targets near the end of a page enough room to scroll above the
+    // stable bottom card. The spacer exists only while the tour is open.
+    const spacer = document.createElement("div");
+    spacer.setAttribute("aria-hidden", "true");
+    spacer.style.height = window.innerWidth < 640 ? "360px" : "280px";
+    spacer.style.pointerEvents = "none";
+    document.body.appendChild(spacer);
+
+    return () => spacer.remove();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
@@ -516,7 +530,7 @@ export function SpotlightTour({
   const tooltipStyle: CSSProperties = {
     position: "fixed",
     zIndex: 101,
-    ...getTooltipPosition(rect),
+    ...getTooltipPosition(),
   };
   const spotlightRect = rect ? getSpotlightRect(rect) : null;
 
@@ -570,7 +584,7 @@ export function SpotlightTour({
       )}
 
       <div
-        className="w-[calc(100vw-32px)] max-w-[360px] transition-all duration-500 ease-out pointer-events-auto motion-reduce:transition-none"
+        className="w-[calc(100vw-32px)] max-w-[360px] transition-opacity duration-200 ease-out pointer-events-auto motion-reduce:transition-none"
         style={tooltipStyle}
       >
         <div className="flex max-h-[min(30rem,calc(100vh-2rem))] flex-col gap-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950 p-4 text-white shadow-2xl ring-1 ring-sky-400/20 sm:p-5">
@@ -686,51 +700,18 @@ function getSpotlightRect(rect: TargetRect): TargetRect {
   };
 }
 
-function getTooltipPosition(rect: TargetRect | null): CSSProperties {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const margin = 16;
-  const gap = 16;
-  const cardWidth = Math.min(360, viewportWidth - margin * 2);
-  const estimatedCardHeight = Math.min(480, viewportHeight - margin * 2);
-
-  if (!rect || rect.width <= 0 || viewportWidth < 640) {
+function getTooltipPosition(): CSSProperties {
+  if (window.innerWidth < 640) {
     return {
-      left: margin,
-      bottom: margin,
+      left: 16,
+      bottom: "max(16px, env(safe-area-inset-bottom))",
       transform: undefined,
     };
   }
-
-  const hasRightSpace = rect.right + gap + cardWidth <= viewportWidth - margin;
-  const hasLeftSpace = rect.left - gap - cardWidth >= margin;
-  const topNearTarget = clamp(rect.top, margin, viewportHeight - estimatedCardHeight - margin);
-
-  if (hasRightSpace) {
-    return {
-      left: rect.right + gap,
-      top: topNearTarget,
-      transform: undefined,
-    };
-  }
-
-  if (hasLeftSpace) {
-    return {
-      left: rect.left - gap - cardWidth,
-      top: topNearTarget,
-      transform: undefined,
-    };
-  }
-
-  const left = clamp(rect.left + rect.width / 2 - cardWidth / 2, margin, viewportWidth - cardWidth - margin);
-  const belowTop = rect.bottom + gap;
-  const top = belowTop + estimatedCardHeight <= viewportHeight - margin
-    ? belowTop
-    : clamp(rect.top - estimatedCardHeight - gap, margin, viewportHeight - estimatedCardHeight - margin);
 
   return {
-    left,
-    top,
+    right: 24,
+    bottom: 24,
     transform: undefined,
   };
 }
@@ -742,15 +723,13 @@ function centerElementInViewport(element: HTMLElement) {
   const isMobile = window.innerWidth < 640;
   const previousScrollMarginTop = element.style.scrollMarginTop;
 
-  if (isMobile) {
-    // Keep the highlighted control below the sticky mobile header while the
-    // tour card occupies the bottom of the viewport.
-    element.style.scrollMarginTop = "80px";
-  }
+  // Keep the highlighted control in the free upper part of the screen while
+  // the stable tour card occupies the bottom edge.
+  element.style.scrollMarginTop = isMobile ? "80px" : "24px";
 
   element.scrollIntoView({
     behavior: reduceMotion ? "auto" : "smooth",
-    block: isMobile ? "start" : "center",
+    block: "start",
     inline: "nearest",
   });
 
