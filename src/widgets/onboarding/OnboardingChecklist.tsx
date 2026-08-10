@@ -25,7 +25,7 @@ export interface OnboardingChecklistProps {
   hasClients: boolean;
   hasUsers: boolean;
   hasWallets: boolean;
-  onStartTour?: () => void;
+  onStartTour?: (topicId?: string) => void;
 }
 
 export function OnboardingChecklist({
@@ -115,7 +115,7 @@ export function OnboardingChecklist({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onStartTour}
+                onClick={() => onStartTour("quick-start")}
                 className="h-8 gap-1.5 border-sky-500/40 bg-sky-500/10 text-xs font-bold text-sky-600 hover:bg-sky-500/20 dark:text-sky-400"
               >
                 <Sparkles className="size-3.5 text-sky-500" />
@@ -225,6 +225,7 @@ export function OnboardingChecklist({
         open={helpOpen}
         onOpenChange={setHelpOpen}
         initialTopicId={selectedHelpTopic}
+        onStartTour={onStartTour}
       />
     </>
   );

@@ -1,4 +1,4 @@
-import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, NavLink, Outlet } from "react-router";
 import {
   Banknote,
@@ -42,7 +42,7 @@ import { SpotlightTour } from "@/features/tour/SpotlightTour";
 import { CommandMenuTrigger, CommandMenuDialog } from "@/widgets/command-menu/CommandMenu";
 import { ChangelogDialog } from "@/features/changelog/ChangelogDialog";
 import { cn } from "@/shared/lib/utils";
-import { AppShellLoading, InitialAuthLoading } from "@/shared/ui/page-state";
+import { InitialAuthLoading } from "@/shared/ui/page-state";
 import { TivrixMark } from "@/shared/ui/tivrix-mark";
 
 const navItems = [
@@ -114,12 +114,19 @@ export function AppLayout() {
       ? clamp(storedWidth, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
       : DEFAULT_SIDEBAR_WIDTH;
   });
-  const visibleNavItems = navItems.filter((item) => {
-    if (item.superAdminOnly) return currentUser?.role === "super_admin";
-    if (item.adminOnly) return currentUser?.is_admin;
-    if (!item.resource) return true;
-    return currentUser?.permissions[item.resource as keyof CurrentUser["permissions"]];
-  });
+  const visibleNavItems = useMemo(
+    () => navItems.filter((item) => {
+      if (item.superAdminOnly) return currentUser?.role === "super_admin";
+      if (item.adminOnly) return currentUser?.is_admin;
+      if (!item.resource) return true;
+      return currentUser?.permissions[item.resource as keyof CurrentUser["permissions"]];
+    }),
+    [currentUser],
+  );
+  const accessibleTourPaths = useMemo(
+    () => visibleNavItems.map((item) => item.to),
+    [visibleNavItems],
+  );
 
   function updateSidebarWidth(width: number) {
     const nextWidth = clamp(width, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH);
@@ -396,7 +403,13 @@ export function AppLayout() {
       </nav>
       <CommandMenuDialog open={commandOpen} setOpen={setCommandOpen} onOpenHelp={() => setHelpOpen(true)} />
       <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} onStartTour={handleStartTour} />
-      <SpotlightTour open={tourOpen} topicId={tourTopicId} onClose={() => setTourOpen(false)} />
+      <SpotlightTour
+        key={`${tourTopicId}-${tourOpen ? "open" : "closed"}`}
+        open={tourOpen}
+        topicId={tourTopicId}
+        accessiblePaths={accessibleTourPaths}
+        onClose={() => setTourOpen(false)}
+      />
       <ChangelogDialog />
     </div>
   );

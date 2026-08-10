@@ -28,7 +28,7 @@ import { OnboardingChecklist } from "@/widgets/onboarding/OnboardingChecklist";
 export function DashboardPage() {
   const { t } = useTranslation();
   const location = useLocation();
-  const outletContext = useOutletContext<{ onStartTour?: () => void } | null>();
+  const outletContext = useOutletContext<{ onStartTour?: (topicId?: string) => void } | null>();
   const [profitPeriod, setProfitPeriod] = useState<"7d" | "30d" | "90d">("7d");
   const [isAlertsExpanded, setIsAlertsExpanded] = useState(false);
   const [isInstallmentAlertsExpanded, setIsInstallmentAlertsExpanded] = useState(false);

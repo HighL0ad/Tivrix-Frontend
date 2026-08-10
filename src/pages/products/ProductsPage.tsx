@@ -76,7 +76,6 @@ import { Input } from "@/shared/ui/input";
 import { Money } from "@/shared/ui/money-display";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
-import { ProductsPageSkeleton } from "@/shared/ui/page-state";
 import {
   PaginationBar,
 } from "@/shared/ui/pagination";
@@ -270,33 +269,37 @@ export function ProductsPage() {
         title={t("app.nav.products")}
         description={products ? t("products.total", { count: products.total }) : t("products.loading")}
         actions={
-        <Button asChild>
-          <NavLink to="/products/new" state={{ from: returnTo }}>
-            <Plus aria-hidden="true" />
-            {t("app.addProduct")}
-          </NavLink>
-        </Button>
+          <div data-tour="products-add">
+            <Button asChild>
+              <NavLink to="/products/new" state={{ from: returnTo }}>
+                <Plus aria-hidden="true" />
+                {t("app.addProduct")}
+              </NavLink>
+            </Button>
+          </div>
         }
       />
 
-      <Card>
+      <Card data-tour="products-list">
         <CardHeader className="gap-4">
-          <Tabs
-            value={activeStatus ?? "all"}
-            onValueChange={(value) =>
-              updateParams({ status: value as ProductStatus | "all" })
-            }
-          >
-            <TabsList>
-              {statusFilters.map((filter) => (
-                <TabsTrigger key={filter.value} value={filter.value}>
-                  {t(filter.labelKey)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div data-tour="products-filters">
+            <Tabs
+              value={activeStatus ?? "all"}
+              onValueChange={(value) =>
+                updateParams({ status: value as ProductStatus | "all" })
+              }
+            >
+              <TabsList>
+                {statusFilters.map((filter) => (
+                  <TabsTrigger key={filter.value} value={filter.value}>
+                    {t(filter.labelKey)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
 
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+          <div data-tour="products-search" className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <div className="relative min-w-0 flex-1">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"

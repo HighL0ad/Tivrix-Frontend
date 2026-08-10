@@ -104,7 +104,7 @@ export function DebtsPage() {
   const installmentsReturnTo = "/debts?tab=installments";
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-5" data-tour="debts-page">
       <PageHeader
         title={t("app.nav.debts")}
         description={t("debts.description")}
@@ -140,7 +140,7 @@ export function DebtsPage() {
           setDebtsParams({ tab: value as "debts" | "installments" })
         }
       >
-        <TabsList>
+        <TabsList data-tour="debts-tabs">
           <TabsTrigger value="debts">{t("finance.overview")}</TabsTrigger>
           {isCreditEnabled && (
             <TabsTrigger value="installments">{t("dashboard.creditSystem")}</TabsTrigger>
@@ -203,7 +203,11 @@ export function DebtsPage() {
           ) : null}
         </TabsContent>
 
-        <TabsContent value="installments" className="mt-4 space-y-6">
+        <TabsContent
+          value="installments"
+          className="mt-4 space-y-6"
+          data-tour="installments-dashboard"
+        >
           {(financeQuery.isPending && !financeQuery.data) || (dashboardQuery.isPending && !dashboardQuery.data) ? (
             <InstallmentsSkeleton />
           ) : !fData || !dashboardQuery.data ? (

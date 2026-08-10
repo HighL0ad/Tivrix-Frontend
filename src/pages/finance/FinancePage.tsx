@@ -148,19 +148,23 @@ export function FinancePage() {
 
   return (
     <section className="space-y-5">
-      <PageHeader
-        title={t("app.nav.finance")}
-        description={t("finance.description")}
-        actions={
-          canTransferWallets ? (
-            <TransferDialog
-              wallets={data.my_wallets}
-              open={action === "transfer"}
-              onOpenChange={(open) => setFinanceParams({ action: open ? "transfer" : null })}
-            />
-          ) : null
-        }
-      />
+      <div data-tour="finance-actions">
+        <PageHeader
+          title={t("app.nav.finance")}
+          description={t("finance.description")}
+          actions={
+            canTransferWallets ? (
+              <div data-tour="finance-transfer">
+                <TransferDialog
+                  wallets={data.my_wallets}
+                  open={action === "transfer"}
+                  onOpenChange={(open) => setFinanceParams({ action: open ? "transfer" : null })}
+                />
+              </div>
+            ) : null
+          }
+        />
+      </div>
 
       <Card className="border-violet-200 bg-linear-to-r from-violet-600 to-indigo-700 text-white">
         <CardContent className="flex flex-col gap-2 p-6">
@@ -186,7 +190,7 @@ export function FinancePage() {
           updateFinanceParams({ tab: value as (typeof financeTabValues)[number] })
         }
       >
-        <TabsList>
+        <TabsList data-tour="finance-tabs">
           <TabsTrigger value="overview">{t("finance.overview")}</TabsTrigger>
           <TabsTrigger value="history">{t("finance.historyShort")}</TabsTrigger>
           <TabsTrigger value="profit">{t("finance.profit")}</TabsTrigger>
@@ -630,7 +634,7 @@ function OverviewCard({
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Card>
+      <Card data-tour="finance-wallets">
         <CardHeader>
           <CardTitle>{t("finance.walletBalances")}</CardTitle>
         </CardHeader>
@@ -644,11 +648,13 @@ function OverviewCard({
               <div className="flex shrink-0 items-center gap-2">
                 <div className="font-bold">{money(wallet.balance)}</div>
                 {canAdjustWallets ? (
-                  <AdjustWalletDialog
-                    wallet={wallet}
-                    open={adjustWalletId === wallet.id}
-                    onOpenChange={(open) => onAdjustOpenChange(open, wallet.id)}
-                  />
+                  <div data-tour="finance-adjust-wallet">
+                    <AdjustWalletDialog
+                      wallet={wallet}
+                      open={adjustWalletId === wallet.id}
+                      onOpenChange={(open) => onAdjustOpenChange(open, wallet.id)}
+                    />
+                  </div>
                 ) : null}
               </div>
             </div>
