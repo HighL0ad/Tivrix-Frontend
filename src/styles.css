@@ -331,67 +331,6 @@ textarea {
   }
 }
 
-/* Semantic card accents for ERP states */
-@utility card-accent-emerald {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #10b981;
-  }
-}
-
-@utility card-accent-amber {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #f59e0b;
-  }
-}
-
-@utility card-accent-rose {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #f43f5e;
-  }
-}
-
-@utility card-accent-violet {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #0ea5e9;
-  }
-}
-
 @utility badge-soft-success {
   background-color: color-mix(in srgb, #10b981 8%, transparent);
   color: #047857;

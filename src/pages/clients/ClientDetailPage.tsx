@@ -138,7 +138,7 @@ export function ClientDetailPage() {
         {/* ── Sidebar ── */}
         <div className="order-first min-w-0 space-y-3">
           {/* Avatar + stats + debt summary */}
-          <Card size="sm" className={hasDebt ? "card-accent-rose" : "card-accent-emerald"}>
+          <Card size="sm">
             <CardContent className="flex flex-col items-center gap-4 pt-5 text-center">
               {/* Avatar */}
               <div
@@ -211,7 +211,7 @@ export function ClientDetailPage() {
                 </div>
               </div>
               {ordinaryDebtNum > 0 ? (
-                <div className="w-full rounded-lg border border-amber-200 bg-amber-50/50 card-accent-amber px-3 py-2.5 text-left">
+                <div className="w-full rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2.5 text-left">
                   <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
                     {t("clients.ordinaryDebtNotice")}
                   </div>
