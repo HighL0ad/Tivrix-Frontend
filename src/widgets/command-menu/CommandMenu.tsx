@@ -45,6 +45,8 @@ export function CommandMenuTrigger({
   const { t } = useTranslation();
   return (
     <button
+      type="button"
+      aria-label={showLabel ? undefined : t("common.search")}
       onClick={onClick}
       className={cn(
         "flex items-center gap-2 transition-colors",
