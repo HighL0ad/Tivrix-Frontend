@@ -25,10 +25,10 @@ export function MetricCard({
 }) {
   const iconTone = {
     neutral: "text-muted-foreground",
-    good: "text-emerald-600 dark:text-emerald-400",
-    bad: "text-rose-600 dark:text-rose-400",
-    info: "text-primary",
-    warning: "text-amber-600 dark:text-amber-400",
+    good: "text-success",
+    bad: "text-destructive",
+    info: "text-info",
+    warning: "text-warning",
     violet: "text-primary",
   }[tone];
 

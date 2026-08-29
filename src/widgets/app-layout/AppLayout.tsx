@@ -302,10 +302,10 @@ export function AppLayout() {
       </aside>
 
       <main className={cn(
-        "w-full transition-all md:pl-[var(--sidebar-width)]",
+        "w-full transition-[padding] motion-reduce:transition-none md:pl-[var(--sidebar-width)]",
         isResizingSidebar ? "duration-0" : "duration-300",
       )}>
-        <div className="mx-auto max-w-md p-4 pb-24 md:max-w-7xl md:p-6 lg:p-8 md:pb-8">
+        <div className="mx-auto max-w-md p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:max-w-7xl md:p-6 md:pb-8 lg:p-8">
           <header className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-2.5 shadow-sm md:hidden">
             <NavLink to="/" className="inline-flex shrink-0 items-center gap-2 text-lg font-black text-primary">
               <TivrixMark className="size-7" />
@@ -315,7 +315,7 @@ export function AppLayout() {
               <button
                 type="button"
                 onClick={() => setHelpOpen(true)}
-                className="flex size-10 items-center justify-center rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-500/25"
+                className="flex size-11 items-center justify-center rounded-full bg-sky-500/15 text-sky-600 hover:bg-sky-500/25 dark:text-sky-400"
                 title={t("help.title")}
               >
                 <HelpCircle className="size-5" />
@@ -323,7 +323,7 @@ export function AppLayout() {
               <div data-tour="search">
                 <CommandMenuTrigger
                   onClick={() => setCommandOpen(true)}
-                  className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   kbdClassName="hidden"
                   showLabel={false}
                 />
@@ -348,7 +348,7 @@ export function AppLayout() {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 z-40 w-full border-t border-white/10 bg-[#0f172a] shadow-2xl md:hidden">
+      <nav className="fixed bottom-0 left-0 z-40 w-full border-t border-white/10 bg-[#0f172a] pb-[env(safe-area-inset-bottom)] shadow-lg md:hidden">
         <div className="mx-auto grid h-16 max-w-md grid-cols-5">
           {visibleNavItems.slice(0, 2).map((item) => (
             <NavLink
@@ -371,7 +371,7 @@ export function AppLayout() {
             <NavLink
               to="/products/new"
               data-tour="add-product"
-              className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-600 text-white shadow-lg shadow-sky-950/40 transition-transform hover:scale-105 hover:bg-sky-500"
+              className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm transition-colors hover:bg-sky-500"
               aria-label={t("app.addProduct")}
             >
               <Plus className="h-8 w-8" aria-hidden="true" />
@@ -437,7 +437,7 @@ function UserAvatar({
         onClick={() => inputRef.current?.click()}
         disabled={pending}
         className={cn(
-          "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10 text-sm font-black uppercase text-white transition-opacity hover:opacity-85 disabled:cursor-wait disabled:opacity-60",
+          "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10 text-sm font-black uppercase text-white transition-opacity hover:opacity-85 disabled:cursor-wait disabled:opacity-60 [@media(pointer:coarse)]:size-11",
           className,
         )}
         aria-label={t("app.uploadProfilePhoto")}

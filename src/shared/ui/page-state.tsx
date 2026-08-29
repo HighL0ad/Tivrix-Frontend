@@ -411,9 +411,9 @@ export function InitialAuthLoading() {
           </h1>
         </div>
         <div className="flex items-center gap-1.5 pt-2">
-          <div className="size-2 animate-bounce rounded-full bg-sky-400 [animation-delay:-0.3s]" />
-          <div className="size-2 animate-bounce rounded-full bg-sky-400 [animation-delay:-0.15s]" />
-          <div className="size-2 animate-bounce rounded-full bg-sky-400" />
+          <div className="size-2 animate-pulse rounded-full bg-sky-400 motion-reduce:animate-none [animation-delay:-0.3s]" />
+          <div className="size-2 animate-pulse rounded-full bg-sky-400 motion-reduce:animate-none [animation-delay:-0.15s]" />
+          <div className="size-2 animate-pulse rounded-full bg-sky-400 motion-reduce:animate-none" />
         </div>
       </div>
     </div>

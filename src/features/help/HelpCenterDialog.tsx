@@ -556,7 +556,7 @@ export function HelpCenterDialog({
                   aria-valuenow={currentStepIndex + 1}
                 >
                   <div
-                    className="h-full bg-linear-to-r from-sky-500 to-indigo-600 transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                    className="h-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
                     style={{
                       width: `${
                         ((currentStepIndex + 1) / selectedTopic.steps.length) * 100

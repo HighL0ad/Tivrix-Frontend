@@ -104,7 +104,7 @@ export function ImeiScannerButton({ onScan }: ImeiScannerButtonProps) {
             }
           >
               <X className="size-4" />
-              <span className="sr-only">Close</span>
+              <span className="sr-only">{t("common.close")}</span>
           </DialogClose>
 
           <div

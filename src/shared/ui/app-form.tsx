@@ -101,7 +101,7 @@ export function AppSelect({
           onChange={(event) => onValueChange(event.target.value)}
           disabled={disabled}
           className={cn(
-          "h-11 md:h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-left text-base md:text-sm font-medium leading-5 text-foreground outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
+          "h-11 md:h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-left text-base md:text-sm font-medium leading-5 text-foreground outline-none transition-[color,background-color,border-color,box-shadow,opacity] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedOption && "text-muted-foreground",
             className,
           )}
@@ -564,7 +564,7 @@ export function AppChoiceCards<TValue extends string>({
           <label
             key={option.value}
             className={cn(
-              "relative flex cursor-pointer select-none flex-col items-center justify-between gap-2 rounded-xl border p-4 text-center shadow-sm transition-all duration-200 hover:shadow",
+              "relative flex cursor-pointer select-none flex-col items-center justify-between gap-2 rounded-xl border p-4 text-center shadow-sm transition-[color,background-color,border-color,box-shadow] duration-150 hover:shadow",
               selected
                 ? "scale-[1.02] border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20"
                 : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",

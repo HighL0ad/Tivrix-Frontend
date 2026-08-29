@@ -188,7 +188,7 @@ export function ClientDetailPage() {
                   <span
                     className={cn(
                       "text-sm font-black",
-                      hasDebt ? "text-rose-600" : "text-emerald-600",
+                      hasDebt ? "text-destructive" : "text-success",
                     )}
                   >
                     {money(client.total_debt)}
@@ -197,8 +197,8 @@ export function ClientDetailPage() {
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
                     className={cn(
-                      "h-full rounded-full transition-all duration-500",
-                      paidPercent >= 100 ? "bg-emerald-500" : "bg-amber-400",
+                      "h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none",
+                      paidPercent >= 100 ? "bg-success" : "bg-warning",
                     )}
                     style={{
                       width: `${Math.max(0, Math.min(100, paidPercent))}%`,
@@ -211,15 +211,15 @@ export function ClientDetailPage() {
                 </div>
               </div>
               {ordinaryDebtNum > 0 ? (
-                <div className="w-full rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2.5 text-left">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                <div className="w-full rounded-lg border border-warning/25 bg-warning/10 px-3 py-2.5 text-left">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-warning">
                     {t("clients.ordinaryDebtNotice")}
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-3">
-                    <span className="text-xs font-medium text-amber-800">
+                    <span className="text-xs font-medium text-foreground">
                       {t("clients.inDebtsSection")}
                     </span>
-                    <span className="shrink-0 text-sm font-black text-amber-900">
+                    <span className="shrink-0 text-sm font-black text-warning">
                       {money(client.ordinary_debt)}
                     </span>
                   </div>

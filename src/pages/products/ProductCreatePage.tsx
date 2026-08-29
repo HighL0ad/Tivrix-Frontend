@@ -471,7 +471,7 @@ export function ProductCreatePage() {
                       <label
                         key={value}
                         className={cn(
-                          "relative flex flex-col items-center justify-between text-center cursor-pointer gap-3 rounded-xl border p-5 transition-all duration-200 select-none shadow-sm hover:shadow",
+                          "relative flex cursor-pointer select-none flex-col items-center justify-between gap-3 rounded-xl border p-5 text-center shadow-sm transition-[color,background-color,border-color,box-shadow] duration-150 hover:shadow",
                           selected
                             ? "border-primary bg-primary/[0.04] text-primary ring-2 ring-primary/20 scale-[1.02]"
                             : "border-border bg-background hover:border-primary/30 hover:bg-muted/10",
