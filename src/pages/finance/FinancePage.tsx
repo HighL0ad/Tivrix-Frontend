@@ -673,14 +673,14 @@ function OverviewCard({
             {t("finance.supplierDebts")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-2 sm:grid-cols-2">
+        <CardContent className="grid gap-2">
           {data.debt_wallets.length ? data.debt_wallets.map((wallet) => (
-            <div key={wallet.id} className="flex items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-              <span className="font-semibold">{wallet.name}</span>
-              <span className="font-bold">{money(wallet.balance)}</span>
+            <div key={wallet.id} className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+              <span className="min-w-0 truncate font-semibold">{wallet.name}</span>
+              <span className="shrink-0 whitespace-nowrap font-bold tabular-nums">{money(wallet.balance)}</span>
             </div>
           )) : (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center text-sm font-semibold text-emerald-700 sm:col-span-2">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center text-sm font-semibold text-emerald-700">
               {t("finance.noSupplierDebts")}
             </div>
           )}
