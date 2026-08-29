@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { ScrollArea } from "@/shared/ui/scroll-area";
@@ -40,12 +40,11 @@ export function ChangelogDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); }}>
-      <DialogContent className="max-h-[94dvh] gap-4 overflow-hidden rounded-t-2xl rounded-b-none border border-border/80 bg-card p-5 pt-7 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-[480px] sm:rounded-xl sm:pt-5 sm:pb-5">
+      <DialogContent className="max-h-[94dvh] gap-4 overflow-hidden rounded-t-lg rounded-b-none border border-border/80 bg-card p-5 pt-7 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-lg sm:max-w-[480px] sm:rounded-lg sm:pt-5 sm:pb-5">
         <DialogHeader className="gap-1">
-          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/20 w-fit px-2.5 py-1 rounded-full text-xs font-bold border border-sky-100 dark:border-sky-500/20 select-none">
-            <Sparkles className="size-3.5 animate-pulse" />
-            <span>{t("changelog.badge", { version: CURRENT_CHANGELOG_VERSION })}</span>
-          </div>
+          <p className="text-xs font-semibold text-muted-foreground">
+            {t("changelog.badge", { version: CURRENT_CHANGELOG_VERSION })}
+          </p>
           <DialogTitle className="text-xl font-black tracking-tight text-foreground mt-2 leading-tight">
             {t("changelog.title")}
           </DialogTitle>
@@ -65,11 +64,11 @@ export function ChangelogDialog() {
                 >
                   <div className="mt-0.5 shrink-0">
                     {isNew ? (
-                      <span className="inline-flex w-10 h-5 items-center justify-center rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-[9px] font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wide select-none">
+                      <span className="inline-flex h-5 w-10 items-center text-[10px] font-semibold text-foreground select-none">
                         NEW
                       </span>
                     ) : (
-                      <span className="inline-flex w-10 h-5 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-950/40 text-[9px] font-black text-blue-800 dark:text-blue-300 uppercase tracking-wide select-none">
+                      <span className="inline-flex h-5 w-10 items-center text-[10px] font-semibold text-muted-foreground select-none">
                         UPD
                       </span>
                     )}
@@ -89,16 +88,12 @@ export function ChangelogDialog() {
         </ScrollArea>
 
         <DialogFooter className="mt-2 sm:justify-between sm:flex-row gap-3 items-center">
-          <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-2 select-none">
-            <span className="relative flex h-2 w-2 items-center justify-center shrink-0 -translate-y-[0.5px]">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/80 opacity-75"></span>
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-            </span>
+          <div className="flex items-center text-[10px] font-medium text-muted-foreground select-none">
             <span>Tivrix · v{CURRENT_CHANGELOG_VERSION}</span>
           </div>
           <Button 
             onClick={handleClose}
-            className="w-full sm:w-auto h-9 font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-sm active:scale-95 transition-transform"
+            className="h-9 w-full bg-sky-600 font-bold text-white shadow-none transition-colors hover:bg-sky-500 sm:w-auto"
           >
             <Check className="size-4 mr-1.5" />
             {t("changelog.closeButton")}
