@@ -166,12 +166,12 @@ export function FinancePage() {
         />
       </div>
 
-      <Card className="border-violet-200 bg-linear-to-r from-violet-600 to-indigo-700 text-white">
+      <Card className="border-primary/25 bg-primary/8 shadow-none">
         <CardContent className="flex flex-col gap-2 p-6">
-          <div className="text-sm font-bold uppercase tracking-wide text-violet-100">
+          <div className="text-sm font-bold text-primary">
             {t("finance.allTimeNetProfit")}
           </div>
-          <div className="text-4xl font-black tracking-tight">
+          <div className="text-4xl font-black tracking-tight text-foreground">
             {money(data.total_profit)}
           </div>
         </CardContent>
@@ -669,18 +669,18 @@ function OverviewCard({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <HandCoins className="size-5 text-rose-600" />
+            <HandCoins className="size-5 text-destructive" />
             {t("finance.supplierDebts")}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2">
           {data.debt_wallets.length ? data.debt_wallets.map((wallet) => (
-            <div key={wallet.id} className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+            <div key={wallet.id} className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-destructive/25 bg-destructive/10 p-3 text-sm text-foreground">
               <span className="min-w-0 truncate font-semibold">{wallet.name}</span>
-              <span className="shrink-0 whitespace-nowrap font-bold tabular-nums">{money(wallet.balance)}</span>
+              <span className="shrink-0 whitespace-nowrap font-bold tabular-nums text-destructive">{money(wallet.balance)}</span>
             </div>
           )) : (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center text-sm font-semibold text-emerald-700">
+            <div className="rounded-lg border border-success/25 bg-success/10 p-6 text-center text-sm font-semibold text-success">
               {t("finance.noSupplierDebts")}
             </div>
           )}
@@ -693,9 +693,9 @@ function OverviewCard({
 function FinancePermissionBlock({ title }: { title: string }) {
   const { t } = useTranslation();
   return (
-    <Card className="border-amber-200 bg-amber-50/50">
+    <Card className="border-warning/25 bg-warning/10">
       <CardContent className="flex min-h-64 flex-col items-center justify-center px-6 py-10 text-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+        <span className="flex size-12 items-center justify-center rounded-full bg-warning/15 text-warning">
           <ShieldAlert className="size-6" />
         </span>
         <h2 className="mt-4 text-lg font-black text-foreground">{title}</h2>
@@ -752,8 +752,8 @@ function ProfitCard({
               <InlineMetric title={t("finance.averageProfit")} value={money(data.avg_profit_per_sale)} />
             </div>
             {data.best_sale ? (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm">
-                <div className="font-bold text-emerald-900">{t("finance.bestSale")}</div>
+              <div className="rounded-lg border border-success/25 bg-success/10 p-3 text-sm">
+                <div className="font-bold text-success">{t("finance.bestSale")}</div>
                 <div className="mt-1 flex justify-between gap-3">
                   <span>{data.best_sale.product_name}</span>
                   <span className={`font-bold ${profitToneClass(data.best_sale.profit)}`}>
@@ -933,7 +933,7 @@ function ExpensesCard({
                         <TableCell className="font-semibold">{expense.description}</TableCell>
                         <TableCell>{expense.wallet_name}</TableCell>
                         <TableCell className="text-muted-foreground">{shortDate(expense.created_at)}</TableCell>
-                        <TableCell className="text-right font-bold text-rose-600 whitespace-nowrap">
+                        <TableCell className="whitespace-nowrap text-right font-bold text-destructive">
                           {money(Math.abs(Number(expense.amount)))}
                         </TableCell>
                       </TableRow>
@@ -956,7 +956,7 @@ function ExpensesCard({
                 {data.items.map((expense) => (
                   <div
                     key={expense.id}
-                    className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3 transition-all hover:scale-[1.01]"
+                    className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/30"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1 mr-2">
@@ -964,7 +964,7 @@ function ExpensesCard({
                           {expense.description}
                         </div>
                       </div>
-                      <span className="font-black text-sm shrink-0 whitespace-nowrap leading-tight text-rose-600">
+                      <span className="shrink-0 whitespace-nowrap text-sm font-black leading-tight text-destructive">
                         {money(Math.abs(Number(expense.amount)))}
                       </span>
                     </div>
@@ -1064,7 +1064,7 @@ function periodLabel(dateFrom: string, dateTo: string, t: (key: string, options?
 }
 
 function profitToneClass(value: string | number) {
-  return Number(value) >= 0 ? "text-emerald-700" : "text-rose-600";
+  return Number(value) >= 0 ? "text-success" : "text-destructive";
 }
 
 function useDebouncedValue(value: string, delay: number) {

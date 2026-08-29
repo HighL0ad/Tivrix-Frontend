@@ -211,7 +211,7 @@ export function DebtsPage() {
           {(financeQuery.isPending && !financeQuery.data) || (dashboardQuery.isPending && !dashboardQuery.data) ? (
             <InstallmentsSkeleton />
           ) : !fData || !dashboardQuery.data ? (
-            <div className="flex min-h-64 items-center justify-center rounded-lg border border-dashed text-sm text-rose-600">
+            <div className="flex min-h-64 items-center justify-center rounded-lg border border-dashed text-sm text-destructive">
               {t("finance.permissionRestricted")}
             </div>
           ) : (
@@ -301,7 +301,7 @@ export function DebtsPage() {
                         count: String(fData.attention.installment_overdue_count),
                       })}
                       icon={<AlertCircle className="size-5" />}
-                      className="border-rose-200 bg-rose-100 text-rose-950 font-extrabold"
+                      className="border-destructive/25 bg-destructive/10 font-extrabold text-foreground"
                     />
                     <AttentionMetric
                       title={t("finance.next7dReceipts")}
@@ -310,7 +310,7 @@ export function DebtsPage() {
                         count: String(fData.attention.installment_next_7d_count),
                       })}
                       icon={<TrendingUp className="size-5" />}
-                      className="border-emerald-200 bg-emerald-100/70 text-emerald-950"
+                      className="border-success/25 bg-success/10 text-foreground"
                     />
                     <AttentionMetric
                       title={t("finance.next30dReceipts")}
@@ -328,12 +328,12 @@ export function DebtsPage() {
                         count: String(fData.attention.shop_overdue_count),
                       })}
                       icon={<HandCoins className="size-5" />}
-                      className="border-amber-200 bg-amber-100/70 text-amber-950"
+                      className="border-warning/25 bg-warning/10 text-foreground"
                     />
                   </div>
 
                   {/* Правая часть: Выделенный счётчик активных клиентов */}
-                  <div className="rounded-lg border border-border bg-linear-to-b from-card to-muted/45 backdrop-blur-xs p-5 flex flex-col justify-between shadow-xs min-h-[180px]">
+                  <div className="flex min-h-[180px] flex-col justify-between rounded-lg border border-border bg-card p-5">
                     <div>
                       <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         {t("finance.activeInstallmentClients")}
@@ -353,8 +353,8 @@ export function DebtsPage() {
                         <UsersRound className="size-3.5 text-muted-foreground" />
                         <span>{t("finance.crmSync")}</span>
                       </div>
-                      <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100/85 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                        <span className="inline-block size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                      <div className="flex items-center gap-1 rounded-full border border-success/25 bg-success/10 px-1.5 py-0.5 text-success">
+                        <span className="inline-block size-1.5 rounded-full bg-success" aria-hidden="true" />
                         <span className="text-[9px] font-extrabold tracking-normal">
                           {t("common.active").toLocaleLowerCase(i18n.resolvedLanguage)}
                         </span>
@@ -397,7 +397,7 @@ export function DebtsPage() {
                                   <NavLink
                                     to={`/clients/${item.client_id}`}
                                     state={{ from: installmentsReturnTo }}
-                                    className="block truncate font-bold leading-5 text-foreground transition-all duration-200 hover:text-primary"
+                                    className="block truncate font-bold leading-5 text-foreground transition-colors duration-150 hover:text-primary"
                                   >
                                     {item.client_name}
                                   </NavLink>
@@ -438,7 +438,7 @@ export function DebtsPage() {
                                     <NavLink
                                       to={`/clients/${item.client_id}`}
                                       state={{ from: installmentsReturnTo }}
-                                      className="inline-block max-w-full truncate font-bold text-foreground transition-all duration-200 hover:translate-x-0.5 hover:text-primary"
+                                      className="inline-block max-w-full truncate font-bold text-foreground transition-colors duration-150 hover:text-primary"
                                     >
                                       {item.client_name}
                                     </NavLink>
@@ -505,7 +505,7 @@ export function DebtsPage() {
                                 </span>
                               </div>
                               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                                <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width }} />
+                                <div className="h-full rounded-full bg-success transition-[width] duration-300 ease-out motion-reduce:transition-none" style={{ width }} />
                               </div>
                               <div className="flex items-center justify-between mt-0.5">
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -547,7 +547,7 @@ function PayablesBlock({
     <Card className="gap-0 py-0">
       <CardHeader className="flex flex-row items-center justify-between gap-3 border-b px-4 py-3">
         <CardTitle className="min-w-0 text-sm">{t("debts.unpaidPayables")}</CardTitle>
-        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-300">
+        <Badge variant="outline" className="border-warning/25 bg-warning/10 text-warning">
           {money(total)}
         </Badge>
       </CardHeader>
@@ -604,7 +604,7 @@ function PayableRows({
             <div className="flex min-w-0 items-start gap-3">
               <div
                 className={`mt-1.5 size-2.5 shrink-0 rounded-full ${
-                  isOverdue ? "bg-rose-500" : "bg-amber-500"
+                  isOverdue ? "bg-destructive" : "bg-warning"
                 }`}
                 aria-hidden="true"
               />
@@ -620,9 +620,9 @@ function PayableRows({
                   <div
                     className={`mt-1 flex items-center gap-1.5 whitespace-nowrap text-xs font-medium ${
                       isOverdue
-                        ? "text-rose-600"
+                        ? "text-destructive"
                         : isDueSoon
-                          ? "text-amber-600"
+                          ? "text-warning"
                           : "text-muted-foreground"
                     }`}
                   >
@@ -718,7 +718,7 @@ function PayableRows({
             </div>
 
             <div className="flex items-center justify-between gap-3 border-t pt-2 sm:border-0 sm:pt-0">
-              <span className="whitespace-nowrap font-bold text-amber-700 sm:text-base">
+              <span className="whitespace-nowrap font-bold text-warning sm:text-base">
                 {money(payable.amount)}
               </span>
               <PayableDialog
@@ -751,17 +751,17 @@ function DebtGroupBlock({
 }) {
   const total = sumWallets(wallets);
   const totalClass = {
-    bad: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/35 dark:bg-rose-500/10 dark:text-rose-300",
-    blue: "border-blue-200 bg-blue-50 text-blue-700 dark:border-sky-500/35 dark:bg-sky-500/10 dark:text-sky-300",
-    good: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/35 dark:bg-emerald-500/10 dark:text-emerald-300",
+    bad: "border-destructive/25 bg-destructive/10 text-destructive",
+    blue: "border-info/25 bg-info/10 text-info",
+    good: "border-success/25 bg-success/10 text-success",
   }[tone];
   const cardClass = {
     bad: "gap-0 py-0",
-    blue: "gap-0 border-blue-200 py-0",
+    blue: "gap-0 border-info/25 py-0",
     good: "gap-0 py-0",
   }[tone];
   const headerClass = tone === "blue"
-    ? "flex flex-row items-center justify-between gap-3 border-b border-blue-200 bg-blue-50/50 px-4 py-3 dark:border-sky-500/25 dark:bg-sky-500/10"
+    ? "flex flex-row items-center justify-between gap-3 border-b border-info/25 bg-info/10 px-4 py-3"
     : "flex flex-row items-center justify-between gap-3 border-b px-4 py-3";
 
   return (
@@ -831,7 +831,7 @@ function WalletRow({
                 <NavLink
                   to={`/clients/${wallet.client_id}`}
                   state={{ from: "/debts" }}
-                  className="break-words font-semibold text-foreground transition-all duration-200 hover:text-primary hover:translate-x-0.5"
+                  className="break-words font-semibold text-foreground transition-colors duration-150 hover:text-primary"
                   onClick={(event) => event.stopPropagation()}
                 >
                   {wallet.name}

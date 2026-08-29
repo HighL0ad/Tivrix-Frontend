@@ -573,7 +573,7 @@ export function SpotlightTour({
 
       {spotlightRect && (
         <div
-          className="fixed rounded-xl ring-2 ring-sky-300 ring-offset-4 ring-offset-slate-950/90 shadow-[0_0_0_1px_rgba(14,165,233,0.25),0_12px_36px_rgba(14,165,233,0.35)] transition-all duration-500 ease-out pointer-events-none z-[100] motion-reduce:transition-none"
+          className="pointer-events-none fixed z-[100] rounded-xl ring-2 ring-sky-300 ring-offset-4 ring-offset-slate-950/90 shadow-[0_8px_24px_rgba(2,6,23,0.28)] transition-[top,left,width,height,box-shadow] duration-300 ease-out motion-reduce:transition-none"
           style={{
             top: `${spotlightRect.top}px`,
             left: `${spotlightRect.left}px`,

@@ -409,7 +409,7 @@ function LightboxImage({ src }: { src: string }) {
       onMouseLeave={handleMouseLeave}
     >
       {/* Zoom hint pill */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-slate-950/65 px-3 py-1.5 text-xs font-bold text-white shadow-md backdrop-blur-md transition-all">
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-slate-950/75 px-3 py-1.5 text-xs font-bold text-white shadow-sm">
         {isZoomed ? (
           <>
             <ZoomOut className="size-3.5 text-sky-400" />

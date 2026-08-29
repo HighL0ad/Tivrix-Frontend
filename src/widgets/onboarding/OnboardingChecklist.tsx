@@ -95,7 +95,7 @@ export function OnboardingChecklist({
 
   return (
     <>
-      <Card className="relative overflow-hidden border-sky-500/30 bg-linear-to-r from-sky-500/10 via-indigo-500/5 to-transparent shadow-md">
+      <Card className="relative overflow-hidden border-primary/25 bg-card shadow-none">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md shadow-sky-900/30">
@@ -147,7 +147,7 @@ export function OnboardingChecklist({
           {/* Progress Bar */}
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full bg-linear-to-r from-sky-500 to-indigo-600 transition-all duration-500"
+              className="h-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -159,10 +159,10 @@ export function OnboardingChecklist({
                 <div
                   key={step.id}
                   className={cn(
-                    "flex flex-col justify-between rounded-xl border p-3.5 transition-all",
+                    "flex flex-col justify-between rounded-xl border p-3.5 transition-colors duration-150",
                     step.completed
-                      ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-950 dark:text-emerald-200"
-                      : "border-border bg-card hover:border-sky-500/40",
+                      ? "border-success/30 bg-success/8 text-foreground"
+                      : "border-border bg-card hover:border-primary/40",
                   )}
                 >
                   <div className="space-y-2">
@@ -171,7 +171,7 @@ export function OnboardingChecklist({
                         className={cn(
                           "flex size-8 items-center justify-center rounded-lg text-xs font-bold",
                           step.completed
-                            ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                            ? "bg-success/12 text-success"
                             : "bg-muted text-muted-foreground",
                         )}
                       >
