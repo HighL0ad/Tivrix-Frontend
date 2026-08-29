@@ -462,11 +462,11 @@ export function HelpCenterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[94dvh] max-h-[94dvh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-t-2xl rounded-b-none border-border bg-card p-0 pb-[env(safe-area-inset-bottom)] shadow-2xl duration-200 sm:h-auto sm:max-h-[min(90vh,52rem)] sm:w-[94vw] sm:max-w-4xl sm:rounded-2xl sm:pb-0 sm:duration-300">
+      <DialogContent className="flex h-[94dvh] max-h-[94dvh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-t-lg rounded-b-none border-border bg-card p-0 pb-[env(safe-area-inset-bottom)] shadow-lg duration-200 sm:h-auto sm:max-h-[min(90vh,52rem)] sm:w-[94vw] sm:max-w-4xl sm:rounded-lg sm:pb-0 sm:duration-300">
         {/* Header */}
         <DialogHeader className="shrink-0 border-b bg-muted/40 px-5 pt-7 pb-4 pr-12 sm:px-6 sm:py-4 sm:pr-12">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 shadow-xs">
+            <span className="text-sky-600 dark:text-sky-400">
               <HelpCircle className="size-6" />
             </span>
             <div>
@@ -518,11 +518,11 @@ export function HelpCenterDialog({
 
               {/* Selected instruction summary */}
               <div className="flex items-start gap-3 border-b pb-5 sm:gap-4">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/12 text-sky-600 dark:bg-sky-500/18 dark:text-sky-400">
+                <span className="shrink-0 text-sky-600 dark:text-sky-400">
                   <SelectedTopicIcon className="size-5" />
                 </span>
                 <div className="min-w-0 space-y-1">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("help.stepByStep")}
                   </p>
                   <h2 className="text-lg font-bold leading-tight text-foreground sm:text-xl">
@@ -571,14 +571,14 @@ export function HelpCenterDialog({
                 key={`${selectedTopic.id}-${currentStepIndex}`}
                 aria-live="polite"
                 className={cn(
-                  "space-y-5 rounded-2xl border bg-card p-4 shadow-md animate-in fade-in-0 duration-500 motion-reduce:animate-none sm:space-y-6 sm:p-6",
+                  "space-y-5 rounded-lg border bg-card p-4 shadow-none animate-in fade-in-0 duration-300 motion-reduce:animate-none sm:space-y-6 sm:p-6",
                   stepDirection === "forward"
                     ? "slide-in-from-right-2"
                     : "slide-in-from-left-2",
                 )}
               >
                 <div className="flex items-start gap-4">
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white font-bold text-lg shadow-md shadow-sky-900/30">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sky-600 text-base font-bold text-white">
                     {currentStepIndex + 1}
                   </span>
                   <div className="space-y-2">
@@ -593,15 +593,15 @@ export function HelpCenterDialog({
 
                 {/* Pro-Tip Box if present */}
                 {activeStep.tipKey && (
-                  <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-medium text-amber-950 dark:text-amber-200">
+                  <aside className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-4 text-xs font-medium text-foreground">
                     <Lightbulb className="size-5 shrink-0 text-amber-500" />
                     <div className="space-y-1">
-                      <span className="font-bold block uppercase text-[10px] tracking-wider text-amber-600 dark:text-amber-400">
+                      <span className="block font-semibold">
                         {t("help.proTip")}
                       </span>
                       <p className="leading-relaxed">{t(activeStep.tipKey)}</p>
                     </div>
-                  </div>
+                  </aside>
                 )}
 
                 {/* Direct Action Link for this step */}
@@ -648,7 +648,7 @@ export function HelpCenterDialog({
                     >
                       <span
                         className={cn(
-                          "h-2 rounded-full transition-all duration-500 motion-reduce:transition-none",
+                          "h-2 rounded-full transition-colors duration-150 motion-reduce:transition-none",
                           idx === currentStepIndex
                             ? "w-6 bg-sky-600"
                             : "w-2 bg-muted hover:bg-sky-400/50",
@@ -707,11 +707,9 @@ export function HelpCenterDialog({
 
               {/* Interactive Screen Tour Banner */}
               {onStartTour && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-sky-500/30 bg-sky-500/10 p-4 text-xs">
+                <div className="flex flex-col items-start justify-between gap-4 border-y py-4 text-xs sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md">
-                      <Sparkles className="size-5" />
-                    </span>
+                    <Sparkles className="size-5 shrink-0 text-sky-600" />
                     <div className="space-y-0.5">
                       <p className="font-bold text-foreground text-sm">{t("tour.interactiveGuide")}</p>
                       <p className="text-xs text-muted-foreground">{t("tour.bannerDesc")}</p>
@@ -723,7 +721,7 @@ export function HelpCenterDialog({
                       onOpenChange(false);
                       onStartTour("quick-start");
                     }}
-                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md shrink-0 gap-1.5 w-full sm:w-auto justify-center"
+                    className="w-full shrink-0 justify-center gap-1.5 bg-sky-600 text-xs font-bold text-white shadow-none hover:bg-sky-500 sm:w-auto"
                   >
                     <Sparkles className="size-4" />
                     {t("help.startTour")}
@@ -741,14 +739,14 @@ export function HelpCenterDialog({
                       type="button"
                       key={topic.id}
                       onClick={() => handleSelectTopic(topic)}
-                      className="group flex flex-col justify-between rounded-2xl border bg-card p-5 text-left transition-all duration-300 hover:border-sky-500/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 motion-reduce:transition-none"
+                      className="group flex flex-col justify-between rounded-lg border bg-card p-4 text-left transition-colors duration-150 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 motion-reduce:transition-none"
                     >
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="flex size-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none dark:bg-sky-500/20 dark:text-sky-400">
+                          <span className="text-sky-600 dark:text-sky-400">
                             <Icon className="size-6" />
                           </span>
-                          <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+                          <span className="text-xs font-medium text-muted-foreground">
                             {t("help.stepCount", { count: topic.steps.length })}
                           </span>
                         </div>
@@ -763,10 +761,7 @@ export function HelpCenterDialog({
                       </div>
 
                       <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs font-bold text-sky-600 dark:text-sky-400">
-                        <span className="flex items-center gap-1.5">
-                          <Sparkles className="size-3.5" />
-                          {t("help.startWizard")}
-                        </span>
+                        <span>{t("help.startWizard")}</span>
                         <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none" />
                       </div>
                     </button>
@@ -774,10 +769,8 @@ export function HelpCenterDialog({
                   })}
                 </div>
               ) : (
-                <div className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 text-center">
-                  <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                    <SearchX className="size-5" />
-                  </span>
+                <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed px-6 text-center">
+                  <SearchX className="size-5 text-muted-foreground" />
                   <h3 className="mt-4 text-sm font-bold text-foreground">
                     {t("help.noResultsTitle")}
                   </h3>

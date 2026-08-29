@@ -40,57 +40,27 @@ function FilterCard({
   icon?: ReactNode;
   onClick: () => void;
 }) {
-  const toneStyle = {
-    neutral: {
-      card: "border-border before:from-gray-300 before:to-gray-500",
-      activeCard: "border-border bg-muted/50 before:from-gray-400 before:to-gray-600 ring-2 ring-ring/10",
-      icon: "border-border bg-muted text-foreground",
-      activeIcon: "border-border bg-muted text-foreground",
-    },
-    good: {
-      card: "border-emerald-200 before:from-emerald-400 before:to-teal-500",
-      activeCard: "border-emerald-400 bg-emerald-50/30 dark:bg-emerald-500/10 before:from-emerald-400 before:to-teal-600 ring-2 ring-emerald-500/10",
-      icon: "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-400/45 dark:bg-emerald-400/16 dark:text-emerald-200",
-      activeIcon: "border-emerald-300 bg-emerald-200/80 text-emerald-950 dark:border-emerald-300/60 dark:bg-emerald-400/24 dark:text-emerald-100",
-    },
-    bad: {
-      card: "border-rose-200 before:from-rose-400 before:to-red-500",
-      activeCard: "border-rose-400 bg-rose-50/30 dark:bg-rose-500/10 before:from-rose-400 before:to-red-600 ring-2 ring-rose-500/10",
-      icon: "border-rose-200 bg-rose-100 text-rose-700 dark:border-rose-400/45 dark:bg-rose-400/16 dark:text-rose-200",
-      activeIcon: "border-rose-300 bg-rose-200/80 text-rose-950 dark:border-rose-300/60 dark:bg-rose-400/24 dark:text-rose-100",
-    },
-    info: {
-      card: "border-blue-200 before:from-blue-400 before:to-indigo-500",
-      activeCard: "border-blue-400 bg-blue-50/30 dark:bg-sky-500/10 before:from-blue-400 before:to-indigo-600 ring-2 ring-blue-500/10",
-      icon: "border-sky-200 bg-indigo-100 text-indigo-700 dark:border-sky-400/45 dark:bg-sky-400/16 dark:text-sky-200",
-      activeIcon: "border-indigo-300 bg-indigo-200/80 text-indigo-950 dark:border-sky-300/60 dark:bg-sky-400/24 dark:text-sky-100",
-    },
-    warning: {
-      card: "border-amber-200 before:from-amber-400 before:to-orange-500",
-      activeCard: "border-amber-400 bg-amber-50/30 dark:bg-amber-500/10 before:from-amber-400 before:to-orange-600 ring-2 ring-amber-500/10",
-      icon: "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-400/45 dark:bg-amber-400/16 dark:text-amber-200",
-      activeIcon: "border-amber-300 bg-amber-200/80 text-amber-950 dark:border-amber-300/60 dark:bg-amber-400/24 dark:text-amber-100",
-    },
-    violet: {
-      card: "border-violet-200 before:from-violet-400 before:to-fuchsia-500",
-      activeCard: "border-violet-400 bg-violet-50/30 dark:bg-violet-500/10 before:from-violet-400 before:to-fuchsia-600 ring-2 ring-violet-500/10",
-      icon: "border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-400/45 dark:bg-violet-400/16 dark:text-violet-200",
-      activeIcon: "border-violet-300 bg-violet-200/80 text-violet-950 dark:border-violet-300/60 dark:bg-violet-400/24 dark:text-violet-100",
-    },
+  const iconTone = {
+    neutral: "text-muted-foreground",
+    good: "text-emerald-600 dark:text-emerald-400",
+    bad: "text-rose-600 dark:text-rose-400",
+    info: "text-primary",
+    warning: "text-amber-600 dark:text-amber-400",
+    violet: "text-primary",
   }[tone];
 
   return (
     <Card
       size="sm"
       className={cn(
-        "relative cursor-pointer select-none transition-all duration-300 hover:scale-[1.015] active:scale-[0.985] before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r",
-        active ? cn("shadow-md", toneStyle.activeCard) : cn("bg-card hover:bg-muted/40 hover:shadow-xs", toneStyle.card)
+        "cursor-pointer select-none border-border bg-card transition-colors duration-150 hover:bg-muted/40",
+        active && "border-primary bg-primary/5 ring-1 ring-primary/20",
       )}
       onClick={onClick}
     >
       <CardContent className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground transition-colors">
+          <div className="text-sm font-medium text-muted-foreground transition-colors">
             {title}
           </div>
           <div className="mt-2 break-words font-black tracking-tight text-foreground text-xl leading-none">
@@ -99,7 +69,7 @@ function FilterCard({
           {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
         </div>
         {icon ? (
-          <div className={cn("rounded-lg border p-2 shadow-sm transition-colors [&_svg]:stroke-[2.6]", active ? toneStyle.activeIcon : toneStyle.icon)}>
+          <div className={cn("shrink-0 transition-colors [&_svg]:size-5 [&_svg]:stroke-[2.4]", active ? "text-primary" : iconTone)}>
             {icon}
           </div>
         ) : null}
@@ -267,7 +237,7 @@ export function ClientsPage() {
                       <div
                         key={client.id}
                         className={cn(
-                          "rounded-xl border border-border p-4 shadow-sm space-y-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-95",
+                          "cursor-pointer space-y-3 rounded-lg border border-border p-4 shadow-sm transition-colors duration-150 hover:bg-muted/40",
                           hasDebt ? "bg-card border-border" : "bg-card"
                         )}
                         onClick={() =>
@@ -301,7 +271,7 @@ export function ClientsPage() {
 
                         <div className="grid grid-cols-3 gap-2 border-t border-border/50 pt-2.5 text-xs">
                           <div>
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                            <span className="mb-0.5 block text-xs font-medium text-muted-foreground">
                               {t("products.phone")}
                             </span>
                             <span className="font-medium text-foreground truncate block">
@@ -309,7 +279,7 @@ export function ClientsPage() {
                             </span>
                           </div>
                           <div>
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                            <span className="mb-0.5 block text-xs font-medium text-muted-foreground">
                               {t("clients.purchases")}
                             </span>
                             <span className="font-medium text-foreground">
@@ -317,7 +287,7 @@ export function ClientsPage() {
                             </span>
                           </div>
                           <div>
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                            <span className="mb-0.5 block text-xs font-medium text-muted-foreground">
                               {t("clients.lastPurchase")}
                             </span>
                             <span className="font-medium text-foreground">

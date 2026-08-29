@@ -354,10 +354,7 @@ export function DebtsPage() {
                         <span>{t("finance.crmSync")}</span>
                       </div>
                       <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-100/85 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                        <span className="relative flex size-1.5">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
-                        </span>
+                        <span className="inline-block size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                         <span className="text-[9px] font-extrabold tracking-normal">
                           {t("common.active").toLocaleLowerCase(i18n.resolvedLanguage)}
                         </span>
@@ -606,7 +603,7 @@ function PayableRows({
           >
             <div className="flex min-w-0 items-start gap-3">
               <div
-                className={`mt-1.5 size-2.5 shrink-0 rounded-full animate-pulse ${
+                className={`mt-1.5 size-2.5 shrink-0 rounded-full ${
                   isOverdue ? "bg-rose-500" : "bg-amber-500"
                 }`}
                 aria-hidden="true"
@@ -825,7 +822,7 @@ function WalletRow({
       >
         <div className="flex min-w-0 items-center gap-3">
           <div
-            className={`size-2.5 shrink-0 rounded-full animate-pulse ${dotClass}`}
+            className={`size-2.5 shrink-0 rounded-full ${dotClass}`}
             aria-hidden="true"
           />
           <div className="min-w-0">
@@ -987,7 +984,7 @@ function DebtDueDateLine({ dueDate, compact = false }: { dueDate: string; compac
         "mt-1 flex min-w-0 items-center gap-1 whitespace-nowrap font-medium",
         compact ? "text-[11px]" : "text-xs",
         new Date(dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
-          ? "text-rose-600 font-semibold animate-pulse"
+          ? "text-rose-600 font-semibold"
           : "text-amber-600"
       )}
     >

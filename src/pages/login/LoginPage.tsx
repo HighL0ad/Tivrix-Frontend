@@ -6,10 +6,8 @@ import { toast } from "sonner";
 
 import { useLogin } from "@/entities/auth/api/use-login";
 import { queryClient } from "@/shared/api/query-client";
-import { ApiError } from "@/shared/api/http";
 import { getApiErrorMessage } from "@/shared/api/error";
 import { LanguageRow } from "@/shared/i18n/LanguageSwitcher";
-import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -55,8 +53,7 @@ export function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0f172a] p-4">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(79,70,229,0.28),transparent_32%),radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.16),transparent_28%)]" />
-      <Card className="relative w-full max-w-sm border-white/15 bg-white/10 p-0 text-white shadow-2xl backdrop-blur-xl">
+      <Card className="w-full max-w-sm border-white/15 bg-[#111827] p-0 text-white shadow-sm">
         <CardHeader className="mb-2 items-center px-8 pt-8 text-center">
           <div className="flex w-full items-center justify-center gap-3">
             <TivrixMark className="size-12 shrink-0" />
@@ -76,7 +73,7 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error ? (
-              <div className="flex items-center gap-2.5 rounded-lg border border-red-500/30 bg-red-500/15 px-3.5 py-2.5 text-xs font-semibold text-red-200 shadow-sm backdrop-blur-md">
+              <div className="flex items-center gap-2.5 rounded-lg border border-white/15 bg-[#0f172a] px-3.5 py-2.5 text-xs font-semibold text-slate-200">
                 <AlertCircle className="size-4 shrink-0 text-red-400" aria-hidden="true" />
                 <span>{error}</span>
               </div>
@@ -85,7 +82,7 @@ export function LoginPage() {
             <div>
               <Label
                 htmlFor="username"
-                className="mb-1 ml-1 block text-xs font-bold uppercase text-slate-300"
+                className="mb-1 ml-1 block text-xs font-medium text-slate-300"
               >
                 {t("login.username")}
               </Label>
@@ -109,7 +106,7 @@ export function LoginPage() {
             <div>
               <Label
                 htmlFor="password"
-                className="mb-1 ml-1 block text-xs font-bold uppercase text-slate-300"
+                className="mb-1 ml-1 block text-xs font-medium text-slate-300"
               >
                 {t("login.password")}
               </Label>
@@ -134,7 +131,7 @@ export function LoginPage() {
             <Button
               type="submit"
               disabled={loginMutation.isPending}
-              className="mt-2 w-full bg-[#4f46e5] py-3.5 shadow-lg shadow-indigo-950/30 hover:bg-indigo-500"
+              className="mt-2 w-full bg-sky-600 py-3.5 shadow-none hover:bg-sky-500"
             >
               <LogIn aria-hidden="true" />
               {loginMutation.isPending ? t("login.loading") : t("login.submit")}
