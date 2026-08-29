@@ -175,7 +175,7 @@ export function ClientsPage() {
           <div className={clientsQuery.isFetching ? "opacity-60 transition-opacity duration-200" : "transition-opacity duration-200"}>
             {clients.length ? (
               <>
-                <Table className="hidden md:table">
+                <Table className="hidden lg:table">
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("common.name")}</TableHead>
@@ -230,7 +230,7 @@ export function ClientsPage() {
                 </Table>
 
                 {/* Mobile Client Card List */}
-                <div className="grid gap-3 md:hidden">
+                <div className="grid gap-3 lg:hidden">
                   {clients.map((client) => {
                     const hasDebt = Number(client.total_debt) > 0;
                     return (
