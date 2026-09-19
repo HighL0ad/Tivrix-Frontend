@@ -17,6 +17,9 @@ export function useUpdateProduct(productId: number) {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["finance"] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["catalogs"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 }
