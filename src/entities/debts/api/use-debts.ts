@@ -96,6 +96,8 @@ export function useRepayDebt() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["catalogs"] });
       queryClient.invalidateQueries({ queryKey: ["finance"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },

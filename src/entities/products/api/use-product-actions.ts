@@ -16,16 +16,24 @@ export function useUndoProductSale(productId: number) {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["finance"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["catalogs"] });
     },
   });
 }
 
 export function useDeleteProduct(productId: number) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
       apiRequest<{ ok: boolean }>(`/api/products/${productId}`, {
         method: "DELETE",
       }),
+    onSuccess: () => {
+      for (const key of ["products", "finance", "dashboard", "debts", "clients", "catalogs"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
+    },
   });
 }
 
@@ -44,6 +52,7 @@ export function useUpdateProductSalePrice(productId: number) {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["finance"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["catalogs"] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
