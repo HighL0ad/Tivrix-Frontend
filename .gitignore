@@ -3,3 +3,16 @@ dist/
 .vite/
 *.local
 *.tsbuildinfo
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+.codex/
+.agents/
+.sdl-mcp/
