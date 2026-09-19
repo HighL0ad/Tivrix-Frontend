@@ -1,0 +1,131 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "demo"]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  BACKEND_IMAGE: ghcr.io/highl0ad/ferdi-crm-backend
+  FRONTEND_IMAGE: ghcr.io/highl0ad/ferdi-crm-frontend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck and build
+        run: npm run build
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set client and tag
+        id: set-client
+        run: |
+          if [ "${{ github.ref_name }}" = "demo" ]; then
+            echo "client=demo" >> $GITHUB_OUTPUT
+            echo "tag=demo" >> $GITHUB_OUTPUT
+          else
+            echo "client=ferdi" >> $GITHUB_OUTPUT
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to Nomad
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            sudo mkdir -p /etc/nomad
+            sudo cp ~/.docker/config.json /etc/nomad/docker-auth.json
+            sudo chmod 600 /etc/nomad/docker-auth.json
+
+            CLIENT="${{ steps.set-client.outputs.client }}"
+            TAG="${{ steps.set-client.outputs.tag }}"
+            JOB_PATH="/opt/nomad-clients/${CLIENT}/nomad/${CLIENT}.nomad"
+
+            test -f "$JOB_PATH"
+
+            nomad job validate \
+              -var="backend_image=${{ env.BACKEND_IMAGE }}:${TAG}" \
+              -var="frontend_image=${{ env.FRONTEND_IMAGE }}:${{ github.sha }}" \
+              "$JOB_PATH"
+
+            nomad job run \
+              -var="backend_image=${{ env.BACKEND_IMAGE }}:${TAG}" \
+              -var="frontend_image=${{ env.FRONTEND_IMAGE }}:${{ github.sha }}" \
+              "$JOB_PATH"
+
+            docker image prune -f
+
+      - name: Send Telegram Notification on Success
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            Frontend build and Nomad deployment successful!
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+
+      - name: Send Telegram Notification on Failure
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            Frontend Nomad deployment failed!
+            Pipeline failed on branch ${{ github.ref_name }}.
+            Link to logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
