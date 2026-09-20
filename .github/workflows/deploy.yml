@@ -3,6 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: ["main", "demo"]
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
